@@ -10,4 +10,12 @@ export const routes: Routes = [
         (m) => m.LandingComponent,
       ),
   },
+  {
+    path: 'login',
+    // canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./auth/pages/login/login.component').then(
+        (m) => m.LoginComponent,
+      ),
+  },
 ];
