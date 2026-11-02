@@ -1,0 +1,14 @@
+<a routerLink="/" aria-label="Accs Control, inicio">
+  @if (!missing()) {
+    <img
+      src="/assets/brand/accs-control.png"
+      alt="Accs Control"
+      (error)="missing.set(true)"
+    />
+  } @else {
+    <span
+      >Accs<span class="accent">Control</span
+      ><small>Gestión de tu negocio</small></span
+    >
+  }
+</a>

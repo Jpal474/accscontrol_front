@@ -1,0 +1,269 @@
+.shell {
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 2rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+}
+.brand-row {
+  padding: 0.25rem 0.5rem 2.5rem;
+}
+.nav-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  padding: 0 0.75rem;
+}
+nav {
+  display: grid;
+  gap: 0.4rem;
+}
+nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  border-radius: 0.65rem;
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 550;
+}
+nav a:hover {
+  background: var(--surface-alt);
+}
+nav a.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+nav a span {
+  font-size: 1.3rem;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 0.75rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.sidebar-bottom p {
+  margin: 0;
+  font-weight: 600;
+}
+.workspace {
+  min-width: 0;
+}
+.topbar {
+  min-height: 92px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+}
+.selectors {
+  display: flex;
+  gap: 1rem;
+  min-width: 0;
+}
+.selectors label {
+  display: grid;
+  font-size: 0.7rem;
+  color: var(--muted);
+  gap: 0.25rem;
+  min-width: 0;
+}
+.selectors select {
+  max-width: 220px;
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 0.4rem;
+}
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.user-name {
+  font-size: 0.8rem;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+main {
+  padding: 2.2rem;
+  min-height: calc(100dvh - 150px);
+  outline: none;
+}
+footer {
+  padding: 1rem 2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.menu-toggle,
+.mobile-close {
+  display: none;
+}
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 1rem;
+  z-index: 200;
+  background: var(--surface);
+  padding: 1rem;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+.backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  border-radius: 0;
+  background: #10182888;
+  z-index: 29;
+}
+@media (max-width: 1023px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    width: 244px;
+    z-index: 30;
+    transition: left 0.18s;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .menu-toggle,
+  .mobile-close {
+    display: block;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar {
+    padding: 1rem;
+  }
+  .user-name {
+    display: none;
+  }
+  main {
+    padding: 1.5rem;
+  }
+}
+@media (max-width: 600px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .selectors {
+    order: 3;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .selectors select {
+    max-width: 100%;
+  }
+  .user-actions {
+    margin-left: auto;
+  }
+  main {
+    padding: 1.25rem;
+  }
+  footer {
+    padding: 1rem;
+  }
+  .topbar {
+    min-height: 128px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidebar:not(.open) {
+    visibility: hidden;
+  }
+  .sidebar.open {
+    visibility: visible;
+  }
+}
+
+// Persistent brand panel, matching the public login in either theme.
+.sidebar {
+  --surface: #0b1240;
+  --surface-alt: #192653;
+  --text: #ffffff;
+  --muted: #aeb8da;
+  --accent: #4cc3f5;
+  --accent-soft: #4cc3f524;
+  --border: #ffffff24;
+  background: radial-gradient(100% 45% at 0 0, #2ea3db30, transparent 80%), #0b1240;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+nav a {
+  min-height: 48px;
+  border-radius: var(--control-radius);
+}
+nav a.active {
+  box-shadow: inset 3px 0 #4cc3f5;
+  font-weight: 750;
+}
+.topbar {
+  gap: 1.25rem;
+}
+.selectors select {
+  min-height: var(--control-height);
+  border-radius: var(--control-radius);
+}
+.selectors label {
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.workspace > main {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+}
+.user-actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .selectors {
+    gap: 0.75rem;
+  }
+  .user-actions {
+    gap: 0.5rem;
+  }
+}
+
+.nav-icon {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1;
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+}

@@ -1,0 +1,14 @@
+<dialog
+  #dialog
+  aria-labelledby="confirmation-title"
+  (click)="$event.target === dialog && close()"
+>
+  <h2 id="confirmation-title">{{ title() }}</h2>
+  <p>{{ message() }}</p>
+  <div class="actions">
+    <button type="button" autofocus (click)="close()">Cancelar</button
+    ><button class="primary" type="button" (click)="confirm()">
+      {{ confirmLabel() }}
+    </button>
+  </div>
+</dialog>

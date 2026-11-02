@@ -18,4 +18,12 @@ export const routes: Routes = [
         (m) => m.LoginComponent,
       ),
   },
+  {
+    path: 'app',
+    // canActivate: [authGuard],
+    loadComponent: () =>
+      import('./layout/pages/shell/shell.component').then(
+        (m) => m.ShellComponent,
+      ),
+  },
 ];

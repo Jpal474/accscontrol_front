@@ -1,0 +1,102 @@
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { BrandComponent } from '../../../shared/components/brand/brand.component';
+
+@Component({
+  selector: 'app-shell',
+  standalone: true,
+  imports: [
+    ConfirmDialogComponent,
+    RouterOutlet,
+    FormsModule,
+    RouterLink,
+    RouterLinkActive,
+    BrandComponent,
+  ],
+  templateUrl: './shell.component.html',
+  styleUrl: './shell.component.scss',
+})
+export class ShellComponent {
+  readonly open = signal(false);
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  readonly confirmation = viewChild.required(ConfirmDialogComponent);
+  @HostListener('document:keydown.escape', ['$event'])
+  escapeMenu(event: Event) {
+    if (this.open()) {
+      event.preventDefault();
+      this.closeMenu();
+    }
+  }
+  @HostListener('window:resize')
+  onResize() {
+    if (window.innerWidth >= 1024) this.open.set(false);
+  }
+  toggleMenu() {
+    if (this.open()) {
+      this.closeMenu();
+      return;
+    }
+    this.open.set(true);
+    setTimeout(
+      () =>
+        this.open() &&
+        this.element.nativeElement
+          .querySelector<HTMLButtonElement>('.mobile-close')
+          ?.focus(),
+    );
+  }
+  menuKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeMenu();
+      return;
+    }
+    if (event.key !== 'Tab' || !this.open()) return;
+    const nodes = Array.from(
+      this.element.nativeElement.querySelectorAll<HTMLElement>(
+        '.sidebar button, .sidebar a',
+      ),
+    );
+    const first = nodes[0],
+      last = nodes[nodes.length - 1];
+    if (event.shiftKey && event.target === first) {
+      event.preventDefault();
+      last?.focus();
+    }
+    if (!event.shiftKey && event.target === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  }
+
+  async logout() {
+    // try {
+    //   await this.auth.logout();
+    // } catch {
+    //   this.notices.show(
+    //     'Sesión local cerrada. No se pudo confirmar la revocación; vuelve a intentarlo al recuperar conexión.',
+    //     'error',
+    //   );
+    // } finally {
+    //   await this.router.navigateByUrl('/login', { replaceUrl: true });
+    // }
+  }
+
+  closeMenu() {
+    this.open.set(false);
+    setTimeout(() =>
+      this.element.nativeElement
+        .querySelector<HTMLButtonElement>('.menu-toggle')
+        ?.focus(),
+    );
+  }
+}

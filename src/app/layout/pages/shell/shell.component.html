@@ -1,0 +1,240 @@
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+@if (open()) {
+  <button
+    class="backdrop"
+    aria-label="Cerrar menú"
+    (click)="closeMenu()"
+  ></button>
+}
+<div class="shell">
+  <aside
+    id="main-sidebar"
+    class="sidebar"
+    [class.open]="open()"
+    (keydown)="menuKeydown($event)"
+  >
+    <div class="brand-row">
+      <app-brand /><button
+        class="mobile-close"
+        type="button"
+        aria-label="Cerrar menú"
+        (click)="closeMenu()"
+      >
+        ×
+      </button>
+    </div>
+    <p class="nav-label">ESPACIO DE TRABAJO</p>
+    <nav aria-label="Navegación principal">
+      <!-- @if (auth.context()) { -->
+      <a
+        routerLink="/app/subscription"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">workspace_premium</span>
+        Suscripción</a
+      >
+      <!-- } -->
+      <a
+        routerLink="/app"
+        [routerLinkActiveOptions]="{ exact: true }"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">space_dashboard</span>
+        Inicio</a
+      >
+      <!-- @if (
+        auth.can("pos.read") ||
+        auth.can("cash.read") ||
+        auth.can("repairs.read")
+      ) { -->
+      <a
+        routerLink="/app/reports"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">insights</span> Reportes</a
+      >
+      <!-- } -->
+      <!-- @if (auth.can("branches.read")) { -->
+      <a
+        routerLink="/app/branches"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">storefront</span>
+        Sucursales</a
+      >
+      <!-- } -->
+      <a
+        routerLink="/app/account"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">account_circle</span> Mi
+        cuenta</a
+      >
+      <!-- @if (auth.can("customers.read")) { -->
+      <a
+        routerLink="/app/customers"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">contacts</span> Clientes</a
+      >
+      <!-- } -->
+      <!-- @if (auth.can("repairs.read")) { -->
+      <a
+        routerLink="/app/repairs"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">build</span> Reparaciones</a
+      >
+      <!-- } -->
+      <!-- @if (auth.can("transfers.read")) { -->
+      <a
+        routerLink="/app/transfers"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">swap_horiz</span>
+        Transferencias</a
+      >
+      <!-- } -->
+      <!-- @if (auth.can("purchasing.cost.read")) { -->
+      <a
+        routerLink="/app/purchases"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">local_shipping</span> Compras
+        y proveedores</a
+      >
+      <!-- }
+      @if (auth.can("cash.read")) { -->
+      <a routerLink="/app/cash" routerLinkActive="active" (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">payments</span> Caja y
+        turnos</a
+      >
+      <!-- }
+      @if (auth.can("pos.sell")) { -->
+      <a routerLink="/app/pos" routerLinkActive="active" (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">point_of_sale</span> Punto de
+        venta</a
+      >
+      <!-- } -->
+      <!-- @if (auth.can("inventory.read")) { -->
+      <a
+        routerLink="/app/inventory"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">inventory_2</span>
+        Inventario</a
+      >
+      <!-- }
+      @if (auth.can("catalog.read")) { -->
+      <a
+        routerLink="/app/catalog"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">category</span> Catálogo</a
+      >
+      <!-- }
+      @if (auth.can("members.read")) { -->
+      <a
+        routerLink="/app/members"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">groups</span> Equipo</a
+      >
+      <!-- } -->
+      <!-- @if (onboarding.policy()?.allowed) { -->
+      <a
+        routerLink="/app/onboarding"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">add_business</span> Crear
+        empresa</a
+      >
+      <!-- }
+      @if (onboarding.policy()?.platformAdmin) { -->
+      <a
+        routerLink="/app/platform-billing"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">admin_panel_settings</span>
+        Planes y suscripciones</a
+      >
+      <a
+        routerLink="/app/access-requests"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">mark_email_unread</span>
+        Solicitudes de acceso</a
+      >
+      <!-- } -->
+      <a routerLink="/accept-invitation" (click)="closeMenu()"
+        ><span class="nav-icon" aria-hidden="true">mark_email_read</span>
+        Aceptar invitación</a
+      >
+    </nav>
+    <div class="sidebar-bottom">
+      <p>Accs Control Cloud</p>
+      <small>Tu negocio, conectado.</small>
+    </div>
+  </aside>
+  <div class="workspace" [attr.inert]="open() ? '' : null">
+    <header class="topbar">
+      <button
+        class="menu-toggle"
+        type="button"
+        [attr.aria-expanded]="open()"
+        aria-label="Abrir menú"
+        aria-controls="main-sidebar"
+        (click)="toggleMenu()"
+      >
+        ☰
+      </button>
+      <div class="selectors">
+        <label
+          >Empresa<select aria-label="Empresa">
+            <option value="" disabled>Selecciona empresa</option>
+          </select></label
+        ><label>Sucursal<select aria-label="Sucursal"></select></label>
+      </div>
+      <div class="user-actions">
+        <!-- <button
+          type="button"
+          (click)="theme.toggle()"
+          [attr.aria-label]="
+            theme.dark() ? 'Activar tema claro' : 'Activar tema oscuro'
+          "
+        >
+          {{ theme.dark() ? "☀" : "☾" }}</button
+        ><span class="user-name">{{ auth.user()?.displayName }}</span
+        > -->
+        <button type="button" class="logout" (click)="confirmation().open()">
+          Salir
+        </button>
+      </div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <!-- @if (auth.subscription(); as subscription) {
+        @if (!subscription.writable) {
+          <p class="panel" role="status">
+            Suscripción {{ subscription.effectiveState }}: sólo lectura y
+            exportación. Tus datos se conservan.
+          </p>
+        }
+      } -->
+      <router-outlet />
+    </main>
+    <footer>
+      Accs Control ·
+      <!-- {{ auth.membership()?.name || "Selecciona una empresa para continuar" }} -->
+    </footer>
+  </div>
+</div>
+<app-confirm-dialog
+  title="Cerrar sesión"
+  message="Terminarás tu sesión en este dispositivo."
+  confirmLabel="Cerrar sesión"
+  (confirmed)="logout()"
+/>
