@@ -1,0 +1,1096 @@
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+<div class="landing-layout">
+  <div data-component="landing-root" class="landing-root-layout">
+    <!-- NAV -->
+    <header
+      data-component="app-navbar"
+      data-screen-label="Navegación"
+      class="navbar-header"
+    >
+      <div class="navbar-layout">
+        <a
+          href="#inicio"
+          aria-label="Accs Control Cloud, inicio"
+          class="navbar-link"
+        >
+          <img
+            src="/assets/landing/accs-control.png"
+            alt="Accs Control"
+            class="navbar-image"
+          />
+          <span class="navbar-label">CLOUD</span>
+        </a>
+
+        <nav class="navbar-nav">
+          <a href="#funcionalidades" class="navbar-link-2">Funcionalidades</a>
+          <a href="#como-funciona" class="navbar-link-2">Cómo funciona</a>
+          <a href="#faq" class="navbar-link-2">Preguntas frecuentes</a>
+        </nav>
+
+        <div class="navbar-link">
+          <a
+            routerLink="/login"
+            data-component="app-button"
+            data-variant="ghost"
+            class="navbar-link-3"
+            >Iniciar sesión</a
+          >
+
+          <a
+            href="#solicitar"
+            data-component="app-button"
+            data-variant="primary"
+            class="navbar-link-4"
+            >Solicitar acceso</a
+          >
+
+          <button
+            (click)="toggleMenu()"
+            [attr.aria-label]="menuOpen() ? 'Cerrar menú' : 'Abrir menú'"
+            [attr.aria-expanded]="menuOpen()"
+            class="navbar-button"
+          >
+            <span aria-hidden="true" class="navbar-label-2">{{
+              menuOpen() ? "close" : "menu"
+            }}</span>
+          </button>
+        </div>
+      </div>
+      @if (menuOpen()) {
+        <nav class="navbar-nav-2">
+          <a href="#funcionalidades" (click)="closeMenu()" class="navbar-link-5"
+            >Funcionalidades</a
+          >
+          <a href="#como-funciona" (click)="closeMenu()" class="navbar-link-5"
+            >Cómo funciona</a
+          >
+          <a href="#faq" (click)="closeMenu()" class="navbar-link-5"
+            >Preguntas frecuentes</a
+          >
+          <a routerLink="/login" (click)="closeMenu()" class="navbar-link-6"
+            >Iniciar sesión</a
+          >
+        </nav>
+      }
+    </header>
+
+    <!-- HERO -->
+    <main id="main-content">
+      <section
+        id="inicio"
+        data-component="hero-section"
+        data-screen-label="Hero"
+        class="hero-section"
+      >
+        <div class="hero-layout"></div>
+        <div class="hero-layout-2">
+          <div class="hero-layout-3">
+            <div class="hero-layout-4">
+              <span class="hero-label"
+                ><span aria-hidden="true" class="hero-label-2"
+                  >build</span
+                ></span
+              >
+              Para tiendas de accesorios y talleres de reparación
+            </div>
+            <h1 class="hero-title">
+              Tu tienda, inventario y reparaciones
+              <span class="hero-label-3">bajo control.</span>
+            </h1>
+            <p class="hero-text">
+              Centraliza ventas, inventario, caja y reparaciones en un solo
+              sistema, para una o varias sucursales. Controla también qué
+              modelos de celular son compatibles con tus fundas, micas y otros
+              accesorios.
+            </p>
+            <a href="#compatibilidades" class="hero-compatibility-link">
+              <span class="hero-compatibility-icon" aria-hidden="true"
+                >devices</span
+              >
+              <span
+                >Una funda o mica, varios modelos compatibles.<small
+                  >Descubre cómo organizar sus compatibilidades →</small
+                ></span
+              >
+            </a>
+            <div class="hero-layout-5">
+              <a
+                href="#solicitar"
+                data-component="app-button"
+                data-variant="primary"
+                data-size="lg"
+                class="hero-link"
+                >Solicitar acceso
+                <span aria-hidden="true" class="hero-label-4"
+                  >arrow_forward</span
+                ></a
+              >
+              <a
+                routerLink="/login"
+                data-component="app-button"
+                data-variant="outline-light"
+                data-size="lg"
+                class="hero-link-2"
+                >Iniciar sesión</a
+              >
+            </div>
+            <p class="hero-text-2">
+              <span aria-hidden="true" class="hero-label-5">verified_user</span
+              >Acceso por invitación: revisamos cada solicitud antes de activar
+              la cuenta.
+            </p>
+            <div class="hero-layout-6">
+              <span class="hero-label-6">Ventas</span>
+              <span class="hero-label-6">Existencias</span>
+              <span class="hero-label-6">Compatibilidades</span>
+              <span class="hero-label-6">Caja</span>
+              <span class="hero-label-6">Servicio técnico</span>
+              <span class="hero-label-6">Sucursales</span>
+            </div>
+          </div>
+
+          <!-- Dashboard mock -->
+          <div class="hero-layout-7">
+            <div
+              data-component="dashboard-preview"
+              class="dashboard-preview-layout"
+            >
+              <div class="dashboard-preview-layout-2">
+                <span class="dashboard-preview-label"></span>
+                <span class="dashboard-preview-label-2"></span>
+                <span class="dashboard-preview-label-3"></span>
+                <span class="dashboard-preview-label-4"
+                  >Accs Control Cloud · Inicio</span
+                >
+                <span class="dashboard-preview-label-5">Datos de ejemplo</span>
+              </div>
+              <div class="dashboard-preview-layout-3">
+                <aside class="dashboard-preview-aside">
+                  <div class="dashboard-preview-layout-4">
+                    <span aria-hidden="true" class="hero-label-2"
+                      >space_dashboard</span
+                    >Inicio
+                  </div>
+                  <div class="dashboard-preview-layout-5">
+                    <span aria-hidden="true" class="hero-label-2"
+                      >point_of_sale</span
+                    >Ventas
+                  </div>
+                  <div class="dashboard-preview-layout-5">
+                    <span aria-hidden="true" class="hero-label-2"
+                      >inventory_2</span
+                    >Inventario
+                  </div>
+                  <div class="dashboard-preview-layout-5">
+                    <span aria-hidden="true" class="hero-label-2">payments</span
+                    >Caja
+                  </div>
+                  <div class="dashboard-preview-layout-5">
+                    <span aria-hidden="true" class="hero-label-2">build</span
+                    >Reparaciones
+                  </div>
+                  <div class="dashboard-preview-layout-5">
+                    <span aria-hidden="true" class="hero-label-2"
+                      >local_shipping</span
+                    >Compras
+                  </div>
+                  <div class="dashboard-preview-layout-5">
+                    <span aria-hidden="true" class="hero-label-2"
+                      >bar_chart</span
+                    >Reportes
+                  </div>
+                </aside>
+
+                <div class="dashboard-preview-layout-6">
+                  <div class="dashboard-preview-layout-7">
+                    <div class="dashboard-preview-layout-8">Resumen de hoy</div>
+                    <div class="dashboard-preview-layout-9">
+                      <span aria-hidden="true" class="dashboard-preview-label-6"
+                        >storefront</span
+                      >Sucursal Centro<span
+                        aria-hidden="true"
+                        class="dashboard-preview-label-6"
+                        >expand_more</span
+                      >
+                    </div>
+                  </div>
+                  <div class="dashboard-preview-layout-10">
+                    <div class="dashboard-preview-layout-11">
+                      <div class="dashboard-preview-layout-12">
+                        Ventas del día
+                      </div>
+                      <div class="dashboard-preview-layout-13">$8,450</div>
+                      <div class="dashboard-preview-layout-14">23 tickets</div>
+                    </div>
+                    <div class="dashboard-preview-layout-15">
+                      <div class="dashboard-preview-layout-16">Caja 1</div>
+                      <div class="dashboard-preview-layout-13">$3,907</div>
+                      <div class="dashboard-preview-layout-17">Abierta</div>
+                    </div>
+                    <div class="dashboard-preview-layout-15">
+                      <div class="dashboard-preview-layout-16">
+                        Reparaciones
+                      </div>
+                      <div class="dashboard-preview-layout-13">7</div>
+                      <div class="dashboard-preview-layout-18">2 listas</div>
+                    </div>
+                    <div class="dashboard-preview-layout-15">
+                      <div class="dashboard-preview-layout-16">Stock bajo</div>
+                      <div class="dashboard-preview-layout-13">5</div>
+                      <div class="dashboard-preview-layout-19">productos</div>
+                    </div>
+                  </div>
+                  <div class="dashboard-preview-layout-20">
+                    <div class="dashboard-preview-layout-21">
+                      <span>Ventas por hora</span
+                      ><span class="dashboard-preview-label-7">09–20 h</span>
+                    </div>
+                    <div class="dashboard-preview-layout-22">
+                      <div class="dashboard-preview-layout-23"></div>
+                      <div class="dashboard-preview-layout-24"></div>
+                      <div class="dashboard-preview-layout-25"></div>
+                      <div class="dashboard-preview-layout-26"></div>
+                      <div class="dashboard-preview-layout-27"></div>
+                      <div class="dashboard-preview-layout-28"></div>
+                      <div class="dashboard-preview-layout-29"></div>
+                      <div class="dashboard-preview-layout-30"></div>
+                      <div class="dashboard-preview-layout-31"></div>
+                      <div class="dashboard-preview-layout-32"></div>
+                      <div class="dashboard-preview-layout-33"></div>
+                      <div class="dashboard-preview-layout-34"></div>
+                    </div>
+                  </div>
+                  <div class="dashboard-preview-layout-35">
+                    <div class="dashboard-preview-layout-36">
+                      <span>Reparaciones en curso</span><span>Ver todas</span>
+                    </div>
+                    <div class="dashboard-preview-layout-37">
+                      <span class="dashboard-preview-label-8">R-0341</span>
+                      <span class="dashboard-preview-label-9"
+                        >iPhone 13 · Pantalla</span
+                      >
+                      <span class="dashboard-preview-label-10"
+                        >En reparación</span
+                      >
+                    </div>
+                    <div class="dashboard-preview-layout-37">
+                      <span class="dashboard-preview-label-8">R-0342</span>
+                      <span class="dashboard-preview-label-9"
+                        >Galaxy S22 · Puerto de carga</span
+                      >
+                      <span class="dashboard-preview-label-11"
+                        >Espera refacción</span
+                      >
+                    </div>
+                    <div class="dashboard-preview-layout-37">
+                      <span class="dashboard-preview-label-8">R-0339</span>
+                      <span class="dashboard-preview-label-9"
+                        >Moto G84 · Batería</span
+                      >
+                      <span class="dashboard-preview-label-12"
+                        >Listo para entregar</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-preview-layout-38">
+              <span class="dashboard-preview-label-13"
+                ><span aria-hidden="true" class="hero-label-4"
+                  >sync_alt</span
+                ></span
+              >
+              <div class="dashboard-preview-layout-39">
+                <span class="dashboard-preview-label-14"
+                  >Venta V-00128 registrada</span
+                >
+                <span class="dashboard-preview-label-15"
+                  >Inventario −3 · Caja +$787</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROBLEMAS -->
+      <section
+        data-component="problems-section"
+        data-screen-label="Problemas"
+        class="problems-section"
+      >
+        <div class="problems-layout">
+          <div data-component="section-header" class="section-header-layout">
+            <span class="section-header-label">Lo que resuelve</span>
+            <h2 class="section-header-heading">
+              Si esto te suena conocido, es hora de dejar la libreta.
+            </h2>
+            <p class="section-header-text">
+              Los problemas de siempre en una tienda de accesorios o un taller
+              tienen solución cuando toda la operación queda registrada en un
+              mismo lugar.
+            </p>
+          </div>
+          <div class="section-header-layout-2">
+            @for (p of problems; track $index) {
+              <article
+                data-component="problem-card"
+                class="problem-card-article"
+              >
+                <span class="problem-card-label"
+                  ><span aria-hidden="true" class="problem-card-label-2">{{
+                    p.icon
+                  }}</span></span
+                >
+                <h3 class="problem-card-subheading">{{ p.title }}</h3>
+                <p class="problem-card-text">{{ p.pain }}</p>
+                <div class="problem-card-layout">
+                  <span aria-hidden="true" class="problem-card-label-3"
+                    >check_circle</span
+                  >
+                  <p class="problem-card-text-2">{{ p.fix }}</p>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- FUNCIONALIDADES -->
+      <section
+        id="funcionalidades"
+        data-component="features-section"
+        data-screen-label="Funcionalidades"
+        class="features-section"
+      >
+        <div class="problems-layout">
+          <div class="features-layout">
+            <div class="features-layout-2">
+              <span class="section-header-label">Funcionalidades</span>
+              <h2 class="section-header-heading">
+                Todo lo que mueve tu mostrador y tu taller, conectado.
+              </h2>
+            </div>
+            <p class="features-text">
+              Cada módulo comparte la misma información: lo que vendes descuenta
+              inventario y se refleja en caja al momento.
+            </p>
+          </div>
+          <div class="features-layout-3">
+            @for (f of features; track $index) {
+              <article
+                data-component="feature-card"
+                class="feature-card-article"
+              >
+                <div class="feature-card-layout">
+                  <span class="feature-card-label"
+                    ><span aria-hidden="true" class="problem-card-label-2">{{
+                      f.icon
+                    }}</span></span
+                  >
+                  <span class="feature-card-label-2">{{ f.group }}</span>
+                </div>
+                <h3 class="problem-card-subheading">{{ f.title }}</h3>
+                <p class="feature-card-text">{{ f.desc }}</p>
+                <div class="feature-card-layout-2">
+                  @for (t of f.tags; track $index) {
+                    <span class="feature-card-label-3">{{ t }}</span>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+
+          <section
+            id="compatibilidades"
+            class="compatibility-spotlight"
+            aria-labelledby="compatibility-heading"
+          >
+            <div>
+              <span class="compatibility-eyebrow">Catálogo multimodelo</span>
+              <h2 id="compatibility-heading">
+                Una funda o mica. Varios modelos compatibles.
+              </h2>
+              <p>
+                ¿Una misma funda sirve para más de un celular? ¿Tienes micas
+                compatibles con varios equipos? Registra todos sus modelos
+                compatibles en un solo producto y encuéntralo al buscar
+                cualquiera de ellos.
+              </p>
+              <ul>
+                <li>
+                  Relaciona fundas, micas y otros accesorios con varios modelos.
+                </li>
+                <li>
+                  Conserva el mismo SKU y las existencias de la variante, sin
+                  duplicar el producto por cada teléfono.
+                </li>
+                <li>
+                  Consulta las compatibilidades registradas para orientar a tu
+                  cliente.
+                </li>
+              </ul>
+              <p class="compatibility-note">
+                Tú registras la compatibilidad de cada accesorio según su
+                fabricante o tu verificación.
+              </p>
+            </div>
+            <div
+              class="compatibility-example"
+              aria-label="Ejemplo de accesorio con varios modelos compatibles"
+            >
+              <span class="compatibility-icon" aria-hidden="true">devices</span>
+              <span class="compatibility-example-label"
+                >Ejemplo ilustrativo</span
+              >
+              <h3>Mica multimodelo</h3>
+              <p>Un producto · Una variante · Un SKU</p>
+              <div class="compatibility-models">
+                <span>Modelo A</span><span>Modelo B</span><span>Modelo C</span>
+              </div>
+              <p>
+                Busca cualquiera de estos modelos y encuentra la misma mica.
+              </p>
+            </div>
+          </section>
+
+          <!-- Servicio técnico spotlight -->
+          <div
+            data-component="repairs-spotlight"
+            class="repairs-spotlight-layout"
+          >
+            <div class="repairs-spotlight-layout-2"></div>
+            <div class="repairs-spotlight-layout-3">
+              <span class="repairs-spotlight-label"
+                ><span aria-hidden="true" class="repairs-spotlight-label-2"
+                  >build</span
+                >Servicio técnico</span
+              >
+              <h3 class="repairs-spotlight-subheading">
+                Clientes y reparaciones con seguimiento de principio a fin.
+              </h3>
+              <p class="repairs-spotlight-text">
+                Cada equipo que entra al taller tiene su orden: datos del
+                cliente, falla reportada, presupuesto, fotografías de ingreso,
+                refacciones utilizadas e historial de cada cambio de estado.
+              </p>
+              <div class="repairs-spotlight-layout-4">
+                <div class="repairs-spotlight-layout-5">
+                  <span aria-hidden="true" class="repairs-spotlight-label-3"
+                    >request_quote</span
+                  ><span class="repairs-spotlight-label-4"
+                    >Presupuesto antes de reparar</span
+                  >
+                </div>
+                <div class="repairs-spotlight-layout-5">
+                  <span aria-hidden="true" class="repairs-spotlight-label-3"
+                    >photo_camera</span
+                  ><span class="repairs-spotlight-label-4"
+                    >Fotografías del equipo al recibirlo</span
+                  >
+                </div>
+                <div class="repairs-spotlight-layout-5">
+                  <span aria-hidden="true" class="repairs-spotlight-label-3"
+                    >memory</span
+                  ><span class="repairs-spotlight-label-4"
+                    >Refacciones descontadas del inventario</span
+                  >
+                </div>
+                <div class="repairs-spotlight-layout-5">
+                  <span aria-hidden="true" class="repairs-spotlight-label-3"
+                    >history</span
+                  ><span class="repairs-spotlight-label-4"
+                    >Historial por cliente y por equipo</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div data-component="repair-ticket" class="repair-ticket-layout">
+              <div class="repair-ticket-layout-2">
+                <div class="dashboard-preview-layout-39">
+                  <span class="repair-ticket-label">Orden R-0341</span>
+                  <span class="repair-ticket-label-2"
+                    >iPhone 13 · Cambio de pantalla</span
+                  >
+                </div>
+                <span class="repair-ticket-label-3">Datos de ejemplo</span>
+              </div>
+              <div class="repair-ticket-layout-3">
+                <div class="repair-ticket-layout-4">
+                  <div class="repair-ticket-layout-5">Cliente</div>
+                  <div class="repair-ticket-layout-6">Laura M.</div>
+                </div>
+                <div class="repair-ticket-layout-4">
+                  <div class="repair-ticket-layout-5">Presupuesto</div>
+                  <div class="repair-ticket-layout-6">
+                    $2,350 · <span class="repair-ticket-label-4">Aprobado</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="repair-ticket-layout-7">Fotos de ingreso</div>
+                <div class="repair-ticket-layout-8">
+                  <div class="repair-ticket-layout-9">
+                    <span aria-hidden="true" class="hero-label-4"
+                      >smartphone</span
+                    >
+                  </div>
+                  <div class="repair-ticket-layout-9">
+                    <span aria-hidden="true" class="hero-label-4">image</span>
+                  </div>
+                  <div class="repair-ticket-layout-9">
+                    <span aria-hidden="true" class="hero-label-4">image</span>
+                  </div>
+                </div>
+              </div>
+              <div class="repair-ticket-layout-10">
+                <span aria-hidden="true" class="repair-ticket-label-5"
+                  >memory</span
+                >
+                <span class="repair-ticket-label-6"
+                  >Pantalla OLED iPhone 13</span
+                >
+                <span class="repair-ticket-label">1 pza · inventario</span>
+              </div>
+              <div class="repair-ticket-layout-11">
+                <div class="repair-ticket-layout-12">
+                  <span class="repair-ticket-label-7"></span
+                  ><span class="repair-ticket-label-8"
+                    >Recibido en mostrador</span
+                  ><span class="repair-ticket-label">10:12</span>
+                </div>
+                <div class="repair-ticket-layout-13"></div>
+                <div class="repair-ticket-layout-12">
+                  <span class="repair-ticket-label-7"></span
+                  ><span class="repair-ticket-label-8"
+                    >Presupuesto aprobado</span
+                  ><span class="repair-ticket-label">11:40</span>
+                </div>
+                <div class="repair-ticket-layout-13"></div>
+                <div class="repair-ticket-layout-12">
+                  <span class="repair-ticket-label-9"></span
+                  ><span class="repair-ticket-label-10">En reparación</span
+                  ><span class="repair-ticket-label">12:05</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CÓMO FUNCIONA -->
+      <section
+        id="como-funciona"
+        data-component="steps-section"
+        data-screen-label="Cómo funciona"
+        class="problems-section"
+      >
+        <div class="problems-layout">
+          <div class="features-layout-2">
+            <span class="section-header-label">Cómo funciona</span>
+            <h2 class="section-header-heading">
+              Tres pasos para empezar a operar.
+            </h2>
+          </div>
+          <ol class="steps-ol">
+            <li data-component="step-card" class="step-card-li">
+              <span class="step-card-label">01</span>
+              <h3 class="step-card-subheading">Solicita acceso</h3>
+              <p class="step-card-text">
+                Llena el formulario con los datos de tu negocio. Revisamos tu
+                solicitud y, al aprobarla, te enviamos la invitación a tu
+                correo.
+              </p>
+            </li>
+            <li data-component="step-card" class="step-card-li">
+              <span class="step-card-label">02</span>
+              <h3 class="step-card-subheading">Configura tu empresa</h3>
+              <p class="step-card-text">
+                Da de alta tus sucursales, cajas y empleados, y define qué puede
+                hacer cada quien y en qué sucursal.
+              </p>
+            </li>
+            <li data-component="step-card" class="step-card-li-2">
+              <span class="step-card-label-2">03</span>
+              <h3 class="step-card-subheading">Registra productos y opera</h3>
+              <p class="step-card-text-2">
+                Captura tu catálogo y existencias iniciales, abre caja y empieza
+                a vender y recibir reparaciones desde el primer día.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- VISTA DEL PRODUCTO -->
+      <section
+        data-component="product-flow-section"
+        data-screen-label="Vista del producto"
+        class="product-flow-section"
+      >
+        <div class="product-flow-layout">
+          <div class="features-layout">
+            <div class="features-layout-2">
+              <span class="section-header-label">Vista del producto</span>
+              <h2 class="section-header-heading">
+                Una venta. Tres registros. Cero capturas dobles.
+              </h2>
+              <p class="section-header-text">
+                Al cobrar en el punto de venta, el sistema descuenta las
+                existencias de la sucursal y registra la entrada en la caja
+                abierta, todo con la misma referencia.
+              </p>
+            </div>
+            <span class="product-flow-label"
+              ><span aria-hidden="true" class="repairs-spotlight-label-2"
+                >info</span
+              >Datos de ejemplo</span
+            >
+          </div>
+
+          <div class="product-flow-layout-2">
+            <!-- Venta -->
+            <div data-component="flow-card" class="flow-card-layout">
+              <div class="flow-card-layout-2">
+                <span aria-hidden="true" class="flow-card-label"
+                  >point_of_sale</span
+                >
+                <span class="dashboard-preview-layout-8">1 · Venta</span>
+                <span class="flow-card-label-2">V-00128</span>
+              </div>
+              <div class="flow-card-layout-3">
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3"
+                    >Funda MagSafe iPhone 15 Pro · Negro</span
+                  ><span class="flow-card-label-4">$349</span>
+                </div>
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3"
+                    >Mica cristal templado Galaxy A54</span
+                  ><span class="flow-card-label-4">$149</span>
+                </div>
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3">Cargador USB-C 20 W</span
+                  ><span class="flow-card-label-4">$289</span>
+                </div>
+                <div class="flow-card-layout-5">
+                  <span>Total</span><span class="flow-card-label-4">$787</span>
+                </div>
+                <div class="flow-card-layout-6">
+                  <span aria-hidden="true" class="flow-card-label-5"
+                    >receipt_long</span
+                  >Pago en efectivo registrado · Comprobante emitido
+                </div>
+              </div>
+            </div>
+            <div class="flow-card-layout-7">
+              <span class="flow-card-label-6"
+                ><span aria-hidden="true" class="navbar-label-2"
+                  >east</span
+                ></span
+              >
+            </div>
+            <!-- Inventario -->
+            <div data-component="flow-card" class="flow-card-layout-8">
+              <div class="flow-card-layout-9">
+                <span aria-hidden="true" class="hero-label-4">inventory_2</span>
+                <span class="dashboard-preview-layout-8"
+                  >2 · Movimiento de inventario</span
+                >
+              </div>
+              <div class="flow-card-layout-3">
+                <div class="flow-card-layout-10">
+                  <span>Salida por venta · Sucursal Centro</span
+                  ><span class="dashboard-preview-label-7">12:42</span>
+                </div>
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3"
+                    >Funda MagSafe iPhone 15 Pro</span
+                  ><span class="flow-card-label-4"
+                    >14 → <strong>13</strong></span
+                  >
+                </div>
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3">Mica Galaxy A54</span
+                  ><span class="flow-card-label-4"
+                    >32 → <strong>31</strong></span
+                  >
+                </div>
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3">Cargador USB-C 20 W</span
+                  ><span class="flow-card-label-4">8 → <strong>7</strong></span>
+                </div>
+                <div class="flow-card-layout-11">
+                  <span aria-hidden="true" class="flow-card-label-5">link</span
+                  >Referencia V-00128 · Usuario Carlos R.
+                </div>
+              </div>
+            </div>
+            <div class="flow-card-layout-7">
+              <span class="flow-card-label-6"
+                ><span aria-hidden="true" class="navbar-label-2"
+                  >east</span
+                ></span
+              >
+            </div>
+            <!-- Caja -->
+            <div data-component="flow-card" class="flow-card-layout-8">
+              <div class="flow-card-layout-9">
+                <span aria-hidden="true" class="hero-label-4">payments</span>
+                <span class="dashboard-preview-layout-8"
+                  >3 · Registro en caja</span
+                >
+              </div>
+              <div class="flow-card-layout-3">
+                <div class="flow-card-layout-10">
+                  <span>Caja 1 · Sucursal Centro · Abierta</span>
+                </div>
+                <div class="flow-card-layout-4">
+                  <span class="flow-card-label-3">Saldo anterior</span
+                  ><span class="flow-card-label-4">$3,120</span>
+                </div>
+                <div class="flow-card-layout-12">
+                  <span class="flow-card-label-7"
+                    >Entrada por venta · Efectivo</span
+                  ><span class="flow-card-label-8">+$787</span>
+                </div>
+                <div class="flow-card-layout-13">
+                  <span>Saldo esperado</span
+                  ><span class="flow-card-label-4">$3,907</span>
+                </div>
+                <div class="flow-card-layout-6">
+                  <span aria-hidden="true" class="flow-card-label-5">link</span
+                  >Referencia V-00128 · Listo para el corte
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section
+        id="faq"
+        data-component="faq-section"
+        data-screen-label="Preguntas frecuentes"
+        class="problems-section"
+      >
+        <div class="faq-layout">
+          <div class="faq-layout-2">
+            <span class="section-header-label">Preguntas frecuentes</span>
+            <h2 class="section-header-heading">
+              Lo que nos preguntan antes de empezar.
+            </h2>
+          </div>
+          <div class="faq-layout-3">
+            @for (q of faqs(); track $index) {
+              <div data-component="faq-item" class="faq-item-layout">
+                <button
+                  (click)="toggleFaq($index)"
+                  [attr.aria-expanded]="q.open"
+                  [attr.aria-controls]="'faq-answer-' + $index"
+                  class="faq-item-button"
+                >
+                  <span class="faq-item-label">{{ q.q }}</span>
+                  <span class="faq-item-label-2"
+                    ><span aria-hidden="true" class="hero-label-4">{{
+                      q.icon
+                    }}</span></span
+                  >
+                </button>
+                @if (q.open) {
+                  <p [id]="'faq-answer-' + $index" class="faq-item-text">
+                    {{ q.a }}
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- CIERRE + FORMULARIO -->
+      <section
+        id="solicitar"
+        data-component="request-access-section"
+        data-screen-label="Solicitar acceso"
+        class="request-access-section"
+      >
+        <div class="request-access-layout">
+          <div class="request-access-layout-2"></div>
+          <div class="request-access-layout-3">
+            <span class="request-access-label">Acceso por invitación</span>
+            <h2 class="request-access-heading">
+              Pon tu negocio bajo control. Solicita tu invitación.
+            </h2>
+            <p class="request-access-text">
+              Cuéntanos sobre tu tienda o taller. Revisamos cada solicitud y te
+              escribimos al correo que nos compartas para activar tu cuenta.
+            </p>
+            <div class="request-access-layout-4">
+              <div class="request-access-layout-5">
+                <span class="request-access-label-2"
+                  ><span aria-hidden="true" class="request-access-label-3"
+                    >edit_note</span
+                  ></span
+                ><span class="request-access-label-4">Envías tu solicitud</span>
+              </div>
+              <div class="request-access-layout-5">
+                <span class="request-access-label-2"
+                  ><span aria-hidden="true" class="request-access-label-3"
+                    >fact_check</span
+                  ></span
+                ><span class="request-access-label-4">La revisamos</span>
+              </div>
+              <div class="request-access-layout-5">
+                <span class="request-access-label-2"
+                  ><span aria-hidden="true" class="request-access-label-3"
+                    >mark_email_read</span
+                  ></span
+                ><span class="request-access-label-4"
+                  >Recibes tu invitación por correo</span
+                >
+              </div>
+            </div>
+            <p class="request-access-text-2">
+              ¿Ya tienes cuenta?
+              <a routerLink="/login" class="request-access-link"
+                >Iniciar sesión</a
+              >
+            </p>
+          </div>
+
+          <div
+            data-component="request-access-form"
+            class="request-access-form-layout"
+          >
+            @if (success()) {
+              <div data-state="success" class="request-access-form-layout-2">
+                <span class="request-access-form-label"
+                  ><span aria-hidden="true" class="request-access-form-label-2"
+                    >check</span
+                  ></span
+                >
+                <h3 class="request-access-form-subheading">
+                  Solicitud recibida
+                </h3>
+                <p class="request-access-form-text">
+                  Gracias, {{ successName() }}. Revisaremos la información de tu
+                  negocio y te escribiremos a
+                  <strong class="request-access-form-strong">{{
+                    successEmail()
+                  }}</strong>
+                  con los siguientes pasos.
+                </p>
+                <button
+                  (click)="resetForm()"
+                  class="request-access-form-button"
+                >
+                  Enviar otra solicitud
+                </button>
+              </div>
+            }
+            @if (!success()) {
+              <form [formGroup]="form" class="request-access-form-form">
+                <div class="request-access-form-layout-3">
+                  <h3 class="request-access-form-subheading-2">
+                    Solicitar acceso
+                  </h3>
+                  <p class="request-access-form-text-2">
+                    Los campos marcados con * son obligatorios.
+                  </p>
+                </div>
+                @if (error()) {
+                  <div
+                    role="alert"
+                    data-state="error"
+                    class="request-access-form-layout-4"
+                  >
+                    <span aria-hidden="true" class="request-access-form-label-3"
+                      >error</span
+                    >{{ error() }}
+                  </div>
+                }
+                @if (form.touched && form.invalid) {
+                  <div
+                    role="alert"
+                    data-state="invalid"
+                    class="request-access-form-layout-5"
+                  >
+                    <span aria-hidden="true" class="request-access-form-label-3"
+                      >warning</span
+                    >Revisa los campos marcados para continuar.
+                  </div>
+                }
+                <div class="request-access-form-layout-6">
+                  <label
+                    data-component="form-field"
+                    class="request-access-form-label-4"
+                  >
+                    <span class="request-access-form-label-5">Nombre *</span>
+                    <input
+                      type="text"
+                      autocomplete="name"
+                      placeholder="Tu nombre completo"
+                      formControlName="displayName"
+                      maxlength="160"
+                      class="request-access-form-input"
+                    />
+                    @if (fieldError("displayName")) {
+                      <span class="request-access-form-label-6">{{
+                        fieldError("displayName")
+                      }}</span>
+                    }
+                  </label>
+                  <label
+                    data-component="form-field"
+                    class="request-access-form-label-4"
+                  >
+                    <span class="request-access-form-label-5"
+                      >Correo electrónico *</span
+                    >
+                    <input
+                      type="email"
+                      autocomplete="email"
+                      placeholder="nombre@tunegocio.com"
+                      formControlName="email"
+                      maxlength="254"
+                      class="request-access-form-input"
+                    />
+                    @if (fieldError("email")) {
+                      <span class="request-access-form-label-6">{{
+                        fieldError("email")
+                      }}</span>
+                    }
+                  </label>
+                </div>
+                <div class="request-access-form-layout-6">
+                  <label
+                    data-component="form-field"
+                    class="request-access-form-label-4"
+                  >
+                    <span class="request-access-form-label-5"
+                      >Nombre del negocio *</span
+                    >
+                    <input
+                      type="text"
+                      autocomplete="organization"
+                      placeholder="Ej. Accesorios del Centro"
+                      formControlName="companyName"
+                      maxlength="160"
+                      class="request-access-form-input"
+                    />
+                    @if (fieldError("companyName")) {
+                      <span class="request-access-form-label-6">{{
+                        fieldError("companyName")
+                      }}</span>
+                    }
+                  </label>
+                  <label
+                    data-component="form-field"
+                    class="request-access-form-label-4"
+                  >
+                    <span class="request-access-form-label-5"
+                      >Número de sucursales *</span
+                    >
+                    <select
+                      formControlName="branches"
+                      class="request-access-form-select"
+                    >
+                      <option value="">Selecciona una opción</option>
+                      <option value="1">1 sucursal</option>
+                      <option value="2-3">2 a 3 sucursales</option>
+                      <option value="4-10">4 a 10 sucursales</option>
+                      <option value="10+">Más de 10 sucursales</option>
+                    </select>
+                    @if (fieldError("branches")) {
+                      <span class="request-access-form-label-6">{{
+                        fieldError("branches")
+                      }}</span>
+                    }
+                  </label>
+                </div>
+                <label
+                  data-component="form-field"
+                  class="request-access-form-label-4"
+                >
+                  <span class="request-access-form-label-5"
+                    >Mensaje
+                    <span class="request-access-form-label-7"
+                      >(opcional)</span
+                    ></span
+                  >
+                  <textarea
+                    rows="4"
+                    placeholder="¿Vendes accesorios, reparas equipos o ambos? ¿Cómo llevas hoy tu inventario?"
+                    formControlName="message"
+                    maxlength="900"
+                    class="request-access-form-textarea"
+                  ></textarea>
+                </label>
+                <button
+                  type="submit"
+                  [disabled]="busy()"
+                  data-component="app-button"
+                  data-variant="primary"
+                  class="request-access-form-button-2"
+                >
+                  <span aria-hidden="true" class="hero-label-4">{{
+                    busy() ? "progress_activity" : "send"
+                  }}</span
+                  >{{ busy() ? "Enviando solicitud…" : "Enviar solicitud" }}
+                </button>
+                <p class="request-note">
+                  Un administrador revisará tu solicitud antes de enviarte una
+                  invitación. No incluyas contraseñas ni datos sensibles.
+                </p>
+              </form>
+            }
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- FOOTER -->
+    <footer
+      data-component="app-footer"
+      data-screen-label="Footer"
+      class="footer-footer"
+    >
+      <div class="footer-layout">
+        <div class="footer-layout-2">
+          <div class="footer-layout-3">
+            <img
+              src="/assets/landing/accs-control.png"
+              alt="Accs Control"
+              class="footer-image"
+            />
+            <p class="footer-text">
+              Sistema en la nube para tiendas de accesorios de celulares y
+              talleres de reparación.
+            </p>
+          </div>
+          <div class="footer-layout-4">
+            <div class="footer-layout-5">
+              <span class="footer-label">Producto</span>
+              <a href="#funcionalidades" class="footer-link">Funcionalidades</a>
+              <a href="#como-funciona" class="footer-link">Cómo funciona</a>
+              <a href="#faq" class="footer-link">Preguntas frecuentes</a>
+            </div>
+            <div class="footer-layout-5">
+              <span class="footer-label">Cuenta</span>
+              <a routerLink="/login" class="footer-link">Iniciar sesión</a>
+              <a href="#solicitar" class="footer-link-2">Solicitar acceso</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-layout-6">
+          <span>© 2026 Accs Control. Todos los derechos reservados.</span>
+          <span>Accs Control Cloud</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>

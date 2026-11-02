@@ -1,1 +1,214 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'sass:color';
+@use './styles/brand-fonts';
+:root {
+  color-scheme: light;
+  --bg: #f5f8fc;
+  --surface: #fff;
+  --surface-alt: #edf2fa;
+  --text: #0d1435;
+  --muted: #4a5378;
+  --border: #dde4f0;
+  --accent: #176e9d;
+  --accent-soft: #e3f5fd;
+  --danger: #b42c37;
+  --danger-soft: #ffe7e9;
+  --primary-bg: #4cc3f5;
+  --primary-text: #0a0f35;
+  --control-height: 48px;
+  --control-radius: 12px;
+  --panel-radius: 20px;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%234a5378' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --shadow: 0 8px 28px #172c4410;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #070b24;
+  --surface: #111845;
+  --surface-alt: #192250;
+  --text: #ffffff;
+  --muted: #aeb8da;
+  --border: #343c63;
+  --accent: #4cc3f5;
+  --accent-soft: #172e52;
+  --danger: #ff8a94;
+  --danger-soft: #3b1932;
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%23aeb8da' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --shadow: 0 8px 28px #0003;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    15px/1.55 Manrope,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+.button {
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  min-height: var(--control-height);
+}
+button:hover {
+  background: var(--surface-alt);
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.primary {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  border-color: var(--primary-bg);
+  font-weight: 650;
+}
+.primary:hover {
+  filter: brightness(0.92);
+  background: var(--primary-bg);
+}
+[data-theme='dark'] .primary {
+  color: var(--primary-text);
+}
+input,
+select {
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.7rem;
+  min-height: var(--control-height);
+  min-width: 0;
+}
+input::placeholder {
+  color: var(--muted);
+}
+a {
+  color: var(--accent);
+}
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--panel-radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+h1,
+h2,
+h3 {
+  font-family: Sora, Manrope, system-ui, sans-serif;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .card {
+    padding: 1.25rem;
+  }
+}
+
+textarea {
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  padding: 0.7rem;
+  resize: vertical;
+  width: 100%;
+}
+.form-error {
+  color: var(--danger);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.form-grid label {
+  display: grid;
+  gap: 0.4rem;
+}
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+button.danger {
+  color: var(--danger);
+}
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body:has(accs-sale-detail) {
+    background: white;
+  }
+  body:has(accs-sale-detail) accs-shell .sidebar,
+  body:has(accs-sale-detail) accs-shell .topbar,
+  body:has(accs-sale-detail) accs-shell .mobile-toggle,
+  body:has(accs-sale-detail) accs-toasts {
+    display: none !important;
+  }
+  body:has(accs-sale-detail) accs-shell .main,
+  body:has(accs-sale-detail) accs-shell .content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+@media print {
+  body:has(accs-sale-detail) accs-shell .shell {
+    display: block !important;
+  }
+  body:has(accs-sale-detail) accs-shell main {
+    padding: 0 !important;
+  }
+  body:has(accs-sale-detail) accs-shell .skip-link,
+  body:has(accs-sale-detail) accs-shell .overlay {
+    display: none !important;
+  }
+}
