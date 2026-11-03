@@ -68,6 +68,20 @@ export const routes: Routes = [
             (m) => m.RegisterClientComponent,
           ),
       },
+      {
+        path: 'register-sales',
+        loadComponent: () =>
+          import('./sales/pages/register-sale/register-sale.component').then(
+            (m) => m.RegisterSaleComponent,
+          ),
+      },
+      {
+        path: 'sales-list',
+        loadComponent: () =>
+          import('./sales/pages/sales-list/sales-list.component').then(
+            (m) => m.SalesListComponent,
+          ),
+      },
     ],
   },
 ];

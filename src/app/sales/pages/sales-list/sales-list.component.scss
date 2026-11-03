@@ -1,0 +1,148 @@
+@use '../../../../styles/workspace-controls' as controls;
+:host {
+  display: block;
+  min-width: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.panel,
+.receipt {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+  border-radius: 16px;
+  margin: 1rem 0;
+  min-width: 0;
+}
+.receipt {
+  max-width: 780px;
+  margin: 1rem auto;
+}
+.receipt header {
+  text-align: center;
+}
+.receipt header small {
+  overflow-wrap: anywhere;
+}
+.table-wrap {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--border);
+}
+small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin: 0.3rem 0;
+}
+dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+}
+dd {
+  margin: 0;
+}
+.grand {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.returned {
+  border-top: 1px solid var(--border);
+  padding: 0.7rem 0;
+}
+.returned small {
+  overflow-wrap: anywhere;
+}
+.return-line {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+}
+input,
+select,
+button {
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 0;
+}
+input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+}
+button:disabled {
+  opacity: 0.5;
+}
+.error {
+  color: var(--danger);
+}
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .receipt {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    color: #000;
+    background: white;
+    font-size: 10pt;
+  }
+  .table-wrap {
+    overflow: visible;
+  }
+  .receipt table {
+    width: 100%;
+  }
+  .receipt th,
+  .receipt td {
+    padding: 4px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  small {
+    color: #333;
+  }
+  .receipt tr {
+    break-inside: avoid;
+  }
+}
+@media (max-width: 500px) {
+  .panel,
+  .receipt {
+    padding: 0.9rem;
+  }
+  .receipt {
+    font-size: 0.9rem;
+  }
+}
+
+@include controls.page;

@@ -1,0 +1,279 @@
+<div class="no-print">
+  <app-page-header
+    [title]="sale() ? 'Comprobante de venta' : 'Ventas y comprobantes'"
+    subtitle="Pagos registrados y devoluciones vinculadas (Modo Cascarón / Mock)"
+  />
+  <a routerLink="/app/pos">Volver al POS</a>
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+</div>
+
+@if (sale(); as s) {
+  <div class="no-print actions">
+    <button type="button" (click)="print()">Imprimir comprobante</button>
+    @if (auth.can("pos.return")) {
+      <button type="button" [disabled]="locked()" (click)="beginReturn()">
+        Devolver piezas
+      </button>
+    }
+  </div>
+
+  <article class="receipt">
+    <header>
+      <h2>{{ s.companyName }}</h2>
+      <p>{{ s.branchName }}</p>
+      <p>{{ date(s.createdAt) }} · {{ s.currency }}</p>
+      <p>Atendió: {{ s.cashierName }}</p>
+      <small>Venta {{ s.id }}</small>
+    </header>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Piezas</th>
+            <th>Precio</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of s.items; track i.id) {
+            <tr>
+              <td>
+                {{ i.name }}<small>{{ i.sku }} · {{ i.position }}</small>
+              </td>
+              <td>{{ i.quantity }}</td>
+              <td>{{ money(i.unitPrice, s.currency) }}</td>
+              <td>{{ money(i.total, s.currency) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <dl>
+      <div>
+        <dt>Precio catálogo</dt>
+        <dd>{{ money(s.subtotal, s.currency) }}</dd>
+      </div>
+      <div>
+        <dt>Descuento {{ s.promotionName || "" }}</dt>
+        <dd>{{ money(s.discount, s.currency) }}</dd>
+      </div>
+      <div>
+        <dt>Base neta</dt>
+        <dd>{{ money(s.net, s.currency) }}</dd>
+      </div>
+      <div>
+        <dt>Impuesto {{ s.taxIncluded ? "incluido" : "agregado" }}</dt>
+        <dd>{{ money(s.tax, s.currency) }}</dd>
+      </div>
+      <div class="grand">
+        <dt>Total</dt>
+        <dd>{{ money(s.total, s.currency) }}</dd>
+      </div>
+    </dl>
+
+    <h3>Pagos registrados</h3>
+    @for (p of s.payments; track $index) {
+      <p>
+        {{
+          p.method === "cash"
+            ? "Efectivo"
+            : p.method === "card"
+              ? "Tarjeta"
+              : "Manual"
+        }}
+        ·
+        {{ money(p.amount, s.currency) }}
+        @if (p.reference) {
+          <small>Referencia: {{ p.reference }}</small>
+        }
+      </p>
+    }
+
+    <p class="note">
+      Comprobante comercial. No es CFDI. Pagos registrados; no confirma una
+      operación bancaria integrada.
+    </p>
+
+    @if (s.returns && s.returns.length) {
+      <h3>Devoluciones registradas</h3>
+      @for (r of s.returns; track r.id) {
+        <section class="returned">
+          <strong
+            >{{ money(r.total, s.currency) }} · {{ date(r.createdAt) }}</strong
+          >
+          <p>{{ r.reason }}</p>
+          <small>Devolución {{ r.id }}</small>
+          @for (i of r.items; track i.saleItemId) {
+            <p>
+              {{ label(i.saleItemId) }} · {{ i.quantity }} pieza(s) ·
+              {{
+                i.restocked
+                  ? "Reingresó al inventario"
+                  : "Sin reingreso al inventario"
+              }}
+            </p>
+          }
+        </section>
+      }
+    }
+  </article>
+
+  @if (showReturn()) {
+    <section class="panel no-print">
+      <h2>Devolución parcial o total</h2>
+      <p>
+        Confirma el reingreso sólo cuando la mercancía esté físicamente de
+        vuelta.
+      </p>
+
+      @for (line of lines; track line.saleItemId) {
+        <div class="return-line">
+          <strong
+            >{{ label(line.saleItemId) }} · Pendientes
+            {{ remaining(line.saleItemId) }}</strong
+          >
+
+          <label>
+            Piezas
+            <input
+              type="number"
+              min="0"
+              [max]="remaining(line.saleItemId)"
+              [(ngModel)]="line.quantity"
+              (ngModelChange)="changed()"
+              [disabled]="locked()"
+              [attr.aria-label]="'Devolver ' + label(line.saleItemId)"
+            />
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              [(ngModel)]="line.restocked"
+              (ngModelChange)="changed()"
+              [disabled]="locked()"
+              [attr.aria-label]="'Reingresó ' + label(line.saleItemId)"
+            />
+            Mercancía reingresó
+          </label>
+
+          @if (line.restocked) {
+            <label>
+              Destino
+              <select
+                [(ngModel)]="line.positionId"
+                (ngModelChange)="changed()"
+                [disabled]="locked()"
+                [attr.aria-label]="'Destino ' + label(line.saleItemId)"
+              >
+                @for (p of locations(); track p.id) {
+                  <option [value]="p.id">
+                    {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
+                  </option>
+                }
+              </select>
+            </label>
+          }
+        </div>
+      }
+
+      <label>
+        Motivo
+        <input
+          aria-label="Motivo de devolución"
+          [(ngModel)]="reason"
+          maxlength="500"
+          [disabled]="locked()"
+        />
+      </label>
+
+      <label>
+        Forma de reintegro
+        <select
+          aria-label="Forma de reintegro"
+          [(ngModel)]="method"
+          [disabled]="locked()"
+        >
+          <option value="cash">Efectivo</option>
+          <option value="card">Tarjeta, registrado manualmente</option>
+          <option value="manual">Manual</option>
+        </select>
+      </label>
+
+      <label>
+        Referencia del reintegro
+        <input
+          aria-label="Referencia del reintegro"
+          [(ngModel)]="reference"
+          maxlength="200"
+          [disabled]="locked()"
+        />
+      </label>
+
+      <button type="button" [disabled]="locked()" (click)="calculateReturn()">
+        Calcular devolución
+      </button>
+
+      @if (returnQuote(); as q) {
+        <p>
+          Reintegro: <strong>{{ money(q.total, q.currency) }}</strong>
+        </p>
+        <button type="button" [disabled]="busy()" (click)="refund()">
+          {{ locked() ? "Reintentar devolución" : "Confirmar devolución" }}
+        </button>
+      }
+    </section>
+  }
+} @else {
+  <section class="panel no-print table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Atendió</th>
+          <th>Total</th>
+          <th>Comprobante</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of history(); track s.id) {
+          <tr>
+            <td>{{ date(s.createdAt) }}</td>
+            <td>{{ s.cashierName }}</td>
+            <td>{{ money(s.total, s.currency) }}</td>
+            <td>
+              <a [routerLink]="['/app/pos/sales', s.id]">Abrir comprobante</a>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4">Sin ventas registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (historyTotal() > 20) {
+      <div class="actions">
+        <button
+          [disabled]="historyPage() === 1"
+          (click)="load(historyPage() - 1)"
+        >
+          Anterior
+        </button>
+        <span>{{ historyPage() }}</span>
+        <button
+          [disabled]="historyPage() * 20 >= historyTotal()"
+          (click)="load(historyPage() + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    }
+  </section>
+}

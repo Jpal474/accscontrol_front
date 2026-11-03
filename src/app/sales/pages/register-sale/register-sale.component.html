@@ -1,0 +1,245 @@
+<app-page-header
+  title="Punto de venta"
+  subtitle="F2 buscar o escanear · F8 capturar pago"
+/>
+<!-- @if (!auth.context()?.branchId) { -->
+<section class="panel">Selecciona una sucursal en la barra superior.</section>
+<!-- } @else { -->
+<div class="links">
+  <a routerLink="/app/pos/sales">Ventas y comprobantes</a>
+  <!-- @if (auth.can('pos.manage')) { -->
+  <a routerLink="/app/pos/settings">Impuesto y promociones</a>
+  <!-- } -->
+</div>
+@if (error()) {
+  <p role="alert" class="error">{{ error() }}</p>
+}
+@if (settings() && !settings()!.configured) {
+  <section class="panel">
+    El dueño debe configurar el impuesto de esta sucursal antes de vender.
+  </section>
+}
+<div class="pos-grid">
+  <section class="panel products">
+    <h2>Productos</h2>
+    <form (ngSubmit)="search()">
+      <label for="pos-scanner">Código de barras, SKU o nombre</label>
+      <div class="search-row">
+        <input
+          #scanner
+          id="pos-scanner"
+          name="search"
+          [(ngModel)]="searchText"
+          autocomplete="off"
+          [disabled]="locked()"
+          autofocus
+        /><button [disabled]="locked()">Buscar / escanear</button>
+      </div>
+    </form>
+    @if (loading()) {
+      <p role="status">Buscando…</p>
+    }
+    <div class="product-grid">
+      @for (p of products(); track p.id) {
+        <article>
+          <strong>{{ p.name }}</strong
+          ><small>{{ p.sku }}</small>
+          <p>{{ money(p.price, p.currency) }}</p>
+          <label
+            >Origen<select
+              [attr.aria-label]="'Ubicación de ' + p.sku"
+              [(ngModel)]="selections[p.id]"
+              [disabled]="locked()"
+            >
+              @if (!p.positions.length) {
+                <option value="">Sin disponible</option>
+              }
+              @for (location of p.positions; track location.id) {
+                <option [value]="location.id">
+                  {{ location.name }} · {{ location.available }} disp.
+                </option>
+              }
+            </select></label
+          ><button
+            type="button"
+            [disabled]="locked() || !p.positions.length"
+            (click)="add(p)"
+            [attr.aria-label]="'Agregar ' + p.sku"
+          >
+            Agregar
+          </button>
+        </article>
+      } @empty {
+        <p>Sin productos para esta búsqueda.</p>
+      }
+    </div>
+    @if (totalProducts() > 2) {
+      <div class="pagination">
+        <button
+          [disabled]="searchPage() === 1 || locked()"
+          (click)="search(false, searchPage() - 1)"
+        >
+          Anterior</button
+        ><span>{{ searchPage() }}</span
+        ><button
+          [disabled]="searchPage() * 20 >= totalProducts() || locked()"
+          (click)="search(false, searchPage() + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    }
+  </section>
+  <section class="panel cart">
+    <h2>Carrito</h2>
+    @for (
+      line of cart();
+      track line.product.id + line.positionId;
+      let i = $index
+    ) {
+      <article class="cart-line">
+        <div>
+          <strong>{{ line.product.name }}</strong
+          ><small>{{ line.product.sku }} · {{ line.positionName }}</small>
+        </div>
+        <label
+          >Cantidad<input
+            type="number"
+            min="1"
+            max="1000000"
+            step="1"
+            [value]="line.quantity"
+            [attr.aria-label]="'Cantidad ' + line.product.sku"
+            [disabled]="locked()"
+            (change)="quantity(i, $event)" /></label
+        ><button
+          type="button"
+          [disabled]="locked()"
+          (click)="remove(i)"
+          [attr.aria-label]="'Quitar ' + line.product.sku"
+        >
+          Quitar
+        </button>
+      </article>
+    } @empty {
+      <p>Escanea o agrega un producto para comenzar.</p>
+    }
+    <label for="pos-promo">Promoción autorizada</label
+    ><select
+      id="pos-promo"
+      [(ngModel)]="promotionId"
+      (change)="requote()"
+      [disabled]="locked()"
+    >
+      <option value="">Sin promoción</option>
+      @for (p of promotions(); track p.id) {
+        <option [value]="p.id">{{ p.name }}</option>
+      }
+    </select>
+    @if (quoting()) {
+      <p role="status">Calculando total…</p>
+    }
+    <!-- @if (quote(); as q) { -->
+    <dl class="totals">
+      <div>
+        <dt>Precio de catálogo</dt>
+        <!-- <dd>{{ money(q.subtotal, q.currency) }}</dd> -->
+      </div>
+      <div>
+        <dt>Descuento</dt>
+        <!-- <dd>{{ money(q.discount, q.currency) }}</dd> -->
+      </div>
+      <div>
+        <dt>Base neta</dt>
+        <!-- <dd>{{ money(q.net, q.currency) }}</dd> -->
+      </div>
+      <div>
+        <!-- <dt>Impuesto {{ q.taxIncluded ? "incluido" : "agregado" }}</dt>
+          <dd>{{ money(q.tax, q.currency) }}</dd> -->
+      </div>
+      <div class="grand">
+        <dt>Total</dt>
+        <!-- <dd>{{ money(q.total, q.currency) }}</dd> -->
+      </div>
+    </dl>
+    <h3>Pagos registrados</h3>
+    @for (p of payments(); track $index) {
+      <div class="payment-row">
+        <span
+          >{{
+            p.method === "cash"
+              ? "Efectivo"
+              : p.method === "card"
+                ? "Tarjeta"
+                : "Manual"
+          }}
+          <!-- · {{ money(p.amount, q.currency) }} --> </span
+        ><button
+          type="button"
+          [disabled]="locked()"
+          (click)="removePayment($index)"
+        >
+          Quitar pago
+        </button>
+      </div>
+    }
+    <form [formGroup]="payment" (ngSubmit)="addPayment()">
+      <div class="payment-fields">
+        <label
+          >Método<select
+            aria-label="Método de pago"
+            formControlName="method"
+            [attr.disabled]="locked() ? true : null"
+          >
+            <option value="cash">Efectivo</option>
+            <option value="card">Tarjeta</option>
+            <option value="manual">Manual</option>
+          </select></label
+        ><label
+          >Importe<input
+            #payInput
+            aria-label="Importe del pago"
+            formControlName="amount"
+            inputmode="decimal"
+            [readOnly]="locked()" /></label
+        ><label
+          >Referencia<input
+            aria-label="Referencia del pago"
+            formControlName="reference"
+            maxlength="200"
+            [readOnly]="locked()"
+        /></label>
+      </div>
+      <div class="form-actions">
+        <button
+          class="primary"
+          [disabled]="locked() || payment.invalid || remaining() === '0.00'"
+        >
+          Agregar pago
+        </button>
+      </div>
+    </form>
+    <p>
+      No captures datos de tarjeta; usa el folio de la terminal. Pagos
+      registrados sin cobro bancario integrado.
+    </p>
+    <!-- <p>
+        Pendiente: <strong>{{ money(remaining(), q.currency) }}</strong>
+      </p> -->
+    <button
+      class="primary complete"
+      type="button"
+      [disabled]="busy() || remaining() !== '0.00' || quoting()"
+    >
+      {{
+        busy()
+          ? "Confirmando…"
+          : locked()
+            ? "Reintentar confirmación"
+            : "Completar venta"
+      }}
+    </button>
+    <!-- } -->
+  </section>
+</div>
+<!-- } -->
