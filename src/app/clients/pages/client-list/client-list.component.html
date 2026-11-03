@@ -1,0 +1,35 @@
+<app-page-header
+  title="Clientes"
+  description="Expedientes compartidos por las sucursales de tu empresa."
+/>
+@if (error()) {
+  <p role="alert" class="error">{{ error() }}</p>
+}
+<section>
+  <form (ngSubmit)="page = 1; load()">
+    <label>Buscar cliente<input name="search" [(ngModel)]="search" /></label
+    ><button>Buscar</button>
+  </form>
+</section>
+<div class="grid">
+  @for (c of rows(); track c.id) {
+    <article>
+      <h2>{{ c.name }}</h2>
+      <p>{{ c.code }} · {{ c.active ? "Activo" : "Inactivo" }}</p>
+      <p>{{ c.email }} {{ c.phone }}</p>
+      <p>{{ c.notes }}</p>
+      <!-- @if (auth.can('customers.manage')) { -->
+      <button>Editar {{ c.name }}</button>
+      <!-- } -->
+    </article>
+  } @empty {
+    <p>No hay clientes para esta búsqueda.</p>
+  }
+</div>
+<div class="pagination">
+  <button [disabled]="page === 1" (click)="paginate(-1)">Anterior</button
+  ><span>Página {{ page }} · {{ total() }} clientes</span
+  ><button [disabled]="page * 20 >= total()" (click)="paginate(1)">
+    Siguiente
+  </button>
+</div>

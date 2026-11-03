@@ -1,0 +1,33 @@
+<app-page-header
+  title="Clientes"
+  description="Expedientes compartidos por las sucursales de tu empresa."
+/>
+@if (error()) {
+  <p role="alert" class="error">{{ error() }}</p>
+}
+<!-- @if (auth.can('customers.manage')) { -->
+<section>
+  <h2>{{ editing ? "Editar cliente" : "Nuevo cliente" }}</h2>
+  <form class="editor-section" [formGroup]="form">
+    <header class="editor-intro">
+      <span class="editor-number">01</span>
+      <h3>Datos del cliente</h3>
+      <p>Contacto e identificación dentro de tu empresa.</p>
+    </header>
+    <div class="editor-body">
+      <label>Código<input formControlName="code" /></label
+      ><label>Nombre<input formControlName="name" /></label
+      ><label>Correo<input type="email" formControlName="email" /></label
+      ><label>Teléfono<input formControlName="phone" /></label
+      ><label class="wide"
+        >Notas<textarea formControlName="notes"></textarea></label
+      ><label>Activo<input type="checkbox" formControlName="active" /></label
+      ><label>Motivo<input formControlName="reason" /></label>
+      <div class="form-actions wide">
+        <button class="primary" [disabled]="busy()">Guardar cliente</button
+        ><button type="button" (click)="clear()">Nuevo</button>
+      </div>
+    </div>
+  </form>
+</section>
+<!-- } -->

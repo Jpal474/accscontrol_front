@@ -54,6 +54,20 @@ export const routes: Routes = [
             (m) => m.StaffListComponent,
           ),
       },
+      {
+        path: 'clients-list',
+        loadComponent: () =>
+          import('./clients/pages/client-list/client-list.component').then(
+            (m) => m.ClientListComponent,
+          ),
+      },
+      {
+        path: 'register-clients',
+        loadComponent: () =>
+          import('./clients/pages/register-client/register-client.component').then(
+            (m) => m.RegisterClientComponent,
+          ),
+      },
     ],
   },
 ];
