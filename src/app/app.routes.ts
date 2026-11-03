@@ -40,6 +40,20 @@ export const routes: Routes = [
             (m) => m.RegisterOwnerComponent,
           ),
       },
+      {
+        path: 'register-staff',
+        loadComponent: () =>
+          import('./staff/pages/register-staff/register-staff.component').then(
+            (m) => m.RegisterStaffComponent,
+          ),
+      },
+      {
+        path: 'staff-list',
+        loadComponent: () =>
+          import('./staff/pages/staff-list/staff-list.component').then(
+            (m) => m.StaffListComponent,
+          ),
+      },
     ],
   },
 ];

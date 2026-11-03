@@ -1,0 +1,71 @@
+<app-page-header
+  title="Equipo"
+  subtitle="Invitaciones, roles y acceso por sucursal dentro de la empresa actual."
+/>
+<!-- @if (auth.can('members.manage')) { -->
+<section class="card invitation">
+  <h2>{{ editing() ? "Editar asignación" : "Invitar empleado" }}</h2>
+  <form class="editor-section" [formGroup]="form">
+    <header class="editor-intro">
+      <span class="editor-number">01</span>
+      <h3>Acceso del empleado</h3>
+      <p>Define su identidad, rol y sucursal autorizada.</p>
+    </header>
+    <div class="editor-body">
+      <div class="form-grid">
+        <label
+          >Nombre del empleado<input
+            formControlName="displayName"
+            [readOnly]="!!editing()"
+            required /></label
+        ><label
+          >Correo del empleado<input
+            type="email"
+            formControlName="email"
+            [readOnly]="!!editing()"
+            required /></label
+        ><label
+          >Sucursal asignada<select
+            formControlName="branchId"
+            aria-label="Sucursal asignada"
+          >
+            <option value="" disabled>Seleccionar sucursal</option>
+            <!-- @for (branch of auth.membership()?.branches; track branch.id) {
+                <option [value]="branch.id">{{ branch.name }}</option>
+              } -->
+          </select></label
+        ><label
+          >Rol<select formControlName="role" aria-label="Rol">
+            @for (role of roles; track role.code) {
+              <option [value]="role.code">{{ role.label }}</option>
+            }
+          </select></label
+        >
+      </div>
+      <p>
+        El acceso queda limitado a la sucursal asignada. No se pueden asignar
+        roles owner ni de plataforma aquí.
+      </p>
+      @if (form.touched && form.invalid) {
+        <p class="form-error" role="alert">
+          Completa nombre, correo y sucursal.
+        </p>
+      }
+      <div class="form-actions">
+        @if (editing()) {
+          <button type="button" (click)="cancel()">Cancelar edición</button>
+        }
+        <button class="primary" type="submit" [disabled]="busy()">
+          {{ editing() ? "Guardar asignación" : "Enviar invitación" }}
+        </button>
+      </div>
+    </div>
+  </form>
+</section>
+<!-- } -->
+
+<app-confirm-dialog
+  title="Cambiar acceso del empleado"
+  message="Se actualizará su membresía y se invalidará el acceso afectado en esta empresa. Se conservará el historial."
+  (confirmed)="confirm()"
+/>

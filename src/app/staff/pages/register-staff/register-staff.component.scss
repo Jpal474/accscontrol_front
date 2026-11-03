@@ -1,0 +1,16 @@
+@use '../../../../styles/workspace-controls' as controls;
+.invitation {
+  margin-bottom: 1.5rem;
+}
+h2 {
+  font-size: 1.2rem;
+}
+h3,
+p {
+  margin: 0.25rem 0;
+}
+small {
+  color: var(--muted);
+}
+
+@include controls.page;

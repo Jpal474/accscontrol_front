@@ -1,0 +1,33 @@
+@use '../../../../styles/workspace-controls' as controls;
+.invitation {
+  margin-bottom: 1.5rem;
+}
+h2 {
+  font-size: 1.2rem;
+}
+.member-list article {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.member-list article:last-child {
+  border-bottom: 0;
+}
+h3,
+p {
+  margin: 0.25rem 0;
+}
+.member-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+small {
+  color: var(--muted);
+}
+
+@include controls.page;
