@@ -1,0 +1,56 @@
+<fieldset [formGroup]="form()">
+  <legend>{{ title() }}</legend>
+  <div class="fields">
+    <label [for]="prefix() + '-line1'"
+      >Calle y número<input
+        [id]="prefix() + '-line1'"
+        formControlName="line1"
+        autocomplete="address-line1"
+        required /></label
+    ><label [for]="prefix() + '-line2'"
+      >Interior<input
+        [id]="prefix() + '-line2'"
+        formControlName="line2"
+        autocomplete="address-line2"
+    /></label>
+    <label [for]="prefix() + '-locality'"
+      >Localidad<input
+        [id]="prefix() + '-locality'"
+        formControlName="locality"
+        autocomplete="address-level2"
+        required
+    /></label>
+    <label [for]="prefix() + '-city'"
+      >Ciudad<input
+        [id]="prefix() + '-city'"
+        formControlName="city"
+        autocomplete="address-level2"
+        required /></label
+    ><label [for]="prefix() + '-state'"
+      >Estado / región<input
+        [id]="prefix() + '-state'"
+        formControlName="state"
+        autocomplete="address-level1"
+        required /></label
+    ><label [for]="prefix() + '-postal'"
+      >Código postal<input
+        [id]="prefix() + '-postal'"
+        formControlName="postalCode"
+        autocomplete="postal-code"
+        required /></label
+    ><label [for]="prefix() + '-country'"
+      >País (ISO de 2 letras)<input
+        [id]="prefix() + '-country'"
+        formControlName="country"
+        autocomplete="country"
+        maxlength="2"
+        required
+    /></label>
+  </div>
+  @if (form().touched && form().invalid) {
+    <p role="alert" class="form-error">
+      Completa la dirección y usa un país de dos letras mayúsculas, por ejemplo
+      MX.
+    </p>
+  }
+</fieldset>

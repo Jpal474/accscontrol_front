@@ -25,5 +25,14 @@ export const routes: Routes = [
       import('./layout/pages/shell/shell.component').then(
         (m) => m.ShellComponent,
       ),
+    children: [
+      {
+        path: 'register-store',
+        loadComponent: () =>
+          import('./store/pages/register-store/register-store.component').then(
+            (m) => m.RegisterStoreComponent,
+          ),
+      },
+    ],
   },
 ];
