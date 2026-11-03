@@ -27,10 +27,7 @@ export class RegisterStoreComponent {
     name: ['', [Validators.required, Validators.maxLength(160)]],
     phoneNumber: [
       '',
-      [
-        Validators.required,
-        Validators.pattern(/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/),
-      ],
+      [Validators.required, Validators.pattern(/^\+[1-9]\d{1,14}$/)],
     ],
     currency: ['MXN', Validators.required],
     email: ['mystore@gmail.com'],

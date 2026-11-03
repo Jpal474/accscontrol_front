@@ -33,6 +33,13 @@ export const routes: Routes = [
             (m) => m.RegisterStoreComponent,
           ),
       },
+      {
+        path: 'register-owner',
+        loadComponent: () =>
+          import('./store/pages/register-owner/register-owner.component').then(
+            (m) => m.RegisterOwnerComponent,
+          ),
+      },
     ],
   },
 ];
