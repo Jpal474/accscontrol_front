@@ -1,0 +1,154 @@
+@if (loading()) {
+  <app-skeleton />
+} @else if (failed()) {
+  <app-empty-state
+    title="Producto no disponible"
+    message="Verifica tus permisos y la empresa seleccionada."
+  />
+  <a routerLink="/app/catalog">Volver al catálogo</a>
+  <button (click)="load()">Reintentar</button>
+} @else {
+  <!-- ✅ Evaluamos el signal principal aquí con 'as' -->
+  @if (product(); as product) {
+    <app-page-header
+      [title]="product.name"
+      [subtitle]="
+        product.status === 'active' ? 'Producto activo' : 'Producto inactivo'
+      "
+    >
+      <a class="button" routerLink="/app/catalog">Volver</a>
+      @if (auth.can("catalog.manage")) {
+        <a
+          class="button primary"
+          [routerLink]="['/app/catalog', product.id, 'edit']"
+          >Editar producto</a
+        >
+      }
+    </app-page-header>
+
+    <section class="card">
+      <h2>Información</h2>
+      <p>{{ product.description || "Sin descripción" }}</p>
+      <dl>
+        <dt>Categoría</dt>
+        <dd>{{ product.categoryName || "Sin categoría" }}</dd>
+        <dt>Marca</dt>
+        <dd>{{ product.brandName || "Sin marca" }}</dd>
+      </dl>
+      @if (attributes(product.attributes).length) {
+        <h3>Atributos</h3>
+        <dl>
+          @for (
+            attribute of attributes(product.attributes);
+            track attribute.name
+          ) {
+            <dt>{{ attribute.name }}</dt>
+            <dd>{{ attribute.value }}</dd>
+          }
+        </dl>
+      }
+    </section>
+
+    <section class="card">
+      <h2>Variantes</h2>
+      @for (variant of product.variants; track variant.id) {
+        <article class="variant">
+          <h3>
+            {{ variant.name }}
+            <span class="badge">{{
+              variant.status === "active" ? "Activa" : "Inactiva"
+            }}</span>
+          </h3>
+          <dl>
+            <dt>SKU</dt>
+            <dd>{{ variant.sku }}</dd>
+            <dt>Precio</dt>
+            <dd>{{ variant.price }} {{ variant.currency }}</dd>
+            @if (variant.cost !== undefined) {
+              <dt>Costo</dt>
+              <dd>{{ variant.cost }} {{ variant.currency }}</dd>
+            }
+            <dt>Códigos de barras</dt>
+            <dd>{{ variant.barcodes.join(", ") || "Sin códigos" }}</dd>
+          </dl>
+          @if (attributes(variant.attributes).length) {
+            <dl>
+              @for (
+                attribute of attributes(variant.attributes);
+                track attribute.name
+              ) {
+                <dt>{{ attribute.name }}</dt>
+                <dd>{{ attribute.value }}</dd>
+              }
+            </dl>
+          }
+        </article>
+      }
+    </section>
+
+    <section class="card">
+      <h2>Compatibilidad</h2>
+      @if (product.compatibilities.length) {
+        <ul>
+          @for (model of product.compatibilities; track model.id) {
+            <li>
+              {{ model.brandName }} {{ model.name }}
+              {{ model.active ? "" : "(inactivo)" }}
+            </li>
+          }
+        </ul>
+      } @else {
+        <p>Sin modelos compatibles asignados.</p>
+      }
+    </section>
+
+    <section class="card">
+      <h2>Imágenes</h2>
+      @if (auth.can("catalog.manage")) {
+        <label class="upload">
+          Agregar imagen privada
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            (change)="upload($event)"
+            [disabled]="busy()"
+          />
+        </label>
+        <p>PNG, JPEG o WebP, máximo 5 MiB.</p>
+      }
+      @if (busy()) {
+        <p role="status">Guardando imagen…</p>
+      }
+      @if (imageError()) {
+        <p role="alert">No pudimos autorizar alguna imagen.</p>
+        <button (click)="load()">Actualizar imágenes</button>
+      }
+      @if (!product.images.length) {
+        <p>No hay imágenes guardadas.</p>
+      }
+      <div class="gallery">
+        @for (image of product.images; track image.id) {
+          <figure>
+            @if (images()[image.id]) {
+              <img
+                [src]="images()[image.id]"
+                [alt]="image.altText || product.name"
+                (error)="imageError.set(true)"
+              />
+            }
+            <figcaption>{{ image.altText || product.name }}</figcaption>
+            @if (auth.can("catalog.manage")) {
+              <button
+                type="button"
+                [disabled]="busy()"
+                (click)="remove(image.id)"
+              >
+                Retirar imagen
+              </button>
+            }
+          </figure>
+        }
+      </div>
+    </section>
+  }
+}

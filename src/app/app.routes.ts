@@ -68,6 +68,43 @@ export const routes: Routes = [
             (m) => m.RegisterClientComponent,
           ),
       },
+      {
+        path: 'inventory',
+        loadComponent: () =>
+          import('./storage/pages/inventory/inventory.component').then(
+            (m) => m.InventoryComponent,
+          ),
+      },
+      {
+        path: 'products-list',
+        loadComponent: () =>
+          import('./products/pages/products-list/products-list.component').then(
+            (m) => m.ProductsListComponent,
+          ),
+      },
+      {
+        path: 'register-product',
+        loadComponent: () =>
+          import('./products/pages/register-product/register-product.component').then(
+            (m) => m.RegisterProductComponent,
+          ),
+      },
+      {
+        path: 'product-detail',
+        loadComponent: () =>
+          import('./products/pages/product-detail/product-detail.component').then(
+            (m) => m.ProductDetailComponent,
+          ),
+      },
+      {
+        path: 'catalog/options',
+        // canActivate: [permissionGuard],
+        // data: { permission: 'catalog.manage' },
+        loadComponent: () =>
+          import('./products/pages/catalog-lookups/catalog-lookups.component').then(
+            (m) => m.CatalogLookupsComponent,
+          ),
+      },
     ],
   },
 ];

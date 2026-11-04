@@ -1,0 +1,388 @@
+<app-page-header
+  title="Inventario (Modo Cascarón)"
+  subtitle="Existencias por ubicación e historial de operaciones"
+/>
+
+@if (!auth.context()?.branchId) {
+  <section class="panel">
+    <h2>Selecciona una sucursal</h2>
+    <p>Usa el selector de la barra superior para consultar su inventario.</p>
+  </section>
+} @else {
+  <nav class="tabs" aria-label="Vistas de inventario">
+    @for (tab of tabs; track tab.id) {
+      <button
+        type="button"
+        [class.selected]="view() === tab.id"
+        [attr.aria-pressed]="view() === tab.id"
+        (click)="choose(tab.id)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </nav>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  @if (view() !== "locations" && view() !== "counts") {
+    <div class="filters">
+      <label>
+        Variante
+        <select [(ngModel)]="variantFilter" (change)="filter()">
+          <option value="">Todas</option>
+          @for (v of variants(); track v.id) {
+            <option [value]="v.id">{{ v.product }} · {{ v.sku }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Posición
+        <select [(ngModel)]="positionFilter" (change)="filter()">
+          <option value="">Todas</option>
+          @for (p of positions(); track p.id) {
+            <option [value]="p.id">
+              {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
+            </option>
+          }
+        </select>
+      </label>
+      <button type="button" (click)="load()">Actualizar</button>
+    </div>
+  }
+
+  @if (loading()) {
+    <app-skeleton />
+  } @else {
+    @if (view() === "balances") {
+      <section class="panel table-wrap">
+        <table>
+          <caption>
+            Existencias de la sucursal
+          </caption>
+          <thead>
+            <tr>
+              <th>Producto / SKU</th>
+              <th>Posición</th>
+              <th>Físico</th>
+              <th>Reservado</th>
+              <th>Disponible</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (b of balances(); track b.variantId + b.positionId) {
+              <tr>
+                <td>
+                  {{ b.product }}<small>{{ b.sku }}</small>
+                </td>
+                <td>{{ b.position }}</td>
+                <td>{{ b.quantity }}</td>
+                <td>{{ b.reserved }}</td>
+                <td>
+                  <strong>{{ b.available }}</strong>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5">Todavía no hay existencias registradas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (view() === "movements") {
+      <section class="panel table-wrap">
+        <table>
+          <caption>
+            Historial inmutable
+          </caption>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo / SKU</th>
+              <th>Posición</th>
+              <th>Cantidad</th>
+              <th>Motivo / Referencia</th>
+              <th>Actor / Correlación</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of movements(); track m.id) {
+              <tr>
+                <td>{{ m.createdAt | date: "short" }}</td>
+                <td>
+                  {{ labels[m.kind] }}<small>{{ m.sku }}</small>
+                </td>
+                <td>{{ m.position }}</td>
+                <td>{{ m.quantity }}</td>
+                <td>
+                  {{ m.reason }}<small>{{ m.reference }}</small>
+                </td>
+                <td class="identifiers">
+                  {{ m.actorId }}<small>{{ m.correlationId }}</small>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">Sin movimientos.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (view() === "reservations") {
+      <section class="panel table-wrap">
+        <table>
+          <caption>
+            Reservas
+          </caption>
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Posición</th>
+              <th>Cantidad</th>
+              <th>Estado</th>
+              <th>Referencia</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of reservations(); track r.id) {
+              <tr>
+                <td>{{ r.sku }}</td>
+                <td>{{ r.position }}</td>
+                <td>{{ r.quantity }}</td>
+                <td>{{ labels[r.status] }}</td>
+                <td>{{ r.reference }}</td>
+                <td>
+                  @if (r.status === "active" && auth.can("inventory.reserve")) {
+                    <button
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="release(r.id)"
+                    >
+                      Liberar
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">Sin reservas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (view() === "counts") {
+      @for (c of counts(); track c.id) {
+        <article class="panel">
+          <h2>{{ c.reference }} · {{ labels[c.status] }}</h2>
+          <p>{{ c.reason }}</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Posición</th>
+                  <th>Esperado</th>
+                  <th>Contado</th>
+                  <th>Diferencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (i of c.items; track i.variantId + i.positionId) {
+                  <tr>
+                    <td>{{ i.sku }}</td>
+                    <td>{{ i.position }}</td>
+                    <td>{{ i.expected }}</td>
+                    <td>{{ i.counted }}</td>
+                    <td>{{ i.difference }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (c.status === "submitted" && auth.can("inventory.approve")) {
+            <div class="actions">
+              <button
+                type="button"
+                [disabled]="busy()"
+                (click)="review(c.id, 'approve')"
+              >
+                Aprobar ajustes
+              </button>
+              <button
+                type="button"
+                [disabled]="busy()"
+                (click)="review(c.id, 'reject')"
+              >
+                Rechazar
+              </button>
+            </div>
+          }
+        </article>
+      } @empty {
+        <section class="panel">Sin conteos registrados.</section>
+      }
+    }
+
+    @if (view() === "locations") {
+      <section class="panel table-wrap">
+        <table>
+          <caption>
+            Bodegas, estantes y posiciones
+          </caption>
+          <thead>
+            <tr>
+              <th>Bodega</th>
+              <th>Estante</th>
+              <th>Posición</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of positions(); track p.id) {
+              <tr>
+                <td>{{ p.warehouse }}</td>
+                <td>{{ p.shelf }}</td>
+                <td>{{ p.name }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3">Agrega tu primera ubicación.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  }
+
+  <!-- Formularios de Creación / Gestión -->
+  @if (view() === "locations" && auth.can("inventory.manage")) {
+    <form
+      class="editor-section panel"
+      [formGroup]="location"
+      (ngSubmit)="saveLocation()"
+    >
+      <header class="editor-intro">
+        <span class="editor-number">01</span>
+        <h3>Ubicación física</h3>
+        <p>Identifica bodega, estante y posición.</p>
+      </header>
+      <div class="editor-body">
+        <h2>Nueva posición</h2>
+        <div class="fields">
+          <label
+            >Bodega<input formControlName="warehouse" maxlength="100"
+          /></label>
+          <label
+            >Estante<input formControlName="shelf" maxlength="100"
+          /></label>
+          <label
+            >Posición<input formControlName="position" maxlength="100"
+          /></label>
+        </div>
+        <div class="form-actions">
+          <button
+            class="primary"
+            type="submit"
+            [disabled]="busy() || location.invalid"
+          >
+            Agregar posición
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+
+  @if (
+    (view() === "balances" || view() === "reservations") &&
+    (auth.can("inventory.manage") || auth.can("inventory.reserve"))
+  ) {
+    <form
+      class="editor-section panel"
+      [formGroup]="operation"
+      (ngSubmit)="saveOperation()"
+    >
+      <header class="editor-intro">
+        <span class="editor-number">01</span>
+        <h3>Movimiento de inventario</h3>
+        <p>Selecciona origen, cantidad y referencia auditable.</p>
+      </header>
+      <div class="editor-body">
+        <h2>Registrar operación</h2>
+        <div class="fields">
+          <label>
+            Operación
+            <select formControlName="action">
+              <option value="entry">Entrada</option>
+              <option value="exit">Salida</option>
+              <option value="return">Devolución</option>
+              <option value="transfer">Traslado entre posiciones</option>
+              <option value="reserve">Reserva</option>
+            </select>
+          </label>
+          <label>
+            Variante
+            <select formControlName="variantId">
+              <option value="">Selecciona</option>
+              @for (v of variants(); track v.id) {
+                <option [value]="v.id">{{ v.product }} · {{ v.sku }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Posición
+            <select formControlName="positionId">
+              <option value="">Selecciona</option>
+              @for (p of positions(); track p.id) {
+                <option [value]="p.id">
+                  {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
+                </option>
+              }
+            </select>
+          </label>
+          @if (operation.controls.action.value === "transfer") {
+            <label>
+              Posición de destino
+              <select formControlName="targetPositionId">
+                <option value="">Selecciona</option>
+                @for (p of positions(); track p.id) {
+                  <option [value]="p.id">
+                    {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
+                  </option>
+                }
+              </select>
+            </label>
+          }
+          <label
+            >Cantidad<input type="number" formControlName="quantity" min="1"
+          /></label>
+          <label
+            >Motivo<input formControlName="reason" maxlength="500"
+          /></label>
+          <label
+            >Referencia<input formControlName="reference" maxlength="200"
+          /></label>
+        </div>
+        <div class="form-actions">
+          <button
+            class="primary"
+            type="submit"
+            [disabled]="busy() || operation.invalid"
+          >
+            Registrar operación
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+}

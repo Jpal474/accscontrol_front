@@ -1,0 +1,102 @@
+<app-page-header
+  title="Categorías y modelos (Modo Cascarón)"
+  subtitle="Opciones de catálogo exclusivas de tu empresa."
+>
+  <a class="button" routerLink="/app/catalog">Volver al catálogo</a>
+</app-page-header>
+
+<section class="card">
+  <label>
+    Tipo de opción
+    <select
+      [value]="kind()"
+      (change)="choose($event)"
+      aria-label="Tipo de opción"
+    >
+      @for (item of kinds; track item.key) {
+        <option [value]="item.key">{{ item.label }}</option>
+      }
+    </select>
+  </label>
+
+  <form class="editor-section" [formGroup]="form" (ngSubmit)="save()">
+    <header class="editor-intro">
+      <span class="editor-number">01</span>
+      <h3>Opción de catálogo</h3>
+      <p>Organiza categorías, marcas y modelos compatibles.</p>
+    </header>
+    <div class="editor-body">
+      <h2>{{ editing() ? "Editar opción" : "Agregar opción" }}</h2>
+      <div class="form-grid">
+        <label>
+          Nombre de opción
+          <input formControlName="name" required />
+        </label>
+
+        @if (kind() === "deviceModels") {
+          <label>
+            Marca del teléfono
+            <select formControlName="brandId" aria-label="Marca del teléfono">
+              <option value="">Seleccionar marca</option>
+              @for (brand of data()?.deviceBrands; track brand.id) {
+                <option [value]="brand.id" [disabled]="!brand.active">
+                  {{ brand.name }}
+                </option>
+              }
+            </select>
+          </label>
+        }
+
+        <label class="checkbox">
+          <input type="checkbox" formControlName="active" />
+          Opción activa
+        </label>
+      </div>
+
+      @if (form.touched && form.invalid) {
+        <p class="form-error" role="alert">Escribe un nombre válido.</p>
+      }
+      @if (error()) {
+        <p class="form-error" role="alert">{{ error() }}</p>
+      }
+
+      <div class="form-actions">
+        @if (editing()) {
+          <button type="button" (click)="cancel()">Cancelar edición</button>
+        }
+        <button type="submit" class="primary" [disabled]="busy()">
+          Guardar opción
+        </button>
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Opciones guardadas</h2>
+  @if (loading()) {
+    <app-skeleton />
+  } @else {
+    @if (!records().length) {
+      <p>No hay opciones de este tipo.</p>
+    }
+    <ul>
+      @for (record of records(); track record.id) {
+        <li>
+          <span>
+            {{ record.brandName ? record.brandName + " " : ""
+            }}{{ record.name }} ·
+            {{ record.active ? "Activa" : "Inactiva" }}
+          </span>
+          <button
+            type="button"
+            (click)="edit(record)"
+            [attr.aria-label]="'Editar ' + record.name"
+          >
+            Editar
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

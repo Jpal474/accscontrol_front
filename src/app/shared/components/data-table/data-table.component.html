@@ -1,0 +1,52 @@
+<div
+  class="table-scroll"
+  tabindex="0"
+  role="region"
+  [attr.aria-label]="caption()"
+>
+  <table>
+    <caption class="sr-only">
+      {{
+        caption()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        @for (column of columns(); track column.key) {
+          <th scope="col">{{ column.label }}</th>
+        }
+        @if (actions().length) {
+          <th scope="col">Acciones</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track $index) {
+        <tr>
+          @for (column of columns(); track column.key) {
+            <td>{{ row[column.key] }}</td>
+          }
+          @if (actions().length) {
+            <td class="row-actions">
+              @for (action of actions(); track action.key) {
+                <button
+                  type="button"
+                  [attr.aria-label]="action.label + ' ' + row['name']"
+                  (click)="rowAction.emit({ action: action.key, row })"
+                >
+                  {{ action.label }}
+                </button>
+              }
+            </td>
+          }
+        </tr>
+      } @empty {
+        <tr>
+          <td [attr.colspan]="columns().length + (actions().length ? 1 : 0)">
+            Sin registros que mostrar.
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

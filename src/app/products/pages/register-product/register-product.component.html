@@ -1,0 +1,248 @@
+<app-page-header
+  [title]="id ? 'Editar producto' : 'Nuevo producto (Modo Cascarón)'"
+  subtitle="Un producto puede tener varias variantes y modelos compatibles."
+>
+  <a class="button" routerLink="/app/catalog">Volver al catálogo</a>
+</app-page-header>
+
+@if (loading()) {
+  <app-skeleton />
+} @else if (failed()) {
+  <p role="alert">No pudimos cargar los datos del formulario.</p>
+  <button (click)="load()">Reintentar</button>
+} @else {
+  <div class="product-editor">
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <!-- Sección 01: Información general -->
+      <section class="card editor-section">
+        <header class="editor-intro">
+          <span class="editor-number">01</span>
+          <h2>Información del producto</h2>
+          <p>Identifica el producto y organízalo en tu catálogo.</p>
+        </header>
+        <div class="editor-body">
+          <div class="form-grid">
+            <label>
+              Nombre del producto
+              <input formControlName="name" required />
+            </label>
+            <label>
+              Estado del producto
+              <select formControlName="status" aria-label="Estado del producto">
+                <option value="active">Activo</option>
+                <option value="inactive">Inactivo</option>
+              </select>
+            </label>
+            <label>
+              Categoría del producto
+              <select
+                formControlName="categoryId"
+                aria-label="Categoría del producto"
+              >
+                <option value="">Sin categoría</option>
+                @for (category of lookups()?.categories; track category.id) {
+                  <option [value]="category.id">{{ category.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Marca del producto
+              <select formControlName="brandId" aria-label="Marca del producto">
+                <option value="">Sin marca</option>
+                @for (brand of lookups()?.brands; track brand.id) {
+                  <option [value]="brand.id">{{ brand.name }}</option>
+                }
+              </select>
+            </label>
+          </div>
+          <label class="wide">
+            Descripción
+            <textarea formControlName="description" rows="3"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- Sección 02: Variantes y precios -->
+      <section class="card editor-section">
+        <header class="editor-intro">
+          <span class="editor-number">02</span>
+          <h2>Variantes y precios</h2>
+          <p>Define SKU, códigos y valores por variante.</p>
+        </header>
+        <div class="editor-body">
+          <p>
+            Moneda de la empresa: {{ currency() }}. Usa dos decimales, por
+            ejemplo 199.00.
+          </p>
+          <div formArrayName="variants">
+            @for (
+              variant of variants.controls;
+              track variant;
+              let index = $index
+            ) {
+              <fieldset [formGroupName]="index">
+                <legend>Variante {{ index + 1 }}</legend>
+                <div class="form-grid">
+                  <label
+                    >Nombre de variante<input formControlName="name" required
+                  /></label>
+                  <label>SKU<input formControlName="sku" required /></label>
+                  <label
+                    >Precio<input
+                      formControlName="price"
+                      inputmode="decimal"
+                      required
+                  /></label>
+                  <label
+                    >Costo<input
+                      formControlName="cost"
+                      inputmode="decimal"
+                      required
+                  /></label>
+                  <label>
+                    Estado de variante
+                    <select
+                      formControlName="status"
+                      [attr.aria-label]="'Estado de variante ' + (index + 1)"
+                    >
+                      <option value="active">Activa</option>
+                      <option value="inactive">Inactiva</option>
+                    </select>
+                  </label>
+                  <label>
+                    Códigos de barras
+                    <input
+                      formControlName="barcodes"
+                      placeholder="Separados por comas"
+                    />
+                  </label>
+                </div>
+                <p class="hint">
+                  Descuida, puedes conservar el historial desactivando la
+                  variante.
+                </p>
+              </fieldset>
+            }
+          </div>
+          <button
+            type="button"
+            (click)="addVariant()"
+            [disabled]="variants.length >= 100"
+          >
+            Agregar variante
+          </button>
+        </div>
+      </section>
+
+      <!-- Sección 03: Modelos compatibles -->
+      <section class="card editor-section">
+        <header class="editor-intro">
+          <span class="editor-number">03</span>
+          <h2>Modelos compatibles</h2>
+          <p>Relaciona varios teléfonos con el mismo producto.</p>
+        </header>
+        <div class="editor-body">
+          <div
+            class="model-multiselect"
+            (focusout)="
+              !$any($event.currentTarget).contains($event.relatedTarget) &&
+                modelsOpen.set(false)
+            "
+          >
+            <label for="model-search">Teléfonos compatibles</label>
+            <div class="model-control" [class.is-open]="modelsOpen()">
+              @for (model of selectedModelRecords(); track model.id) {
+                <span class="model-chip">
+                  <span>{{ model.brandName }} {{ model.name }}</span>
+                  <button type="button" (click)="removeModel(model.id)">
+                    ×
+                  </button>
+                </span>
+              }
+              <input
+                id="model-search"
+                type="text"
+                autocomplete="off"
+                [placeholder]="
+                  selectedModels().length
+                    ? 'Agregar otro modelo…'
+                    : 'Buscar y seleccionar modelos…'
+                "
+                [value]="modelSearch()"
+                (input)="searchModels($any($event.target).value)"
+                (focus)="modelsOpen.set(true)"
+                (click)="modelsOpen.set(true)"
+                (keydown)="modelKeydown($event)"
+              />
+              <button
+                type="button"
+                class="model-toggle"
+                (click)="modelsOpen.set(!modelsOpen())"
+              >
+                ⌄
+              </button>
+            </div>
+            @if (modelsOpen()) {
+              <div class="model-dropdown">
+                <div role="listbox">
+                  @for (
+                    model of availableModels().slice(0, 30);
+                    track model.id;
+                    let index = $index
+                  ) {
+                    <div
+                      role="option"
+                      [id]="'model-option-' + index"
+                      class="model-option"
+                      [class.is-active]="activeModelIndex() === index"
+                      (mousedown)="$event.preventDefault()"
+                      (click)="selectModel(model.id)"
+                    >
+                      <span>{{ model.brandName }} {{ model.name }}</span
+                      ><span>+</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      @if (error()) {
+        <p class="form-error" role="alert" data-save-error>{{ error() }}</p>
+      }
+
+      <div class="form-actions">
+        <a class="button" routerLink="/app/catalog">Cancelar</a>
+        <button type="submit" class="primary" [disabled]="busy()">
+          {{ busy() ? "Guardando…" : "Guardar producto" }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Vista previa lateral -->
+    <aside class="product-preview" aria-label="Vista previa del producto">
+      <span class="preview-icon" aria-hidden="true">inventory_2</span>
+      <p class="preview-label">VISTA PREVIA</p>
+      <h2>{{ form.controls.name.value || "Nombre del producto" }}</h2>
+      <p>
+        {{
+          form.controls.description.value || "La descripción aparecerá aquí."
+        }}
+      </p>
+      <dl>
+        <dt>Estado</dt>
+        <dd>
+          {{ form.controls.status.value === "active" ? "Activo" : "Inactivo" }}
+        </dd>
+        <dt>Variantes</dt>
+        <dd>{{ variants.length }}</dd>
+        <dt>Modelos compatibles</dt>
+        <dd>{{ selectedModels().length }}</dd>
+        <dt>Moneda</dt>
+        <dd>{{ currency() }}</dd>
+      </dl>
+    </aside>
+  </div>
+}
