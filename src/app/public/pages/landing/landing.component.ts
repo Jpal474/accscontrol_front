@@ -7,6 +7,8 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { PublicService } from '../../services/public.service';
 
 @Component({
   selector: 'app-landing',
@@ -34,6 +36,7 @@ export class LandingComponent implements OnInit {
     })),
   );
   public form!: FormGroup;
+  private readonly publicService = inject(PublicService);
 
   ngOnInit(): void {
     this.initForm();
@@ -74,5 +77,33 @@ export class LandingComponent implements OnInit {
     this.success.set(false);
     this.error.set('');
     this.form.reset();
+  }
+
+  async submit(): Promise<void> {
+    if (this.busy()) return;
+
+    this.form.markAllAsTouched();
+    if (this.form.invalid) {
+      return;
+    }
+
+    this.busy.set(true);
+    this.error.set('');
+    this.success.set(false);
+
+    try {
+      const payload = this.form.getRawValue();
+      await firstValueFrom(this.publicService.sendAccessRequestMail(payload));
+      this.success.set(true);
+      this.form.reset();
+    } catch (err: any) {
+      console.error('Error al enviar la solicitud de acceso:', err);
+      const errorMessage =
+        err.error?.message ||
+        'No se pudo enviar la solicitud. Inténtalo más tarde.';
+      this.error.set(errorMessage);
+    } finally {
+      this.busy.set(false);
+    }
   }
 }

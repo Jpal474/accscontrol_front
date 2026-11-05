@@ -56,7 +56,12 @@
         <h2>Inicia sesión</h2>
         <p class="muted">Usa la cuenta autorizada de tu empresa.</p>
       </header>
-      <form [formGroup]="form">
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+        novalidate
+        [attr.aria-busy]="authSevice.busy()"
+      >
         @if (error()) {
           <p class="auth-error" role="alert">
             <span class="icon" aria-hidden="true">error</span>{{ error() }}
@@ -128,14 +133,13 @@
           }
         </div>
         <button class="primary submit" type="submit">
-          <!-- @if (auth.busy()) {
+          @if (authSevice.busy()) {
             <span class="spinner" aria-hidden="true"></span>
-          } -->
-          <!-- {{ auth.busy() ? 'Entrando…' : 'Entrar a mi espacio' }} -->
-          Entrar a mi espacio
-          <!-- @if (!auth.busy()) { -->
-          <span class="icon" aria-hidden="true">arrow_forward</span>
-          <!-- } -->
+          }
+          {{ authSevice.busy() ? "Entrando…" : "Entrar a mi espacio" }}
+          @if (!authSevice.busy()) {
+            <span class="icon" aria-hidden="true">arrow_forward</span>
+          }
         </button>
       </form>
       <div class="access-options">

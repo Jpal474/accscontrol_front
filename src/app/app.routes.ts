@@ -19,6 +19,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'request-access',
+    loadComponent: () =>
+      import('./public/pages/request-access/request-access.component').then(
+        (m) => m.RequestAccessComponent,
+      ),
+  },
+  {
     path: 'app',
     // canActivate: [authGuard],
     loadComponent: () =>

@@ -1,0 +1,181 @@
+<main class="public-page">
+  <header class="page-header">
+    <a class="back-button cursor-pointer" (click)="redirectToLogin()">
+      <span class="icon" aria-hidden="true">arrow_back</span>Volver al login
+    </a>
+    <!-- <button
+      type="button"
+      class="theme-toggle"
+      (click)="theme.toggle()"
+      [attr.aria-label]="
+        theme.dark() ? 'Activar tema claro' : 'Activar tema oscuro'
+      "
+    >
+      <span class="icon" aria-hidden="true">{{
+        theme.dark() ? "light_mode" : "dark_mode"
+      }}</span>
+    </button> -->
+  </header>
+
+  <div class="invitation-panel">
+    <section class="intro" aria-labelledby="invitation-heading">
+      <a routerLink="/" class="brand" aria-label="Accs Control, inicio">
+        <img src="/assets/landing/accs-control.png" alt="Accs Control" /><span
+          >CLOUD (Modo Cascarón)</span
+        >
+      </a>
+      <p class="eyebrow">Acceso por invitación</p>
+      <h1 id="invitation-heading">
+        Pon tu negocio bajo control. Solicita tu invitación.
+      </h1>
+      <p class="description">
+        Cuéntanos sobre tu tienda o taller. Revisamos cada solicitud y te
+        escribimos al correo que nos compartas para activar tu cuenta.
+      </p>
+      <ol class="steps">
+        <li>
+          <span class="icon" aria-hidden="true">edit_note</span>Envías tu
+          solicitud
+        </li>
+        <li>
+          <span class="icon" aria-hidden="true">fact_check</span>La revisamos
+        </li>
+        <li>
+          <span class="icon" aria-hidden="true">mark_email_read</span>Recibes tu
+          invitación por correo
+        </li>
+      </ol>
+      <p class="login-hint">
+        ¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a>
+      </p>
+    </section>
+
+    <section class="invitation-card" aria-labelledby="request-heading">
+      @if (success()) {
+        <div role="status" class="success">
+          <span class="success-icon icon" aria-hidden="true"
+            >mark_email_read</span
+          >
+          <h2 id="request-heading">Solicitud recibida</h2>
+          <p>
+            Revisaremos la información de tu negocio y te escribiremos al correo
+            que nos compartiste. La aprobación no es automática.
+          </p>
+          <a class="return-link" routerLink="/login">
+            <span class="icon" aria-hidden="true">arrow_back</span>Volver al
+            login
+          </a>
+        </div>
+      } @else {
+        <h2 id="request-heading">Solicitar acceso</h2>
+        <p class="form-description">
+          Los campos marcados con * son obligatorios.
+        </p>
+        <form
+          [formGroup]="form"
+          (ngSubmit)="submit()"
+          novalidate
+          [attr.aria-busy]="busy()"
+        >
+          <fieldset [disabled]="busy()">
+            <legend class="sr-only">Datos de tu solicitud</legend>
+            <div class="form-row">
+              <label>
+                Nombre *
+                <input
+                  formControlName="displayName"
+                  autocomplete="name"
+                  placeholder="Tu nombre completo"
+                  maxlength="160"
+                  required
+                  [attr.aria-invalid]="
+                    form.controls.displayName.touched &&
+                    form.controls.displayName.invalid
+                  "
+                />
+              </label>
+              <label>
+                Correo electrónico *
+                <input
+                  type="email"
+                  formControlName="email"
+                  autocomplete="email"
+                  placeholder="nombre@tunegocio.com"
+                  maxlength="254"
+                  required
+                  [attr.aria-invalid]="
+                    form.controls.email.touched && form.controls.email.invalid
+                  "
+                />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                Nombre del negocio *
+                <input
+                  formControlName="companyName"
+                  autocomplete="organization"
+                  placeholder="Ej. Accesorios del Centro"
+                  maxlength="160"
+                  required
+                  [attr.aria-invalid]="
+                    form.controls.companyName.touched &&
+                    form.controls.companyName.invalid
+                  "
+                />
+              </label>
+              <label>
+                Número de sucursales *
+                <select
+                  formControlName="branches"
+                  required
+                  [attr.aria-invalid]="
+                    form.controls.branches.touched &&
+                    form.controls.branches.invalid
+                  "
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="1">1 sucursal</option>
+                  <option value="2-3">2 a 3 sucursales</option>
+                  <option value="4-10">4 a 10 sucursales</option>
+                  <option value="10+">Más de 10 sucursales</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Mensaje (opcional)
+              <textarea
+                rows="4"
+                formControlName="message"
+                maxlength="900"
+                placeholder="¿Vendes accesorios, reparas equipos o ambos? ¿Cómo llevas hoy tu inventario?"
+              ></textarea>
+            </label>
+          </fieldset>
+
+          @if (form.touched && form.invalid) {
+            <p role="alert" class="form-error">
+              Completa los campos obligatorios y escribe un correo válido. El
+              mensaje es opcional y admite hasta 900 caracteres.
+            </p>
+          }
+          @if (error()) {
+            <p role="alert" class="form-error">{{ error() }}</p>
+          }
+
+          <button type="submit" class="send-button" [disabled]="busy()">
+            <span class="icon" aria-hidden="true">{{
+              busy() ? "hourglass_top" : "send"
+            }}</span>
+            {{ busy() ? "Enviando solicitud…" : "Enviar solicitud" }}
+          </button>
+
+          <p class="privacy-note">
+            Un administrador revisará tu solicitud antes de darte acceso a la
+            plataforma. No incluyas contraseñas ni datos sensibles.
+          </p>
+        </form>
+      }
+    </section>
+  </div>
+</main>

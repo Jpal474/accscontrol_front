@@ -2,6 +2,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Inject,
   inject,
   signal,
   viewChild,
@@ -10,6 +11,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BrandComponent } from '../../../shared/components/brand/brand.component';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-shell',
@@ -29,6 +31,7 @@ export class ShellComponent {
   readonly open = signal(false);
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly confirmation = viewChild.required(ConfirmDialogComponent);
+  readonly authSevice = inject(AuthService);
   @HostListener('document:keydown.escape', ['$event'])
   escapeMenu(event: Event) {
     if (this.open()) {
@@ -79,6 +82,7 @@ export class ShellComponent {
   }
 
   async logout() {
+    this.authSevice.logout();
     // try {
     //   await this.auth.logout();
     // } catch {
