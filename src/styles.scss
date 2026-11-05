@@ -84,6 +84,9 @@ button:disabled {
 [data-theme='dark'] .primary {
   color: var(--primary-text);
 }
+.cursor-pointer {
+  cursor: pointer;
+}
 input,
 select {
   border: 1px solid var(--border);
