@@ -1,0 +1,97 @@
+<app-page-header
+  title="Catálogo (Modo Cascarón)"
+  subtitle="Productos, variantes y compatibilidades de la empresa seleccionada."
+>
+  @if (auth.can("catalog.manage")) {
+    <a class="button" routerLink="/app/catalog/options">Categorías y modelos</a>
+    <a class="button primary" routerLink="/app/catalog/new">Nuevo producto</a>
+  }
+</app-page-header>
+
+<section class="card">
+  <form class="catalog-filters" [formGroup]="filters" (ngSubmit)="load()">
+    <label>
+      Buscar producto
+      <input
+        formControlName="q"
+        placeholder="Nombre, SKU, código de barras o modelo"
+      />
+    </label>
+
+    <label>
+      Modelo compatible
+      <select formControlName="modelId" aria-label="Modelo compatible">
+        <option value="">Todos los modelos</option>
+        @for (model of lookups()?.deviceModels; track model.id) {
+          <option [value]="model.id">
+            {{ model.brandName }} {{ model.name }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Categoría
+      <select formControlName="categoryId" aria-label="Categoría">
+        <option value="">Todas</option>
+        @for (category of lookups()?.categories; track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Estado
+      <select formControlName="status" aria-label="Estado">
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+        <option value="all">Todos</option>
+      </select>
+    </label>
+
+    <button type="submit" class="primary" [disabled]="loading()">Buscar</button>
+  </form>
+
+  @if (loading()) {
+    <app-skeleton />
+  } @else if (failed()) {
+    <app-empty-state
+      title="No pudimos cargar el catálogo"
+      message="Vuelve a intentar la consulta."
+    />
+    <button (click)="load()">Reintentar</button>
+  } @else if (!rows().length) {
+    <app-empty-state
+      title="Sin productos"
+      message="No hay productos que coincidan con estos filtros."
+    />
+  } @else {
+    <app-data-table
+      [columns]="columns"
+      [rows]="rows()"
+      [actions]="[{ key: 'view', label: 'Ver' }]"
+      (rowAction)="open($event.row)"
+      caption="Productos del catálogo"
+    />
+  }
+
+  @if (result(); as result) {
+    <nav class="pagination" aria-label="Paginación del catálogo">
+      <button
+        type="button"
+        [disabled]="loading() || result.page === 1"
+        (click)="load(result.page - 1)"
+      >
+        Anterior
+      </button>
+      <span>{{ result.total }} productos · Página {{ result.page }}</span>
+      <button
+        type="button"
+        [disabled]="loading() || result.page * result.pageSize >= result.total"
+        (click)="load(result.page + 1)"
+      >
+        Siguiente
+      </button>
+    </nav>
+  }
+</section>
