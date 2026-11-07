@@ -48,6 +48,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'edit-owner/:ownerId',
+        loadComponent: () =>
+          import('./store/pages/register-owner/register-owner.component').then(
+            (m) => m.RegisterOwnerComponent,
+          ),
+      },
+      {
+        path: 'owners-list',
+        loadComponent: () =>
+          import('./store/pages/owners-list/owners-list.component').then(
+            (m) => m.OwnersListComponent,
+          ),
+      },
+      {
         path: 'register-staff',
         loadComponent: () =>
           import('./staff/pages/register-staff/register-staff.component').then(

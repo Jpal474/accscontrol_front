@@ -31,6 +31,8 @@
               @for (action of actions(); track action.key) {
                 <button
                   type="button"
+                  class="primary"
+                  [disabled]="isRowActionDisabled(action.key, row)"
                   [attr.aria-label]="action.label + ' ' + row['name']"
                   (click)="rowAction.emit({ action: action.key, row })"
                 >

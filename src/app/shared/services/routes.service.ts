@@ -14,11 +14,23 @@ export class RoutesService {
     },
     app: {
       start: '/app',
+      owner: {
+        register: '/app/register-owner',
+        list: '/app/owners-list',
+        edit: (ownerId: string) => `/app/edit-owner/${ownerId}`,
+      },
     },
   };
   constructor() {}
 
-  public async redirectTo(route: string) {
-    return this.router.navigateByUrl(route, { replaceUrl: true });
+  public async redirectTo(
+    route: string,
+    replace = false,
+    state?: Record<string, any>,
+  ) {
+    return this.router.navigateByUrl(route, {
+      replaceUrl: replace,
+      state,
+    });
   }
 }

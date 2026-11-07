@@ -1,179 +1,90 @@
 <app-page-header
-  title="Crear dueño de tienda"
+  [title]="isEditing() ? 'Editar dueño de tienda' : 'Crear dueño de tienda'"
   subtitle="Un mismo dueño puede tener varias tiendas registradas, manteniendo los datos de cada una aislados."
 />
-<!-- @if (store.loading()) {
-  <app-skeleton />
-} @else if (store.failed()) {
-  <section class="card">
-    <p>No pudimos comprobar tu autorización.</p>
-    <button (click)="store.load()" type="button">Reintentar</button>
-  </section>
-} @else if (!store.policy()?.allowed) {
-  <section class="card">
-    <h2>Necesitas autorización de plataforma</h2>
-    <p>
-      Sólo las cuentas invitadas por un administrador pueden crear empresas,
-      dentro del límite aprobado. Empresas actuales:
-      {{ store.policy()?.ownedCompanies }} / {{ store.policy()?.maxCompanies }}.
-    </p>
-  </section>
-} @else { -->
+
 <section class="card">
-  <!-- <ol class="steps" aria-label="Pasos de onboarding">
-      <li [attr.aria-current]="step() === 1 ? 'step' : null">1. Empresa</li>
-      <li [attr.aria-current]="step() === 2 ? 'step' : null">
-        2. Primera sucursal
-      </li>
-      <li [attr.aria-current]="step() === 3 ? 'step' : null">3. Revisar</li>
-    </ol> -->
-  <!-- @if (step() === 1) { -->
-  <form class="editor-section" [formGroup]="owner">
-    <header class="editor-intro">
-      <span class="editor-number">01</span>
-      <h3>Datos del dueño</h3>
-      <p>Configura la información necesaria para el registro del dueño.</p>
-    </header>
-    <div class="editor-body">
-      <div class="form-grid">
-        <label>
-          Nombre del dueño
-
-          <input formControlName="name" required />
-        </label>
-
-        <label>
-          Primer Apellido
-
-          <input formControlName="lastName" required />
-        </label>
-
-        <label>
-          Segundo Apellido
-          <input formControlName="lastName2" />
-        </label>
-
-        <label>
-          Número de Teléfono
-          <input formControlName="phoneNumber" required />
-        </label>
-
-        <label>
-          Correo Electrónico
-          <input
-            formControlName="email"
-            placeholder="mitienda@gmail.com"
-            required
-          />
-        </label>
-      </div>
-      <!-- <details>
-        <summary>Datos fiscales opcionales</summary>
-        <div class="form-grid">
-          <label>Razón social<input formControlName="legalName" /></label
-          ><label>Identificador fiscal<input formControlName="taxId" /></label
-          ><label>Régimen fiscal<input formControlName="regime" /></label>
-        </div>
-        <p>No realiza timbrado ni validación fiscal externa.</p>
-      </details> -->
-      <!-- <label class="checkbox"
-            ><input
-              type="checkbox"
-              [checked]="sameAddress()"
-              (change)="sameAddress.set($any($event.target).checked)"
-            />La primera sucursal tiene esta misma dirección</label
-          > -->
-      @if (owner.touched && owner.invalid) {
-        <p class="form-error" role="alert">
-          Revisa los datos del dueño antes de continuar.
+  @if (!registered()) {
+    <form class="editor-section" [formGroup]="owner">
+      <header class="editor-intro">
+        <span class="editor-number">01</span>
+        <h3>Datos del dueño</h3>
+        <p>
+          {{
+            isEditing()
+              ? "Modifica la información necesaria del dueño."
+              : "Configura la información necesaria para el registro del dueño."
+          }}
         </p>
-      }
-      <div class="form-actions">
-        <button class="primary" type="submit">Continuar</button>
-      </div>
-    </div>
-  </form>
-  <!-- } @else if (step() === 2) {
-      <form class="editor-section" [formGroup]="branch" (ngSubmit)="next()">
-        <header class="editor-intro">
-          <span class="editor-number">01</span>
-          <h3>Primera sucursal</h3>
-          <p>Define la primera tienda de esta empresa.</p>
-        </header>
-        <div class="editor-body">
-          <p>
-            Es una tienda dentro de {{ company.controls.name.value }}. Usará
-            {{ company.controls.currency.value }} y
-            {{ company.controls.timezone.value }}.
-          </p>
-          <div class="form-grid">
-            <label
-              >Nombre de sucursal<input
-                formControlName="name"
-                required /></label
-            ><label
-              >Código de sucursal<input formControlName="code" required
-            /></label>
-          </div>
-          <accs-address-fields
-            [form]="branch.controls.address"
-            prefix="branch"
-            title="Dirección de la sucursal"
-          />
-          @if (branch.touched && branch.invalid) {
-            <p class="form-error" role="alert">
-              Revisa los datos de la sucursal.
-            </p>
-          }
-          <div class="form-actions">
-            <button type="button" (click)="step.set(1)">Atrás</button
-            ><button class="primary" type="submit">Revisar</button>
-          </div>
+      </header>
+
+      <div class="editor-body">
+        <div class="form-grid">
+          <label>
+            Nombre del dueño
+            <input formControlName="name" required />
+          </label>
+
+          <label>
+            Apellido(s)
+            <input formControlName="lastName" required />
+          </label>
+
+          <label>
+            Correo Electrónico
+            <input
+              formControlName="email"
+              placeholder="mitienda@gmail.com"
+              required
+            />
+          </label>
         </div>
-      </form>
-    } @else {
-      <h2>Confirma tu empresa</h2>
-      <dl>
-        <dt>Empresa</dt>
-        <dd>
-          {{ company.controls.name.value }} · {{ company.controls.slug.value }}
-        </dd>
-        <dt>Moneda / zona horaria</dt>
-        <dd>
-          {{ company.controls.currency.value }} ·
-          {{ company.controls.timezone.value }}
-        </dd>
-        <dt>Primera sucursal</dt>
-        <dd>
-          {{ branch.controls.name.value }} · {{ branch.controls.code.value }}
-        </dd>
-        <dt>Dirección</dt>
-        <dd>
-          {{ branch.controls.address.controls.line1.value }},
-          {{ branch.controls.address.controls.city.value }}
-        </dd>
-        <dt>Owner</dt>
-        <dd>Tu cuenta será el owner de esta empresa.</dd>
-      </dl>
-      <p>
-        Límites iniciales: {{ store.policy()?.maxBranches }} sucursales y
-        {{ store.policy()?.maxMembers }} miembros por empresa.
+
+        @if (owner.touched && owner.invalid) {
+          <p class="form-error" role="alert">
+            Revisa los datos del dueño antes de continuar.
+          </p>
+        }
+
+        <div class="form-actions">
+          <button
+            class="primary"
+            type="button"
+            [disabled]="busy()"
+            (click)="submit()"
+          >
+            @if (busy()) {
+              {{ isEditing() ? "Guardando..." : "Creando…" }}
+            } @else {
+              {{ isEditing() ? "Guardar Cambios" : "Crear cuenta" }}
+            }
+          </button>
+        </div>
+      </div>
+    </form>
+  } @else {
+    <!-- Mensaje de éxito exclusivo para creación -->
+    <div
+      class="success-message-container"
+      style="text-align: center; padding: 2rem 0"
+    >
+      <h3 style="color: var(--accent); margin-bottom: 0.5rem">
+        ¡Registro exitoso!
+      </h3>
+      <p style="color: var(--muted); margin-bottom: 1.5rem">
+        El nuevo dueño ha sido registrado correctamente en el sistema y se le
+        han enviado sus credenciales de acceso por correo.
       </p>
-      @if (error()) {
-        <p class="form-error" role="alert">{{ error() }}</p>
-      }
-      <div class="form-actions">
-        <button type="button" [disabled]="busy()" (click)="step.set(2)">
-          Atrás</button
-        ><button
+
+      <div class="form-actions" style="justify-content: center">
+        <button
           class="primary"
           type="button"
-          [disabled]="busy()"
-          (click)="submit()"
+          (click)="registered.set(false); owner.reset()"
         >
-          {{ busy() ? "Creando…" : "Crear empresa y sucursal" }}
+          Registrar otro dueño
         </button>
       </div>
-    } -->
+    </div>
+  }
 </section>
-<!-- } -->

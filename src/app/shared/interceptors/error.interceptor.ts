@@ -4,11 +4,12 @@ import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
+import { ToastService } from '../services/toast.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-
+  const toastService = inject(ToastService);
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'Ocurrió un error inesperado';
@@ -48,6 +49,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
 
+      toastService.show(errorMessage, 'error');
       console.error('[ErrorInterceptor]:', errorMessage, error);
       return throwError(() => new Error(errorMessage));
     }),

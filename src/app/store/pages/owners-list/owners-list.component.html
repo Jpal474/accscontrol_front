@@ -1,0 +1,124 @@
+<div class="page-header">
+  <span class="eyebrow">TU ESPACIO DE TRABAJO</span>
+  <h1>Dueños de tienda</h1>
+  <p>
+    Administra los dueños registrados, sus correos de acceso y su estado en el
+    sistema.
+  </p>
+</div>
+
+<section class="card">
+  <div
+    class="list-actions-bar"
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    "
+  >
+    <input
+      type="text"
+      placeholder="Buscar por correo..."
+      style="max-width: 300px; width: 100%"
+      (input)="onSearch($event)"
+    />
+    <button class="primary" type="button" (click)="navigateToCreate()">
+      + Crear nuevo dueño
+    </button>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton />
+  } @else if (failed()) {
+    <app-empty-state
+      title="No pudimos cargar el catálogo"
+      message="Vuelve a intentar la consulta."
+    />
+    <button (click)="loadOwners()">Reintentar</button>
+  } @else if (!owners().length) {
+    <app-empty-state
+      title="Sin dueños registrados"
+      message="No hay dueños que coincidan con estos filtros."
+    />
+  } @else {
+    <app-data-table
+      caption="Lista de dueños de tienda"
+      [columns]="columns"
+      [rows]="formattedOwners()"
+      [actions]="[
+        { key: 'edit', label: 'Editar' },
+        { key: 'toggle', label: 'Cambiar Estado' },
+      ]"
+      (rowAction)="handleRowAction($event)"
+    />
+
+    <nav
+      class="pagination"
+      aria-label="Paginación del catálogo"
+      style="
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      "
+    >
+      <button
+        type="button"
+        [disabled]="loading() || params.page === 1"
+        (click)="loadOwners(params.page! - 1)"
+      >
+        Anterior
+      </button>
+
+      <span
+        >{{ totalRegisters() }} dueños · Página {{ params.page }} de
+        {{ totalPages() }}</span
+      >
+
+      <button
+        type="button"
+        type="button"
+        [disabled]="loading() || params.page! >= totalPages()"
+        (click)="loadOwners(params.page! + 1)"
+      >
+        Siguiente
+      </button>
+    </nav>
+  }
+</section>
+
+@if (showStoreSelector()) {
+  <div class="modal-backdrop">
+    <div class="modal-card card">
+      <h3>Selecciona las tiendas a modificar</h3>
+      <p>Elige en qué tiendas deseas cambiar el estatus para este usuario:</p>
+
+      <div class="stores-checkbox-list" style="margin: 1rem 0">
+        @for (store of storesToToggle(); track store.storeId) {
+          <label style="display: block; margin-bottom: 0.5rem; cursor: pointer">
+            <input type="checkbox" [(ngModel)]="store.selected" />
+            {{ store.name }}
+            <span style="font-size: 0.85rem; color: gray"
+              >(Actual: {{ store.isActive ? "Activo" : "Inactivo" }})</span
+            >
+          </label>
+        }
+      </div>
+
+      <div
+        class="modal-actions"
+        style="display: flex; justify-content: flex-end; gap: 1rem"
+      >
+        <button type="button" (click)="cerrarSelector()">Cancelar</button>
+        <button
+          type="button"
+          class="primary"
+          (click)="confirmarCambioConTiendas()"
+        >
+          Aplicar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+}

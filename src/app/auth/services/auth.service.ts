@@ -27,18 +27,44 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly storageService = inject(StorageService);
+
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
-  private readonly _token = signal<string | null>(
-    this.isBrowser ? sessionStorage.getItem(this.TOKEN_KEY) : null,
-  );
-  private readonly _currentUser = signal<any | null>(
-    this.isBrowser ? this.getStoredUser() : null,
-  );
+
+  // Inicializamos las signals vacías (null) para evitar bloqueos síncronos
+  private readonly _token = signal<string | null>(null);
+  private readonly _currentUser = signal<any | null>(null);
+
   readonly token = this._token.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this._token());
   readonly busy = signal(false);
+
+  constructor() {
+    this.cargarSesionAlIniciar();
+  }
+
+  private cargarSesionAlIniciar() {
+    if (!this.isBrowser) return;
+
+    try {
+      // 1. Leemos el token de manera 100% síncrona y directa del sessionStorage
+      const storedToken = sessionStorage.getItem(this.TOKEN_KEY);
+      if (storedToken) {
+        this._token.set(storedToken);
+      }
+
+      // 2. El objeto usuario (que es más pesado o sensible) sí lo leemos con tu StorageService cifrado
+      this.storageService.getItem(this.USER_KEY).then((storedUser) => {
+        if (storedUser) {
+          this._currentUser.set(storedUser);
+        }
+      });
+    } catch (error) {
+      console.error('Error al cargar la sesión:', error);
+      this.logout();
+    }
+  }
 
   public login(
     loginCredentials: LoginCredentials,
@@ -51,8 +77,8 @@ export class AuthService {
       >(`${this.base}/signin`, loginCredentials)
       .pipe(
         tap((response) => {
-          // window.alert('alert');
           const { access_token, user } = response.data;
+          console.log('Token obtenido del login:', access_token);
           this.guardarSesion(access_token, user);
         }),
         finalize(() => {
@@ -62,8 +88,12 @@ export class AuthService {
   }
 
   private async guardarSesion(token: string, user: any) {
-    await this.storageService.setItem(this.TOKEN_KEY, token);
-    await this.storageService.setItem(this.USER_KEY, user);
+    if (this.isBrowser) {
+      // Guardamos el token limpio y plano de forma síncrona
+      sessionStorage.setItem(this.TOKEN_KEY, token);
+      // Guardamos el usuario de forma cifrada con tu servicio
+      await this.storageService.setItem(this.USER_KEY, user);
+    }
     this._token.set(token);
     this._currentUser.set(user);
   }
@@ -71,17 +101,12 @@ export class AuthService {
   public async logout() {
     if (this.isBrowser) {
       sessionStorage.removeItem(this.TOKEN_KEY);
-      sessionStorage.removeItem(this.USER_KEY);
+      await this.storageService.removeItem(this.USER_KEY);
     }
     this._token.set(null);
     this._currentUser.set(null);
     await this.routesService.redirectTo(
       this.routesService.routes.public.landing,
     );
-  }
-
-  private getStoredUser() {
-    const user = sessionStorage.getItem(this.USER_KEY);
-    return user ? JSON.parse(user) : null;
   }
 }
