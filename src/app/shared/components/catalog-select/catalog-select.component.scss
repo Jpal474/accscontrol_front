@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.select-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: var(--control-radius, 8px);
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.95rem;
+  color: var(--text, #1f2937);
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: var(--primary, #3b82f6);
+  }
+
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.placeholder {
+      color: var(--muted, #9ca3af);
+    }
+  }
+
+  .chevron {
+    font-size: 0.75rem;
+    transition: transform 0.2s;
+    color: var(--muted, #6b7280);
+
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: var(--control-radius, 8px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .search-box {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    background: var(--surface-subtle, #f9fafb);
+
+    input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border, #d1d5db);
+      border-radius: calc(var(--control-radius, 8px) - 2px);
+      font-size: 0.9rem;
+      outline: none;
+      background: var(--surface, #ffffff);
+      color: var(--text, #1f2937);
+
+      &:focus {
+        border-color: var(--primary, #3b82f6);
+      }
+    }
+  }
+
+  .options-list {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0.25rem 0;
+
+    .option-item {
+      padding: 0.625rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text, #374151);
+      transition: background 0.15s;
+
+      &:hover {
+        background: var(--primary-bg, #eff6ff);
+        color: var(--primary-text, #1d4ed8);
+      }
+
+      &.selected {
+        background: var(--primary, #3b82f6);
+        color: #ffffff;
+      }
+    }
+
+    .loading-state,
+    .empty-state,
+    .loading-more {
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted, #6b7280);
+    }
+  }
+}

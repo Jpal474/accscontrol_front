@@ -1,0 +1,45 @@
+<div class="custom-select-container">
+  <!-- Botón / Caja disparadora -->
+  <div class="select-trigger" (click)="toggleDropdown()">
+    <span [class.placeholder]="!selectedValue()">
+      {{ selectedValue() || placeholder }}
+    </span>
+    <span class="chevron" [class.open]="isOpen()">▼</span>
+  </div>
+
+  <!-- Panel Desplegable -->
+  @if (isOpen()) {
+    <div class="select-dropdown">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar..."
+          [value]="search()"
+          (input)="onSearchInput($event)"
+          autofocus
+        />
+      </div>
+
+      <div class="options-list" (scroll)="onScroll($event)">
+        @if (loading()) {
+          <div class="loading-state">Cargando...</div>
+        } @else if (items().length === 0) {
+          <div class="empty-state">Sin resultados</div>
+        } @else {
+          @for (item of items(); track item.id) {
+            <div
+              class="option-item"
+              [class.selected]="item.id === selectedId()"
+              (click)="selectItem(item)"
+            >
+              {{ item.value }}
+            </div>
+          }
+          @if (loadingMore()) {
+            <div class="loading-more">Cargando más...</div>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>
