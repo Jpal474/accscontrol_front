@@ -1,0 +1,89 @@
+<div class="page-header">
+  <span class="eyebrow">TU ESPACIO DE TRABAJO</span>
+  <h1>Dueños de tienda</h1>
+  <p>
+    Administra los dueños registrados, sus correos de acceso y su estado en el
+    sistema.
+  </p>
+</div>
+
+<section class="card">
+  <div
+    class="list-actions-bar"
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    "
+  >
+    <input
+      type="text"
+      placeholder="Buscar por correo o nombre..."
+      style="max-width: 300px; width: 100%"
+      (input)="onSearch($event)"
+    />
+    <button class="primary" type="button" (click)="navigateToCreate()">
+      + Crear nueva tienda
+    </button>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton />
+  } @else if (failed()) {
+    <app-empty-state
+      title="No pudimos cargar el catálogo"
+      message="Vuelve a intentar la consulta."
+    />
+    <button (click)="loadStores()">Reintentar</button>
+  } @else if (!stores().length) {
+    <app-empty-state
+      title="Sin tiendas registradas"
+      message="No hay dueños que coincidan con estos filtros."
+    />
+  } @else {
+    <app-data-table
+      caption="Lista de tiendas"
+      [columns]="columns"
+      [rows]="formattedStores()"
+      [actions]="[
+        { key: 'edit', label: 'Editar' },
+        { key: 'toggle', label: 'Cambiar Estado' },
+      ]"
+      (rowAction)="handleRowAction($event)"
+    />
+
+    <nav
+      class="pagination"
+      aria-label="Paginación del catálogo"
+      style="
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      "
+    >
+      <button
+        type="button"
+        [disabled]="loading() || params.page === 1"
+        (click)="loadStores(params.page! - 1)"
+      >
+        Anterior
+      </button>
+
+      <span
+        >{{ totalRegisters() }} dueños · Página {{ params.page }} de
+        {{ totalPages() }}</span
+      >
+
+      <button
+        type="button"
+        type="button"
+        [disabled]="loading() || params.page! >= totalPages()"
+        (click)="loadStores(params.page! + 1)"
+      >
+        Siguiente
+      </button>
+    </nav>
+  }
+</section>

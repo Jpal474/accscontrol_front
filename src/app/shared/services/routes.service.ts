@@ -19,6 +19,11 @@ export class RoutesService {
         list: '/app/owners-list',
         edit: (ownerId: string) => `/app/edit-owner/${ownerId}`,
       },
+      store: {
+        register: '/app/register-store',
+        list: '/app/stores-list',
+        edit: (storeId: string) => `/app/edit-store/${storeId}`,
+      },
     },
   };
   constructor() {}

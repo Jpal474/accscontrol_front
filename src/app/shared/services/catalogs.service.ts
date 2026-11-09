@@ -15,6 +15,7 @@ export class CatalogsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}catalogs`;
   private routes = {
+    listCurrencies: '/currencies/get',
     listCountries: '/countries/get',
     listStates: (countryId: string) => `/states/${countryId}/get`,
     listMunicipalities: (stateId: string) => `/municipalities/${stateId}/get`,
@@ -38,11 +39,21 @@ export class CatalogsService {
     return params;
   }
 
+  public getCurrencies(
+    query?: CatalogRequest,
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
+    const params = this.createParams(query);
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
+      `${this.baseUrl}${this.routes.listCurrencies}`,
+      { params },
+    );
+  }
+
   public getCountries(
     query?: CatalogRequest,
-  ): Observable<ApiStandardResponse<CatalogApiResponse>> {
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
     const params = this.createParams(query);
-    return this.http.get<ApiStandardResponse<CatalogApiResponse>>(
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
       `${this.baseUrl}${this.routes.listCountries}`,
       { params },
     );
@@ -51,9 +62,9 @@ export class CatalogsService {
   public getStatesByCountry(
     countryId: string,
     query?: CatalogRequest,
-  ): Observable<ApiStandardResponse<CatalogApiResponse>> {
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
     const params = this.createParams(query);
-    return this.http.get<ApiStandardResponse<CatalogApiResponse>>(
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
       `${this.baseUrl}${this.routes.listStates(countryId)}`,
       { params },
     );
@@ -62,9 +73,9 @@ export class CatalogsService {
   public getMunicipalitiesByState(
     stateId: string,
     query?: CatalogRequest,
-  ): Observable<ApiStandardResponse<CatalogApiResponse>> {
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
     const params = this.createParams(query);
-    return this.http.get<ApiStandardResponse<CatalogApiResponse>>(
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
       `${this.baseUrl}${this.routes.listMunicipalities(stateId)}`,
       { params },
     );
@@ -73,9 +84,9 @@ export class CatalogsService {
   public getLocalitiesByMunicipality(
     municipalityId: string,
     query?: CatalogRequest,
-  ): Observable<ApiStandardResponse<CatalogApiResponse>> {
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
     const params = this.createParams(query);
-    return this.http.get<ApiStandardResponse<CatalogApiResponse>>(
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
       `${this.baseUrl}${this.routes.listLocalities(municipalityId)}`,
       { params },
     );

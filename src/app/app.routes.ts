@@ -41,6 +41,20 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'edit-store/:storeId',
+        loadComponent: () =>
+          import('./store/pages/register-store/register-store.component').then(
+            (m) => m.RegisterStoreComponent,
+          ),
+      },
+      {
+        path: 'stores-list',
+        loadComponent: () =>
+          import('./store/pages/stores-list/stores-list.component').then(
+            (m) => m.StoresListComponent,
+          ),
+      },
+      {
         path: 'register-owner',
         loadComponent: () =>
           import('./store/pages/register-owner/register-owner.component').then(

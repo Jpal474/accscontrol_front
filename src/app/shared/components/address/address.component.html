@@ -1,56 +1,125 @@
 <fieldset [formGroup]="form()">
   <legend>{{ title() }}</legend>
   <div class="fields">
-    <label [for]="prefix() + '-line1'"
-      >Calle y número<input
-        [id]="prefix() + '-line1'"
-        formControlName="line1"
+    <!-- Calle -->
+    <label [for]="prefix() + '-street'">
+      Calle
+      <input
+        [id]="prefix() + '-street'"
+        formControlName="street"
         autocomplete="address-line1"
-        required /></label
-    ><label [for]="prefix() + '-line2'"
-      >Interior<input
-        [id]="prefix() + '-line2'"
-        formControlName="line2"
-        autocomplete="address-line2"
-    /></label>
-    <label [for]="prefix() + '-locality'"
-      >Localidad<input
-        [id]="prefix() + '-locality'"
-        formControlName="locality"
-        autocomplete="address-level2"
+        placeholder="Av. Madero"
         required
-    /></label>
-    <label [for]="prefix() + '-city'"
-      >Ciudad<input
-        [id]="prefix() + '-city'"
-        formControlName="city"
-        autocomplete="address-level2"
-        required /></label
-    ><label [for]="prefix() + '-state'"
-      >Estado / región<input
-        [id]="prefix() + '-state'"
-        formControlName="state"
-        autocomplete="address-level1"
-        required /></label
-    ><label [for]="prefix() + '-postal'"
-      >Código postal<input
+      />
+    </label>
+
+    <!-- Número exterior -->
+    <label [for]="prefix() + '-externalNumber'">
+      Núm. Exterior
+      <input
+        [id]="prefix() + '-externalNumber'"
+        formControlName="externalNumber"
+        placeholder="123"
+        required
+      />
+    </label>
+
+    <!-- Número interior -->
+    <label [for]="prefix() + '-internalNumber'">
+      Núm. Interior (Opcional)
+      <input
+        [id]="prefix() + '-internalNumber'"
+        formControlName="internalNumber"
+        placeholder="Depto 4B"
+      />
+    </label>
+
+    <!-- Colonia / Barrio -->
+    <label [for]="prefix() + '-neighborhood'">
+      Colonia
+      <input
+        [id]="prefix() + '-neighborhood'"
+        formControlName="neighborhood"
+        placeholder="Centro"
+        required
+      />
+    </label>
+
+    <!-- Código Postal -->
+    <label [for]="prefix() + '-postal'">
+      Código postal
+      <input
         [id]="prefix() + '-postal'"
         formControlName="postalCode"
         autocomplete="postal-code"
-        required /></label
-    ><label [for]="prefix() + '-country'"
-      >País (ISO de 2 letras)<input
-        [id]="prefix() + '-country'"
-        formControlName="country"
-        autocomplete="country"
-        maxlength="2"
+        placeholder="58000"
         required
-    /></label>
+      />
+    </label>
+
+    <!-- Catálogo de País (Siempre disponible) -->
+    <label>
+      <span>País</span>
+      <app-catalog-select
+        formControlName="countryId"
+        [fetchFn]="fetchCountries"
+        placeholder="Selecciona un país..."
+      />
+    </label>
+
+    <!-- Catálogo de Estado (Requiere País) -->
+    <label>
+      <span>Estado / Región</span>
+      <app-catalog-select
+        formControlName="stateId"
+        [parentId]="form().get('countryId')?.value"
+        [fetchFn]="fetchStates"
+        [parentRequired]="true"
+        [placeholder]="
+          form().get('countryId')?.value
+            ? 'Selecciona un estado...'
+            : 'Primero selecciona un país'
+        "
+      />
+    </label>
+
+    <!-- Catálogo de Municipio (Requiere Estado) -->
+    <label>
+      <span>Municipio</span>
+      <app-catalog-select
+        formControlName="municipalityId"
+        [parentId]="form().get('stateId')?.value"
+        [fetchFn]="fetchMunicipalities"
+        [parentRequired]="true"
+        [placeholder]="
+          form().get('stateId')?.value
+            ? 'Selecciona un municipio...'
+            : 'Primero selecciona un estado'
+        "
+      />
+    </label>
+
+    <!-- Catálogo de Localidad (Requiere Municipio) -->
+    <label>
+      <span>Localidad</span>
+      <app-catalog-select
+        formControlName="localityId"
+        [parentId]="form().get('municipalityId')?.value"
+        [fetchFn]="fetchLocalities"
+        [parentRequired]="true"
+        [placeholder]="
+          form().get('municipalityId')?.value
+            ? 'Selecciona una localidad...'
+            : 'Primero selecciona un municipio'
+        "
+      />
+    </label>
   </div>
+
   @if (form().touched && form().invalid) {
     <p role="alert" class="form-error">
-      Completa la dirección y usa un país de dos letras mayúsculas, por ejemplo
-      MX.
+      Completa todos los campos obligatorios de la dirección y selecciona las
+      ubicaciones de los catálogos.
     </p>
   }
 </fieldset>

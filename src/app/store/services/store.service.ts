@@ -10,6 +10,16 @@ import {
 } from '../interfaces/owner.interface';
 import { Observable } from 'rxjs';
 import { ApiStandardResponse } from '../../shared/interfaces/api-response.interface';
+import {
+  CreateStoreRequest,
+  StoreListResponse,
+  StoreParams,
+  StoreResponse,
+  UpdateStoreRequest,
+} from '../interfaces/store.interface';
+import { CatalogRequest } from '../../shared/interfaces/catalogs.interface';
+// Importa tus interfaces o tipos de Store y DTOs correspondientes
+// import { Store, CreateStoreDto, UpdateStoreDto } from '../interfaces/store.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -17,22 +27,36 @@ import { ApiStandardResponse } from '../../shared/interfaces/api-response.interf
 export class StoreService {
   private readonly http = inject(HttpClient);
   private readonly routesService = inject(RoutesService);
-  private readonly base = `${environment.apiUrl}users`;
-  private baseRoute = 'owners';
+
+  // Base general de la API (ajusta si tus endpoints de stores están en otra ruta base)
+  private readonly apiUrl = environment.apiUrl;
+
   private routes = {
-    createOwner: this.baseRoute,
-    ownersList: `${this.baseRoute}/list`,
-    toggleOwner: (ownerId: string) => `${this.baseRoute}/${ownerId}/toggle`,
-    getOwnerById: (ownerId: string) => `${this.baseRoute}/${ownerId}/get`,
-    updateOwner: (ownerId: string) => `${this.baseRoute}/${ownerId}/update`,
+    // Rutas de Owners (las que ya tenías)
+    createOwner: 'users/owners',
+    ownersList: 'users/owners/list',
+    toggleOwner: (ownerId: string) => `users/owners/${ownerId}/toggle`,
+    getOwnerById: (ownerId: string) => `users/owners/${ownerId}/get`,
+    updateOwner: (ownerId: string) => `users/owners/${ownerId}/update`,
+
+    // Nuevas rutas para Stores
+    createStore: 'stores/create',
+    getStoreById: (storeId: string) => `stores/${storeId}`,
+    updateStore: (storeId: string) => `stores/${storeId}/update`,
+    listOwnerStores: `stores/owner/list`,
+    listAllStores: `stores/list`,
+    toggleStore: (storeId: string) => `stores/${storeId}/toggle`,
   };
+
   constructor() {}
+
+  // ==================== MÉTODOS DE OWNERS ====================
 
   public createStoreOwner(
     ownerData: RegisterOwnerInterface,
   ): Observable<ApiStandardResponse<OwnerApiResponse>> {
     return this.http.post<ApiStandardResponse<OwnerApiResponse>>(
-      `${this.base}/${this.routes.createOwner}`,
+      `${this.apiUrl}${this.routes.createOwner}`,
       ownerData,
     );
   }
@@ -49,7 +73,7 @@ export class StoreService {
       }
     });
     return this.http.get<ApiStandardResponse<OwnersListApiResponse[]>>(
-      `${this.base}/${this.routes.ownersList}`,
+      `${this.apiUrl}${this.routes.ownersList}`,
       { params },
     );
   }
@@ -59,7 +83,7 @@ export class StoreService {
     storesId?: string[],
   ): Observable<ApiStandardResponse<{ isActive: boolean }>> {
     return this.http.patch<ApiStandardResponse<{ isActive: boolean }>>(
-      `${this.base}/${this.routes.toggleOwner(ownerId)}`,
+      `${this.apiUrl}${this.routes.toggleOwner(ownerId)}`,
       { storeIds: storesId },
     );
   }
@@ -68,7 +92,7 @@ export class StoreService {
     ownerId: string,
   ): Observable<ApiStandardResponse<OwnerApiResponse>> {
     return this.http.get<ApiStandardResponse<OwnerApiResponse>>(
-      `${this.base}/${this.routes.getOwnerById(ownerId)}`,
+      `${this.apiUrl}${this.routes.getOwnerById(ownerId)}`,
     );
   }
 
@@ -77,8 +101,78 @@ export class StoreService {
     body: Partial<RegisterOwnerInterface>,
   ): Observable<ApiStandardResponse<OwnerApiResponse>> {
     return this.http.patch<ApiStandardResponse<OwnerApiResponse>>(
-      `${this.base}/${this.routes.updateOwner(ownerId)}`,
+      `${this.apiUrl}${this.routes.updateOwner(ownerId)}`,
       body,
+    );
+  }
+
+  // ==================== MÉTODOS DE STORES ====================
+
+  public createStore(
+    storeData: CreateStoreRequest,
+  ): Observable<ApiStandardResponse<StoreResponse>> {
+    return this.http.post<ApiStandardResponse<StoreResponse>>(
+      `${this.apiUrl}${this.routes.createStore}`,
+      storeData,
+    );
+  }
+
+  public getStoreById(
+    storeId: string,
+  ): Observable<ApiStandardResponse<StoreResponse>> {
+    return this.http.get<ApiStandardResponse<StoreResponse>>(
+      `${this.apiUrl}${this.routes.getStoreById(storeId)}`,
+    );
+  }
+
+  public updateStore(
+    storeId: string,
+    storeData: UpdateStoreRequest,
+  ): Observable<ApiStandardResponse<StoreResponse>> {
+    return this.http.patch<ApiStandardResponse<StoreResponse>>(
+      `${this.apiUrl}${this.routes.updateStore(storeId)}`,
+      storeData,
+    );
+  }
+
+  public getStoresPerOwner(
+    storeParams: StoreParams,
+  ): Observable<ApiStandardResponse<StoreListResponse[]>> {
+    let params = new HttpParams();
+    Object.keys(storeParams).forEach((key) => {
+      const value = storeParams[key as keyof StoreParams];
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, String(value));
+      }
+    });
+    return this.http.get<ApiStandardResponse<StoreListResponse[]>>(
+      `${this.apiUrl}${this.routes.listOwnerStores}`,
+      { params },
+    );
+  }
+
+  public getAllStores(
+    storeParams: StoreParams,
+  ): Observable<ApiStandardResponse<StoreListResponse[]>> {
+    let params = new HttpParams();
+    Object.keys(storeParams).forEach((key) => {
+      const value = storeParams[key as keyof StoreParams];
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, String(value));
+      }
+    });
+    return this.http.get<ApiStandardResponse<StoreListResponse[]>>(
+      `${this.apiUrl}${this.routes.listAllStores}`,
+      { params },
+    );
+  }
+
+  public toggleStore(
+    storeId: string,
+  ): Observable<ApiStandardResponse<{ isActive: boolean }>> {
+    return this.http.patch<ApiStandardResponse<{ isActive: boolean }>>(
+      `${this.apiUrl}${this.routes.toggleStore(storeId)}`,
+      {},
     );
   }
 }

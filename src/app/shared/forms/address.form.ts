@@ -1,31 +1,39 @@
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 export function addressForm() {
   return new FormGroup({
-    line1: new FormControl('', {
+    street: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(160)],
     }),
-    line2: new FormControl('', {
+    externalNumber: new FormControl('', {
       nonNullable: true,
-      validators: Validators.maxLength(160),
+      validators: [Validators.required, Validators.maxLength(50)],
     }),
-    locality: new FormControl('', {
+    internalNumber: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.maxLength(50)],
     }),
-    city: new FormControl('', {
+    neighborhood: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required],
-    }),
-    state: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required],
+      validators: [Validators.required, Validators.maxLength(160)],
     }),
     postalCode: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(16)],
+      validators: [Validators.required, Validators.pattern(/^\d{4,5}$/)],
     }),
-    country: new FormControl('MX', {
+    countryId: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    stateId: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    municipalityId: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    localityId: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required],
     }),

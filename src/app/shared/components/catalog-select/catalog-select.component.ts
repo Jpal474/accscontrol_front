@@ -10,8 +10,9 @@ import {
   SimpleChanges,
   OnInit,
   OnDestroy,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -47,10 +48,13 @@ import { ApiStandardResponse } from '../../interfaces/api-response.interface';
 export class CatalogSelectComponent
   implements ControlValueAccessor, OnInit, OnChanges, OnDestroy
 {
+  // OJO: data ahora es un ARREGLO (CatalogApiResponse[])
   @Input({ required: true }) fetchFn!: (
     query: CatalogRequest,
-  ) => Observable<ApiStandardResponse<CatalogApiResponse>>;
-  @Input() parentId?: string | null; // Útil para recargar si cambia el país/estado padre
+  ) => Observable<ApiStandardResponse<CatalogApiResponse[]>>;
+  @Input() parentId?: string | null;
+  /** Si es true, no carga nada hasta que exista parentId */
+  @Input() parentRequired = false;
   @Input() placeholder = 'Selecciona una opción...';
 
   readonly isOpen = signal(false);
@@ -67,10 +71,11 @@ export class CatalogSelectComponent
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
-  private onChange: any = () => {};
-  private onTouched: any = () => {};
+  private onChange: (value: string) => void = () => {};
+  private onTouched: () => void = () => {};
 
   private readonly elementRef = inject(ElementRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   constructor() {
     this.searchSubject
@@ -82,18 +87,30 @@ export class CatalogSelectComponent
       });
   }
 
+  /** Verdadero si el selector puede consultar datos */
+  get canLoad(): boolean {
+    return !this.parentRequired || !!this.parentId;
+  }
+
   ngOnInit() {
+    // Evita ejecutar la petición en el servidor (SSR)
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.canLoad) return;
     this.loadData(true);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['parentId'] && !changes['parentId'].firstChange) {
-      // Si el elemento padre cambia (ej. cambias de país), limpiamos la selección y recargamos
-      this.selectedId.set(null);
-      this.selectedValue.set('');
-      this.onChange('');
+      // 🛑 Ya NO limpiamos el selectedId ni el onChange aquí,
+      // para permitir que el formulario conserve el ID que se está cargando o editando.
+      this.items.set([]);
+      this.search.set('');
       this.currentPage = 1;
-      this.loadData(true);
+      this.totalPages = 1;
+
+      if (isPlatformBrowser(this.platformId) && this.canLoad) {
+        this.loadData(true);
+      }
     }
   }
 
@@ -110,8 +127,11 @@ export class CatalogSelectComponent
   }
 
   public toggleDropdown() {
+    // No abrir si depende de un padre que aún no se ha seleccionado
+    if (!this.canLoad) return;
+
     this.isOpen.update((v) => !v);
-    if (this.isOpen() && this.items().length === 0) {
+    if (this.isOpen() && this.items().length === 0 && !this.loading()) {
       this.loadData(true);
     }
   }
@@ -129,7 +149,7 @@ export class CatalogSelectComponent
     this.isOpen.set(false);
   }
 
-  // Control de scroll infinito
+  // Scroll infinito
   public onScroll(event: Event) {
     const element = event.target as HTMLElement;
     const atBottom =
@@ -165,16 +185,17 @@ export class CatalogSelectComponent
       )
       .subscribe({
         next: (response) => {
-          // Adaptable a la estructura estándar de tu API (response.data o response directo)
-          const payload: any = response.data || response;
-          const newItems = payload.items || [];
-          this.totalPages = payload.totalPages || 1;
+          // data es un arreglo; la paginación viene en meta
+          const newItems: CatalogApiResponse[] = response.data ?? [];
+          this.totalPages = response.meta?.totalPages ?? 1;
 
           if (reset) {
             this.items.set(newItems);
           } else {
             this.items.update((current) => [...current, ...newItems]);
           }
+
+          this.syncSelectedLabel();
         },
         error: (err) => {
           console.error('Error al cargar catálogo:', err);
@@ -182,21 +203,38 @@ export class CatalogSelectComponent
       });
   }
 
-  // Métodos de ControlValueAccessor
-  writeValue(value: any): void {
-    if (value) {
-      this.selectedId.set(value);
-    } else {
+  /** Si hay un id seleccionado (ej. modo edición), recupera su texto */
+  private syncSelectedLabel() {
+    const id = this.selectedId();
+    if (!id || this.selectedValue()) return;
+    const found = this.items().find((i) => i.id === id);
+    if (found) this.selectedValue.set(found.value);
+  }
+
+  // ControlValueAccessor
+  writeValue(value: string | { id: string; value: string } | null): void {
+    if (!value) {
       this.selectedId.set(null);
       this.selectedValue.set('');
+      return;
+    }
+
+    if (typeof value === 'object' && value.id) {
+      // Si el backend te manda el objeto completo { id, value }
+      this.selectedId.set(value.id);
+      this.selectedValue.set(value.value);
+    } else if (typeof value === 'string') {
+      // Si solo manda el ID plano
+      this.selectedId.set(value);
+      this.syncSelectedLabel();
     }
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: string) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 }
