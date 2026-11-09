@@ -11,7 +11,7 @@ export function app(): express.Express {
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
   const browserDistFolder = resolve(serverDistFolder, '../browser');
   const indexHtml = join(serverDistFolder, 'index.server.html');
-
+  const SSR_ROUTES = ['/'];
   const commonEngine = new CommonEngine();
 
   server.set('view engine', 'html');
@@ -20,12 +20,22 @@ export function app(): express.Express {
   // Example Express Rest API endpoints
   // server.get('/api/**', (req, res) => { });
   // Serve static files from /browser
-  server.get('*.*', express.static(browserDistFolder, {
-    maxAge: '1y'
-  }));
+  server.get(
+    '*.*',
+    express.static(browserDistFolder, {
+      maxAge: '1y',
+      index: false,
+    }),
+  );
 
   // All regular routes use the Angular engine
   server.get('*', (req, res, next) => {
+    // Si NO es una ruta pública con SSR, mandamos el index.html sin renderizar
+    if (!SSR_ROUTES.includes(req.path)) {
+      return res.sendFile(join(browserDistFolder, 'index.html'));
+    }
+
+    // A partir de aquí, el código original de commonEngine
     const { protocol, originalUrl, baseUrl, headers } = req;
 
     commonEngine
