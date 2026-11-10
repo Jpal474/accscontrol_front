@@ -67,8 +67,6 @@ export class StoresListComponent {
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
     this.isOwner.set(this.authService.hasPermission('manage_store'));
-    console.log(this.isOwner(), 'isOwner');
-
     this.loadStores(1);
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
