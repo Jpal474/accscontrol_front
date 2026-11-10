@@ -9,6 +9,7 @@ import {
 import { routes } from './app.routes';
 import { authInterceptor } from './auth/interceptors/auth.interceptor';
 import { errorInterceptor } from './shared/interceptors/error.interceptor';
+import { storeInterceptor } from './shared/interceptors/store.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,7 +17,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, errorInterceptor]),
+      withInterceptors([authInterceptor, errorInterceptor, storeInterceptor]),
     ),
   ],
 };
