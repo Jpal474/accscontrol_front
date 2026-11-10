@@ -15,6 +15,7 @@ export class CatalogsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}catalogs`;
   private routes = {
+    listRoles: 'permissions/roles/catalog',
     listCurrencies: '/currencies/get',
     listCountries: '/countries/get',
     listStates: (countryId: string) => `/states/${countryId}/get`,
@@ -88,6 +89,16 @@ export class CatalogsService {
     const params = this.createParams(query);
     return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
       `${this.baseUrl}${this.routes.listLocalities(municipalityId)}`,
+      { params },
+    );
+  }
+
+  public getRoles(
+    query?: CatalogRequest,
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
+    const params = this.createParams(query);
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
+      `${environment.apiUrl}${this.routes.listRoles}`,
       { params },
     );
   }

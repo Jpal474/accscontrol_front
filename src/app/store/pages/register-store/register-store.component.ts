@@ -120,7 +120,7 @@ export class RegisterStoreComponent implements OnInit {
     request$.subscribe({
       next: () => {
         let message = '';
-        if (currentId) {
+        if (!currentId) {
           this.registered.set(true);
           message = 'registrada';
         } else {

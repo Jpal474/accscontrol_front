@@ -1,71 +1,143 @@
 <app-page-header
   title="Equipo"
-  subtitle="Invitaciones, roles y acceso por sucursal dentro de la empresa actual."
+  subtitle="Gestión de roles y acceso para el personal de la tienda activa."
 />
-<!-- @if (auth.can('members.manage')) { -->
-<section class="card invitation">
-  <h2>{{ editing() ? "Editar asignación" : "Invitar empleado" }}</h2>
-  <form class="editor-section" [formGroup]="form">
-    <header class="editor-intro">
-      <span class="editor-number">01</span>
-      <h3>Acceso del empleado</h3>
-      <p>Define su identidad, rol y sucursal autorizada.</p>
-    </header>
-    <div class="editor-body">
-      <div class="form-grid">
-        <label
-          >Nombre del empleado<input
-            formControlName="displayName"
-            [readOnly]="!!editing()"
-            required /></label
-        ><label
-          >Correo del empleado<input
-            type="email"
-            formControlName="email"
-            [readOnly]="!!editing()"
-            required /></label
-        ><label
-          >Sucursal asignada<select
-            formControlName="branchId"
-            aria-label="Sucursal asignada"
-          >
-            <option value="" disabled>Seleccionar sucursal</option>
-            <!-- @for (branch of auth.membership()?.branches; track branch.id) {
-                <option [value]="branch.id">{{ branch.name }}</option>
-              } -->
-          </select></label
-        ><label
-          >Rol<select formControlName="role" aria-label="Rol">
-            @for (role of roles; track role.code) {
-              <option [value]="role.code">{{ role.label }}</option>
-            }
-          </select></label
-        >
-      </div>
-      <p>
-        El acceso queda limitado a la sucursal asignada. No se pueden asignar
-        roles owner ni de plataforma aquí.
-      </p>
-      @if (form.touched && form.invalid) {
-        <p class="form-error" role="alert">
-          Completa nombre, correo y sucursal.
-        </p>
-      }
-      <div class="form-actions">
-        @if (editing()) {
-          <button type="button" (click)="cancel()">Cancelar edición</button>
-        }
-        <button class="primary" type="submit" [disabled]="busy()">
-          {{ editing() ? "Guardar asignación" : "Enviar invitación" }}
-        </button>
-      </div>
-    </div>
-  </form>
-</section>
-<!-- } -->
 
-<app-confirm-dialog
-  title="Cambiar acceso del empleado"
-  message="Se actualizará su membresía y se invalidará el acceso afectado en esta empresa. Se conservará el historial."
-  (confirmed)="confirm()"
-/>
+<!-- @if (auth.can('members.manage')) { -->
+@if (!registered()) {
+  <section class="card invitation">
+    <h2>{{ editing() ? "Editar asignación" : "Registrar empleado" }}</h2>
+
+    <form class="editor-section" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <header class="editor-intro">
+        <span class="editor-number">01</span>
+        <h3>Acceso del empleado</h3>
+        <p>Define su identidad, rol y credenciales de acceso.</p>
+      </header>
+
+      <div class="editor-body">
+        <div class="form-grid">
+          <!-- Nombre -->
+          <label>
+            Nombre(s)
+            <input
+              formControlName="name"
+              [readOnly]="!!editing()"
+              placeholder="Ej. Juan Carlos"
+              required
+            />
+            @if (form.get("name")?.invalid && form.get("name")?.touched) {
+              <small class="error" role="alert"
+                >El nombre es obligatorio.</small
+              >
+            }
+          </label>
+
+          <!-- Apellido -->
+          <label>
+            Apellidos
+            <input
+              formControlName="lastName"
+              [readOnly]="!!editing()"
+              placeholder="Ej. Pérez López"
+              required
+            />
+            @if (
+              form.get("lastName")?.invalid && form.get("lastName")?.touched
+            ) {
+              <small class="error" role="alert"
+                >El apellido es obligatorio.</small
+              >
+            }
+          </label>
+
+          <!-- Correo -->
+          <label>
+            Correo del empleado
+            <input
+              type="email"
+              formControlName="email"
+              [readOnly]="!!editing()"
+              placeholder="correo@negocio.com"
+              required
+            />
+            @if (form.get("email")?.invalid && form.get("email")?.touched) {
+              <small class="error" role="alert"
+                >Ingresa un correo electrónico válido.</small
+              >
+            }
+          </label>
+
+          <!-- Rol -->
+          <label>
+            Rol
+            <app-catalog-select
+              [fetchFn]="fetchRoles"
+              formControlName="roleId"
+              placeholder="Seleccione un rol..."
+            ></app-catalog-select>
+            @if (form.get("roleId")?.invalid && form.get("roleId")?.touched) {
+              <small class="error" role="alert"
+                >Debes seleccionar un rol.</small
+              >
+            }
+          </label>
+        </div>
+
+        <p class="form-note">
+          El acceso se otorgará automáticamente a la tienda activa seleccionada
+          en el menú superior.
+        </p>
+
+        @if (form.touched && form.invalid) {
+          <p class="form-error" role="alert">
+            Por favor, completa todos los campos requeridos correctamente.
+          </p>
+        }
+
+        <div class="form-actions">
+          @if (editing()) {
+            <button type="button" class="btn-secondary" (click)="cancel()">
+              Cancelar edición
+            </button>
+          }
+          <button
+            class="primary btn-primary"
+            type="submit"
+            [disabled]="busy() || form.invalid"
+          >
+            @if (busy()) {
+              <span>Guardando...</span>
+            } @else {
+              {{ editing() ? "Guardar asignación" : "Registrar empleado" }}
+            }
+          </button>
+        </div>
+      </div>
+    </form>
+  </section>
+} @else {
+  <div
+    class="success-message-container"
+    style="text-align: center; padding: 2rem 0"
+  >
+    <h3 style="color: var(--accent); margin-bottom: 0.5rem">
+      ¡Registro exitoso!
+    </h3>
+    <p style="color: var(--muted); margin-bottom: 1.5rem">
+      El nuevo dueño ha sido registrado correctamente en el sistema y se le han
+      enviado sus credenciales de acceso por correo.
+    </p>
+
+    <div class="form-actions" style="justify-content: center">
+      <button
+        class="primary"
+        type="button"
+        (click)="registered.set(false); form.reset()"
+      >
+        Registrar otro miembro de staff
+      </button>
+    </div>
+  </div>
+}
+<!-- } -->

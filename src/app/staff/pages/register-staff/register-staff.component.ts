@@ -1,9 +1,17 @@
-import { Component, inject, signal, viewChild } from '@angular/core';
+import { Component, inject, signal, viewChild, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { MemberDetails } from '../../interfaces/member-details.interface';
+import { ToastService } from '../../../shared/services/toast.service';
+import { StaffService } from '../../services/staff.service';
+import {
+  RegisterStaffInterface,
+  StoreStaffItem,
+} from '../../interfaces/staff.interface';
+import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
+import { CatalogsService } from '../../../shared/services/catalogs.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-register-staff',
@@ -13,140 +21,120 @@ import { MemberDetails } from '../../interfaces/member-details.interface';
     PageHeaderComponent,
     SkeletonComponent,
     ConfirmDialogComponent,
+    CatalogSelectComponent,
   ],
   templateUrl: './register-staff.component.html',
   styleUrl: './register-staff.component.scss',
 })
-export class RegisterStaffComponent {
-  readonly loading = signal(true);
+export class RegisterStaffComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly staffService = inject(StaffService);
+  private readonly toastService = inject(ToastService);
+  private readonly catalogService = inject(CatalogsService);
+  private readonly route = inject(ActivatedRoute);
+  readonly loading = signal(false);
   readonly failed = signal(false);
   readonly busy = signal(false);
-  readonly pending = signal<{
-    id: string;
-    status: 'suspended' | 'revoked';
-  } | null>(null);
+  readonly registered = signal(false);
+  readonly memberId = signal<string | null>(null);
+  readonly error = signal('');
   readonly dialog = viewChild.required(ConfirmDialogComponent);
-  readonly form = inject(FormBuilder).nonNullable.group({
+
+  readonly form = this.fb.nonNullable.group({
+    name: [
+      '',
+      [Validators.required, Validators.minLength(2), Validators.maxLength(100)],
+    ],
+    lastName: [
+      '',
+      [Validators.required, Validators.minLength(2), Validators.maxLength(200)],
+    ],
     email: ['', [Validators.required, Validators.email]],
-    displayName: ['', Validators.required],
-    branchId: ['', Validators.required],
-    role: ['seller', Validators.required],
+    roleId: ['', [Validators.required]],
   });
-  readonly roles: { code: string; label: string }[] = [
-    { code: 'seller', label: 'Vendedor' },
-    { code: 'technician', label: 'Técnico' },
-    { code: 'viewer', label: 'Consulta' },
-    { code: 'manager', label: 'Gerente' },
-  ];
-  readonly members = signal<MemberDetails[]>([]);
-  readonly editing = signal<MemberDetails | null>(null);
-  public mockMembers: MemberDetails[] = [
-    // 1. Active Manager with an existing role and no pending invites
-    {
-      id: 'mem_001',
-      email: 'alice.smith@example.com',
-      displayName: 'Alice Smith',
-      status: 'active',
-      roles: [{ role: 'manager', branchId: 'branch_nyc_01' }],
-      invitations: [],
-    },
 
-    // 2. Newly Invited Seller with a pending invitation
-    {
-      id: 'mem_002',
-      email: 'bob.jones@example.com',
-      displayName: 'Bob Jones',
-      status: 'invited',
-      roles: [],
-      invitations: [
-        {
-          id: 'inv_101',
-          branchId: 'branch_la_02',
-          role: 'seller',
-          expiresAt: '2026-11-15T23:59:59Z',
-          deliveryStatus: 'delivered',
-          consumed: false,
-          revoked: false,
-        },
-      ],
-    },
+  readonly editing = signal<StoreStaffItem | null>(null);
 
-    // 3. Suspended Technician with multiple roles/branches and past history
-    {
-      id: 'mem_003',
-      email: 'charlie.brown@example.com',
-      displayName: 'Charlie Brown',
-      status: 'suspended',
-      roles: [
-        { role: 'technician', branchId: 'branch_chi_03' },
-        { role: 'viewer', branchId: null },
-      ],
-      invitations: [
-        {
-          id: 'inv_102',
-          branchId: 'branch_chi_03',
-          role: 'technician',
-          expiresAt: '2025-10-01T00:00:00Z',
-          deliveryStatus: 'delivered',
-          consumed: true,
-          revoked: false,
-        },
-      ],
-    },
-
-    // 4. Revoked Member whose invitation was canceled/revoked
-    {
-      id: 'mem_004',
-      email: 'diana.prince@example.com',
-      displayName: 'Diana Prince',
-      status: 'revoked',
-      roles: [],
-      invitations: [
-        {
-          id: 'inv_103',
-          branchId: 'branch_mia_04',
-          role: 'viewer',
-          expiresAt: '2026-11-01T23:59:59Z',
-          deliveryStatus: 'failed',
-          consumed: false,
-          revoked: true,
-        },
-      ],
-    },
-  ];
-
-  constructor() {
-    void this.load();
-  }
-
-  async load() {
-    this.loading.set(true);
-    this.failed.set(false);
-    try {
-      this.members.set(this.mockMembers);
-    } catch {
-      this.failed.set(true);
-    } finally {
-      this.loading.set(false);
+  ngOnInit() {
+    const id = this.route.snapshot.paramMap.get('staffId');
+    if (id) {
+      this.memberId.set(id);
+      this.loadStaffData(id);
     }
   }
+
+  private loadStaffData(id: string) {
+    this.busy.set(true);
+    this.staffService.getStaffMemberById(id).subscribe({
+      next: (response) => {
+        this.startEditing(response.data);
+        this.busy.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudieron cargar los datos de la tienda.');
+        this.busy.set(false);
+      },
+    });
+  }
+  readonly fetchRoles = (q: any) => this.catalogService.getRoles(q);
+
+  startEditing(member: StoreStaffItem) {
+    this.editing.set(member);
+
+    this.form.patchValue({
+      name: member.user.name,
+      lastName: member.user.lastName,
+      email: member.user.email,
+      roleId: member.role.id,
+    });
+  }
+
   cancel() {
     this.editing.set(null);
     this.form.reset({
+      name: '',
+      lastName: '',
       email: '',
-      displayName: '',
-      branchId: '',
-      role: 'seller',
+      roleId: '',
     });
   }
-  async confirm() {
-    const change = this.pending();
-    if (!change) return;
-    // await this.update(change.id, change.status);
-    this.pending.set(null);
-  }
 
-  owner(member: MemberDetails) {
-    return member.roles.some((role) => role.role === 'owner');
+  onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.busy.set(true);
+    const formValues: RegisterStaffInterface = this.form.getRawValue();
+    const isEditing = !!this.editing();
+
+    const request$ = isEditing
+      ? this.staffService.updateStaff(this.editing()!.id, formValues)
+      : this.staffService.createStaff(formValues);
+
+    request$.subscribe({
+      next: () => {
+        !isEditing ? this.registered.set(true) : this.registered.set(false);
+        this.toastService.show(
+          isEditing
+            ? 'Asignación actualizada correctamente'
+            : 'Personal registrado exitosamente',
+          'success',
+        );
+        this.cancel();
+      },
+      error: (err) => {
+        console.error('Error al procesar la solicitud de staff:', err);
+        this.toastService.show(
+          err.error?.message || 'Ocurrió un error inesperado.',
+          'error',
+        );
+        this.busy.set(false);
+      },
+      complete: () => {
+        this.busy.set(false);
+      },
+    });
   }
 }
