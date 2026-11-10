@@ -193,11 +193,13 @@
         ☰
       </button>
       <div class="selectors">
-        <label
-          >Empresa<select aria-label="Empresa">
-            <option value="" disabled>Selecciona empresa</option>
-          </select></label
-        ><label>Sucursal<select aria-label="Sucursal"></select></label>
+        <label>
+          Tienda
+          <app-catalog-select
+            [fetchFn]="fetchStores"
+            [formControl]="storeControl"
+          ></app-catalog-select>
+        </label>
       </div>
       <div class="user-actions">
         <!-- <button

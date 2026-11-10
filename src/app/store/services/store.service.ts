@@ -17,7 +17,10 @@ import {
   StoreResponse,
   UpdateStoreRequest,
 } from '../interfaces/store.interface';
-import { CatalogRequest } from '../../shared/interfaces/catalogs.interface';
+import {
+  CatalogApiResponse,
+  CatalogRequest,
+} from '../../shared/interfaces/catalogs.interface';
 // Importa tus interfaces o tipos de Store y DTOs correspondientes
 // import { Store, CreateStoreDto, UpdateStoreDto } from '../interfaces/store.interface';
 
@@ -46,6 +49,7 @@ export class StoreService {
     listOwnerStores: `stores/owner/list`,
     listAllStores: `stores/list`,
     toggleStore: (storeId: string) => `stores/${storeId}/toggle`,
+    storesSelector: `stores/owner/catalog`,
   };
 
   constructor() {}
@@ -173,6 +177,24 @@ export class StoreService {
     return this.http.patch<ApiStandardResponse<{ isActive: boolean }>>(
       `${this.apiUrl}${this.routes.toggleStore(storeId)}`,
       {},
+    );
+  }
+
+  public getStoresCatalog(
+    queryParans: CatalogRequest,
+  ): Observable<ApiStandardResponse<CatalogApiResponse[]>> {
+    let params = new HttpParams();
+    Object.keys(queryParans).forEach((key) => {
+      const value = queryParans[key as keyof CatalogRequest];
+
+      if (value !== null && value !== undefined && value !== '') {
+        params = params.set(key, String(value));
+      }
+    });
+
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(
+      `${this.apiUrl}${this.routes.storesSelector}`,
+      { params },
     );
   }
 }

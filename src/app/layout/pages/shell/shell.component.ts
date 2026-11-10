@@ -4,14 +4,18 @@ import {
   HostListener,
   Inject,
   inject,
+  OnInit,
   signal,
   viewChild,
 } from '@angular/core';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrandComponent } from '../../../shared/components/brand/brand.component';
 import { AuthService } from '../../../auth/services/auth.service';
+import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
+import { StoreService } from '../../../store/services/store.service';
+import { SelectedStoreService } from '../../../shared/services/selected-store.service';
 
 @Component({
   selector: 'app-shell',
@@ -23,15 +27,22 @@ import { AuthService } from '../../../auth/services/auth.service';
     RouterLink,
     RouterLinkActive,
     BrandComponent,
+    CatalogSelectComponent,
+    ReactiveFormsModule,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   readonly open = signal(false);
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly confirmation = viewChild.required(ConfirmDialogComponent);
   readonly authSevice = inject(AuthService);
+  readonly storesSevice = inject(StoreService);
+  readonly selectedStoreService = inject(SelectedStoreService);
+  readonly storeControl = new FormControl<string | null>(
+    this.selectedStoreService.selectedStoreId(),
+  );
   @HostListener('document:keydown.escape', ['$event'])
   escapeMenu(event: Event) {
     if (this.open()) {
@@ -43,6 +54,17 @@ export class ShellComponent {
   onResize() {
     if (window.innerWidth >= 1024) this.open.set(false);
   }
+
+  readonly fetchStores = (q: any) => this.storesSevice.getStoresCatalog(q);
+  ngOnInit() {
+    this.storeControl.valueChanges.subscribe((storeId) => {
+      this.selectedStoreService.setSelectedStore(storeId);
+      console.log('Tienda activa cambiada:', storeId);
+
+      // Opcional: Puedes forzar un recargar o notificar si estás en la misma ruta
+    });
+  }
+
   toggleMenu() {
     if (this.open()) {
       this.closeMenu();
