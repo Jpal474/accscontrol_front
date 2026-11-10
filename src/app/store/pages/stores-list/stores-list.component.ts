@@ -19,6 +19,7 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { isPlatformBrowser } from '@angular/common';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-stores-list',
@@ -31,6 +32,7 @@ export class StoresListComponent {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   readonly storesService = inject(StoreService);
+  readonly authService = inject(AuthService);
   readonly routesService = inject(RoutesService);
   public params: StoreParams = {
     page: 1,
@@ -64,6 +66,9 @@ export class StoresListComponent {
 
   ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
+    this.isOwner.set(this.authService.hasPermission('manage_store'));
+    console.log(this.isOwner(), 'isOwner');
+
     this.loadStores(1);
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))

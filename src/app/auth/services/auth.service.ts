@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment.development';
 import {
   LoginCredentials,
   LoginApiResponse,
+  User,
 } from '../interfaces/login.interface';
 import { Observable, finalize, tap } from 'rxjs';
 import { ApiStandardResponse } from '../../shared/interfaces/api-response.interface';
@@ -34,10 +35,13 @@ export class AuthService {
 
   private readonly _token = signal<string | null>(null);
   private readonly _currentUser = signal<any | null>(null);
-  readonly permissions = signal<string[]>(this.getStoredPermissions());
+
+  // ¡Los permisos se cargan de forma 100% síncrona al instante!
+  private readonly _permissions = signal<string[]>(this.getStoredPermissions());
 
   readonly token = this._token.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
+  readonly permissions = this._permissions.asReadonly();
   readonly isAuthenticated = computed(() => !!this._token());
   readonly busy = signal(false);
 
@@ -49,17 +53,14 @@ export class AuthService {
     if (!this.isBrowser) return;
 
     try {
+      // 1. Token síncrono
       const storedToken = sessionStorage.getItem(this.TOKEN_KEY);
       if (storedToken) {
         this._token.set(storedToken);
       }
 
-      const storedPermissions = sessionStorage.getItem(this.PERMISSIONS_KEY);
-      if (storedPermissions) {
-        this.permissions.set(JSON.parse(storedPermissions));
-      }
-
-      this.storageService.getItem(this.USER_KEY).then((storedUser) => {
+      // 2. Usuario cifrado (único que requiere asincronía)
+      this.storageService.getItem<User>(this.USER_KEY).then((storedUser) => {
         if (storedUser) {
           this._currentUser.set(storedUser);
         }
@@ -81,8 +82,8 @@ export class AuthService {
       >(`${this.base}/signin`, loginCredentials)
       .pipe(
         tap((response) => {
-          const { access_token, user, permissions = [] } = response.data as any;
-          this.guardarSesion(access_token, user, permissions);
+          const { access_token, user } = response.data;
+          this.guardarSesion(access_token, user);
         }),
         finalize(() => {
           this.busy.set(false);
@@ -90,16 +91,21 @@ export class AuthService {
       );
   }
 
-  private async guardarSesion(token: string, user: any, permissions: string[]) {
+  private async guardarSesion(token: string, user: User) {
+    const permissions = user.permissions || [];
+
     if (this.isBrowser) {
+      // Guardado síncrono inmediato (sin esperas ni promesas para permisos y token)
       sessionStorage.setItem(this.TOKEN_KEY, token);
       sessionStorage.setItem(this.PERMISSIONS_KEY, JSON.stringify(permissions));
 
+      // El usuario se queda cifrado en segundo plano si lo deseas
       await this.storageService.setItem(this.USER_KEY, user);
     }
+
     this._token.set(token);
     this._currentUser.set(user);
-    this.permissions.set(permissions);
+    this._permissions.set(permissions);
   }
 
   public async logout() {
@@ -110,7 +116,7 @@ export class AuthService {
     }
     this._token.set(null);
     this._currentUser.set(null);
-    this.permissions.set([]);
+    this._permissions.set([]);
 
     await this.routesService.redirectTo(
       this.routesService.routes.public.landing,
@@ -118,7 +124,7 @@ export class AuthService {
   }
 
   public hasPermission(permission: string): boolean {
-    return this.permissions().includes(permission);
+    return this._permissions().includes(permission);
   }
 
   private getStoredPermissions(): string[] {
@@ -127,7 +133,7 @@ export class AuthService {
       const stored = sessionStorage.getItem(this.PERMISSIONS_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (e) {
-      console.error('Error al leer permisos del almacenamiento', e);
+      console.error('Error al leer permisos planos', e);
       return [];
     }
   }
