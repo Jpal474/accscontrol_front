@@ -25,6 +25,17 @@
     </div>
     <p class="nav-label">ESPACIO DE TRABAJO</p>
     <nav aria-label="Navegación principal">
+      @if (authSevice.hasPermission('manage_platform_admins')) {
+        <a routerLink="/app/admin/administrators" routerLinkActive="active" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">admin_panel_settings</span> Administradores de plataforma
+        </a>
+        <a routerLink="/app/admin/users" routerLinkActive="active" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">manage_accounts</span> Usuarios de la plataforma
+        </a>
+        <a routerLink="/app/admin/register" routerLinkActive="active" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">person_add</span> Registrar administrador
+        </a>
+      }
       <!-- @if (auth.context()) { -->
       <a
         routerLink="/app/subscription"
