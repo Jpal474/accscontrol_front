@@ -34,6 +34,10 @@ export const routes: Routes = [
       ),
     children: [
       {
+        path: 'admin',
+        loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
+      },
+      {
         path: 'register-store',
         loadComponent: () =>
           import('./store/pages/register-store/register-store.component').then(
