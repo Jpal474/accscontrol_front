@@ -12,6 +12,9 @@ import {
 import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
 import { CatalogsService } from '../../../shared/services/catalogs.service';
 import { ActivatedRoute } from '@angular/router';
+import { map } from 'rxjs';
+import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
+import { translateRoleName } from '../../../shared/i18n/roles.es';
 
 @Component({
   selector: 'app-register-staff',
@@ -76,7 +79,12 @@ export class RegisterStaffComponent implements OnInit {
       },
     });
   }
-  readonly fetchRoles = (q: any) => this.catalogService.getRoles(q);
+  readonly fetchRoles = (query: CatalogRequest) => this.catalogService.getRoles(query).pipe(
+    map(response => ({
+      ...response,
+      data: response.data.map(role => ({ ...role, value: translateRoleName(role.value) })),
+    })),
+  );
 
   startEditing(member: StoreStaffItem) {
     this.editing.set(member);
