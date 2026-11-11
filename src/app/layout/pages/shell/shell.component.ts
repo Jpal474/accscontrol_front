@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   ElementRef,
   HostListener,
   Inject,
@@ -16,6 +17,7 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
 import { StoreService } from '../../../store/services/store.service';
 import { SelectedStoreService } from '../../../shared/services/selected-store.service';
+import { User } from '../../../auth/interfaces/login.interface';
 
 @Component({
   selector: 'app-shell',
@@ -38,6 +40,10 @@ export class ShellComponent implements OnInit {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly confirmation = viewChild.required(ConfirmDialogComponent);
   readonly authSevice = inject(AuthService);
+  readonly isStoreOwner = computed(() => {
+    const user: User | null = this.authSevice.currentUser();
+    return user?.stores?.some(store => store.role?.trim().toLowerCase() === 'owner') ?? false;
+  });
   readonly storesSevice = inject(StoreService);
   readonly selectedStoreService = inject(SelectedStoreService);
   readonly storeControl = new FormControl<string | null>(

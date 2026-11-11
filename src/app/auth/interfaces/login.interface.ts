@@ -11,7 +11,7 @@ export interface LoginApiResponse {
 export interface User {
   id: string;
   email: string;
-  globalRole: string;
-  stores: { storeId: string; roleId: string }[];
+  globalRole: string | null;
+  stores: { storeId: string; role: string | null }[];
   permissions: string[];
 }

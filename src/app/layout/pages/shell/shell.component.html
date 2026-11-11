@@ -193,6 +193,7 @@
         ☰
       </button>
       <div class="selectors">
+        @if (isStoreOwner()) {
         <label>
           Tienda
           <app-catalog-select
@@ -200,6 +201,7 @@
             [formControl]="storeControl"
           ></app-catalog-select>
         </label>
+        }
       </div>
       <div class="user-actions">
         <!-- <button

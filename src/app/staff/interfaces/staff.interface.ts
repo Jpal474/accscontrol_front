@@ -24,10 +24,12 @@ export interface UserDetails {
   name: string;
   lastName: string;
   email: string;
+  phone?: string | null;
 }
 
 export interface StoreStaffItem {
   id: string;
+  isActive: boolean;
   role: RoleDetails;
   user: UserDetails;
 }
