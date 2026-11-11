@@ -1,0 +1,15 @@
+﻿@use '../../../../styles/workspace-controls' as controls;
+@include controls.page;
+.user-filters { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; margin-bottom: 1.75rem; }
+label, .filter-field { display: grid; gap: .5rem; min-width: 0; }
+.filter-field app-catalog-select { min-width: 0; }
+.clear-filter { justify-self: start; }
+.pagination { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .5rem; margin-top: 1.5rem; }
+.pagination span { min-width: 0; text-align: center; font-size: .85rem; overflow-wrap: anywhere; }
+.pagination button { width: auto; white-space: nowrap; padding-inline: .6rem; }
+@media (max-width: 600px) {
+  .user-filters { grid-template-columns: minmax(0, 1fr); }
+  .pagination { gap: .25rem; }
+  .pagination button { padding-inline: .4rem; font-size: .8rem; }
+  .pagination span { font-size: .75rem; }
+}
