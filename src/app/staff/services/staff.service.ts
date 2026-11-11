@@ -8,7 +8,6 @@ import {
   RegisterStaffResponse,
   StoreStaffItem,
 } from '../interfaces/staff.interface';
-import { RegisterStaffComponent } from '../pages/register-staff/register-staff.component';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +15,18 @@ import { RegisterStaffComponent } from '../pages/register-staff/register-staff.c
 export class StaffService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}users/staff`;
+
+  public listStaff(page = 1, pageSize = 10): Observable<ApiStandardResponse<StoreStaffItem[]>> {
+    return this.http.get<ApiStandardResponse<StoreStaffItem[]>>(`${this.base}/list`, {
+      params: { page, pageSize },
+    });
+  }
+
+  public toggleStaff(staffId: string): Observable<ApiStandardResponse<{ isActive: boolean }>> {
+    return this.http.patch<ApiStandardResponse<{ isActive: boolean }>>(
+      `${this.base}/${staffId}/toggle`, {},
+    );
+  }
 
   public createStaff(
     body: RegisterStaffInterface,

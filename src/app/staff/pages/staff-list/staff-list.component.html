@@ -1,8 +1,7 @@
-<app-page-header
-  title="Equipo"
-  subtitle="Invitaciones, roles y acceso por sucursal dentro de la empresa actual."
-/>
-@if (loading()) {
+﻿<app-page-header title="Equipo" subtitle="Personal, roles y acceso de la tienda seleccionada." />
+@if (!selectedStore.selectedStoreId()) {
+  <section class="card"><p>Selecciona una tienda para consultar su personal.</p></section>
+} @else if (loading()) {
   <app-skeleton />
 } @else if (failed()) {
   <section class="card">
@@ -11,39 +10,14 @@
   </section>
 } @else {
   <section class="card">
-    <div class="member-list">
-      @for (member of members(); track member.id) {
-        <article>
-          <div>
-            <h3>{{ member.displayName }}</h3>
-            <p>{{ member.email }}</p>
-            <p>
-              Estado: {{ member.status }} ·
-              @for (role of member.roles; track $index) {
-                <span>{{ role.role }} </span>
-              }
-              @if (member.status === "invited") {
-                <span>Invitación pendiente</span>
-              }
-            </p>
-          </div>
-          <!-- @if (auth.can('members.manage') && !owner(member)) { -->
-          <div class="member-actions">
-            @if (member.status === "active") {
-              <button type="button" [disabled]="busy()">
-                Editar asignación</button
-              ><button type="button" [disabled]="busy()">Suspender</button>
-            } @else {
-              <button type="button" [disabled]="busy()">Reactivar</button>
-            }
-          </div>
-          @if (owner(member)) {
-            <small>Owner protegido</small>
-          }
-        </article>
-      } @empty {
-        <p>Sin miembros visibles en este contexto.</p>
-      }
-    </div>
+    <app-data-table [columns]="columns" [rows]="rows()" [actions]="actions"
+      caption="Personal de la tienda" (rowAction)="handleRowAction($event)" />
+    @if (totalPages() > 1) {
+      <nav aria-label="Paginación del personal">
+        <button type="button" [disabled]="page() <= 1 || busy()" (click)="load(page() - 1)">Anterior</button>
+        <span>Página {{ page() }} de {{ totalPages() }}</span>
+        <button type="button" [disabled]="page() >= totalPages() || busy()" (click)="load(page() + 1)">Siguiente</button>
+      </nav>
+    }
   </section>
 }
