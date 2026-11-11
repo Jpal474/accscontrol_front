@@ -1,0 +1,19 @@
+﻿<app-page-header title="Registrar administrador" subtitle="Crea una cuenta con permisos de administración de la plataforma." />
+<section class="card">
+  <form class="editor-section" [formGroup]="form" (ngSubmit)="submit()">
+    <header class="editor-intro"><h2>Datos de acceso</h2><p>Se generará una contraseña segura y se enviarán las credenciales al correo del administrador.</p></header>
+    <div class="editor-body">
+      <div class="form-grid">
+        <label>Nombre(s)<input formControlName="name" autocomplete="given-name" required /></label>
+        <label>Apellidos<input formControlName="lastName" autocomplete="family-name" required /></label>
+        <label>Correo<input type="email" formControlName="email" autocomplete="email" required /></label>
+      </div>
+      @if (form.touched && form.invalid) { <p role="alert">Completa los campos e ingresa un correo válido.</p> }
+      @if (error()) { <p role="alert">{{ error() }}</p> }
+      <div class="form-actions">
+        <a class="button" routerLink="/app/admin/users">Volver a usuarios</a>
+        <button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Guardando...' : 'Registrar administrador' }}</button>
+      </div>
+    </div>
+  </form>
+</section>
