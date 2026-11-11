@@ -12,7 +12,7 @@ import {
   LoginApiResponse,
   User,
 } from '../interfaces/login.interface';
-import { Observable, finalize, tap } from 'rxjs';
+import { Observable, finalize, from, map, switchMap } from 'rxjs';
 import { ApiStandardResponse } from '../../shared/interfaces/api-response.interface';
 import { isPlatformBrowser } from '@angular/common';
 import { RoutesService } from '../../shared/services/routes.service';
@@ -81,9 +81,11 @@ export class AuthService {
         ApiStandardResponse<LoginApiResponse>
       >(`${this.base}/signin`, loginCredentials)
       .pipe(
-        tap((response) => {
+        switchMap((response) => {
           const { access_token, user } = response.data;
-          this.guardarSesion(access_token, user);
+          return from(this.guardarSesion(access_token, user)).pipe(
+            map(() => response),
+          );
         }),
         finalize(() => {
           this.busy.set(false);
