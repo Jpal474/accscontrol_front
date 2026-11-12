@@ -1,12 +1,14 @@
 import {
   Component,
   computed,
+  effect,
   ElementRef,
   HostListener,
   Inject,
   inject,
   OnInit,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -18,6 +20,7 @@ import { CatalogSelectComponent } from '../../../shared/components/catalog-selec
 import { StoreService } from '../../../store/services/store.service';
 import { SelectedStoreService } from '../../../shared/services/selected-store.service';
 import { User } from '../../../auth/interfaces/login.interface';
+import { MANAGED_CATALOGS } from '../../../catalogs/interfaces/catalog.interface';
 
 @Component({
   selector: 'app-shell',
@@ -40,6 +43,7 @@ export class ShellComponent implements OnInit {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly confirmation = viewChild.required(ConfirmDialogComponent);
   readonly authSevice = inject(AuthService);
+  readonly canManageCatalogs = computed(() => MANAGED_CATALOGS.some(item => this.authSevice.hasPermission(item.permission)));
   readonly isStoreOwner = computed(() => {
     const user: User | null = this.authSevice.currentUser();
     return user?.stores?.some(store => store.role?.trim().toLowerCase() === 'owner') ?? false;
@@ -49,6 +53,14 @@ export class ShellComponent implements OnInit {
   readonly storeControl = new FormControl<string | null>(
     this.selectedStoreService.selectedStoreId(),
   );
+  constructor() {
+    effect(() => {
+      const storeId = this.selectedStoreService.selectedStoreId();
+      untracked(() => {
+        this.storeControl.setValue(storeId, { emitEvent: false });
+      });
+    }, { allowSignalWrites: true });
+  }
   @HostListener('document:keydown.escape', ['$event'])
   escapeMenu(event: Event) {
     if (this.open()) {
