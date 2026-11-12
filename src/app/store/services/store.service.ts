@@ -197,4 +197,12 @@ export class StoreService {
       { params },
     );
   }
+
+  public getOwnerProductCatalogs(query: Partial<CatalogRequest> = {}) {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== '') params = params.set(key, String(value));
+    }
+    return this.http.get<ApiStandardResponse<CatalogApiResponse[]>>(`${this.apiUrl}stores/owner/product-catalogs`, { params });
+  }
 }
