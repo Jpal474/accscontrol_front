@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { catalogsGuard } from './catalogs/catalogs.guard';
 
 export const routes: Routes = [
   {
@@ -33,6 +34,14 @@ export const routes: Routes = [
         (m) => m.ShellComponent,
       ),
     children: [
+      {
+        path: 'catalogs-list', canActivate: [catalogsGuard],
+        loadComponent: () => import('./catalogs/pages/catalogs-list/catalogs-list.component').then(m => m.CatalogsListComponent),
+      },
+      {
+        path: 'register-catalogs', canActivate: [catalogsGuard],
+        loadComponent: () => import('./catalogs/pages/register-catalogs/register-catalogs.component').then(m => m.RegisterCatalogsComponent),
+      },
       {
         path: 'admin',
         loadChildren: () => import('./admin/admin.routes').then(m => m.ADMIN_ROUTES),
