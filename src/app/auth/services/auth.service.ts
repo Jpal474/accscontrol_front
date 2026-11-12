@@ -17,6 +17,7 @@ import { ApiStandardResponse } from '../../shared/interfaces/api-response.interf
 import { isPlatformBrowser } from '@angular/common';
 import { RoutesService } from '../../shared/services/routes.service';
 import { StorageService } from '../../shared/services/storage.service';
+import { SelectedStoreService } from '../../shared/services/selected-store.service';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +29,7 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly storageService = inject(StorageService);
+  private readonly selectedStoreService = inject(SelectedStoreService);
 
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'auth_user';
@@ -62,6 +64,7 @@ export class AuthService {
       // 2. Usuario cifrado (único que requiere asincronía)
       this.storageService.getItem<User>(this.USER_KEY).then((storedUser) => {
         if (storedUser) {
+          this.syncSelectedStore(storedUser);
           this._currentUser.set(storedUser);
         }
       });
@@ -94,6 +97,7 @@ export class AuthService {
   }
 
   private async guardarSesion(token: string, user: User) {
+    this.selectedStoreService.setSelectedStore(null);
     const permissions = user.permissions || [];
 
     if (this.isBrowser) {
@@ -105,12 +109,14 @@ export class AuthService {
       await this.storageService.setItem(this.USER_KEY, user);
     }
 
+    this.syncSelectedStore(user);
     this._token.set(token);
     this._currentUser.set(user);
     this._permissions.set(permissions);
   }
 
   public async logout() {
+    this.selectedStoreService.setSelectedStore(null);
     if (this.isBrowser) {
       sessionStorage.removeItem(this.TOKEN_KEY);
       sessionStorage.removeItem(this.PERMISSIONS_KEY);
@@ -127,6 +133,19 @@ export class AuthService {
 
   public hasPermission(permission: string): boolean {
     return this._permissions().includes(permission);
+  }
+
+  private syncSelectedStore(user: User): void {
+    const storeIds = [...new Set((user.stores || []).map(store => store.storeId))];
+    if (storeIds.length === 1) {
+      this.selectedStoreService.setSelectedStore(storeIds[0]);
+      return;
+    }
+
+    const selectedId = this.selectedStoreService.selectedStoreId();
+    if (!user.globalRole && selectedId && !storeIds.includes(selectedId)) {
+      this.selectedStoreService.setSelectedStore(null);
+    }
   }
 
   private getStoredPermissions(): string[] {
