@@ -1,33 +1,32 @@
-<app-page-header
-  title="Clientes"
-  description="Expedientes compartidos por las sucursales de tu empresa."
-/>
-@if (error()) {
-  <p role="alert" class="error">{{ error() }}</p>
+﻿<app-page-header [title]="clientId() ? 'Editar cliente' : 'Registrar cliente'" subtitle="Datos de contacto del cliente dentro de la tienda seleccionada." />
+@if (!selectedStore.selectedStoreId()) {
+  <section class="card"><p>Selecciona una tienda para registrar o editar clientes.</p></section>
+} @else if (!auth.hasPermission('manage_clients')) {
+  <section class="card"><p>No tienes permisos para administrar clientes.</p></section>
+} @else if (loading()) { <app-skeleton /> }
+@else {
+  <section class="card">
+    @if (error()) { <p role="alert" class="error">{{ error() }}</p> }
+    @if (!loadFailed()) {
+      <form class="editor-section" [formGroup]="form" (ngSubmit)="submit()">
+        <header class="editor-intro"><span class="editor-number">01</span><h3>Datos del cliente</h3><p>Completa todos los campos. El teléfono debe contener 10 dígitos.</p></header>
+        <div class="editor-body">
+          <label>Nombre(s)<input formControlName="name" maxlength="100" autocomplete="given-name" required [attr.aria-invalid]="invalid('name')" aria-describedby="client-name-error" />
+            @if (invalid('name')) { <small id="client-name-error" class="error">El nombre debe tener entre 2 y 100 caracteres. Usa letras (incluidos acentos y ñ), espacios, guiones o apóstrofos entre palabras. No se permiten números ni otros símbolos.</small> }
+          </label>
+          <label>Apellidos<input formControlName="lastName" maxlength="100" autocomplete="family-name" required [attr.aria-invalid]="invalid('lastName')" aria-describedby="client-lastname-error" />
+            @if (invalid('lastName')) { <small id="client-lastname-error" class="error">Los apellidos deben tener entre 2 y 100 caracteres. Usa letras (incluidos acentos y ñ), espacios, guiones o apóstrofos entre palabras. No se permiten números ni otros símbolos.</small> }
+          </label>
+          <label>Correo<input type="email" formControlName="email" maxlength="254" autocomplete="email" required [attr.aria-invalid]="invalid('email')" aria-describedby="client-email-error" />
+            @if (invalid('email')) { <small id="client-email-error" class="error">Ingresa un correo electrónico válido de hasta 254 caracteres.</small> }
+          </label>
+          <label>Teléfono<input type="tel" inputmode="numeric" formControlName="phoneNumber" maxlength="10" autocomplete="tel-national" required [attr.aria-invalid]="invalid('phoneNumber')" aria-describedby="client-phone-error" />
+            @if (invalid('phoneNumber')) { <small id="client-phone-error" class="error">El teléfono debe contener exactamente 10 dígitos, sin espacios ni guiones.</small> }
+          </label>
+          <label class="checkbox-label"><input type="checkbox" formControlName="isActive" />Cliente activo</label>
+          <div class="form-actions wide"><button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Guardando...' : 'Guardar cliente' }}</button><a class="button" routerLink="/app/clients-list">Volver al listado</a></div>
+        </div>
+      </form>
+    } @else { <a class="button" routerLink="/app/clients-list">Volver al listado</a> }
+  </section>
 }
-<!-- @if (auth.can('customers.manage')) { -->
-<section>
-  <h2>{{ editing ? "Editar cliente" : "Nuevo cliente" }}</h2>
-  <form class="editor-section" [formGroup]="form">
-    <header class="editor-intro">
-      <span class="editor-number">01</span>
-      <h3>Datos del cliente</h3>
-      <p>Contacto e identificación dentro de tu empresa.</p>
-    </header>
-    <div class="editor-body">
-      <label>Código<input formControlName="code" /></label
-      ><label>Nombre<input formControlName="name" /></label
-      ><label>Correo<input type="email" formControlName="email" /></label
-      ><label>Teléfono<input formControlName="phone" /></label
-      ><label class="wide"
-        >Notas<textarea formControlName="notes"></textarea></label
-      ><label>Activo<input type="checkbox" formControlName="active" /></label
-      ><label>Motivo<input formControlName="reason" /></label>
-      <div class="form-actions wide">
-        <button class="primary" [disabled]="busy()">Guardar cliente</button
-        ><button type="button" (click)="clear()">Nuevo</button>
-      </div>
-    </div>
-  </form>
-</section>
-<!-- } -->

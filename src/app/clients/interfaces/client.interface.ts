@@ -1,10 +1,23 @@
-export interface Client {
+﻿export interface Client {
   id: string;
-  code: string;
   name: string;
+  lastName: string;
   email: string;
-  phone: string;
-  notes: string;
-  active: boolean;
-  version: number;
+  phoneNumber: string;
+  isActive: boolean;
+  storeId: string;
+}
+export interface ClientRequest {
+  name: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  isActive: boolean;
+}
+export interface ClientQuery {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  email?: string;
+  isActive?: boolean;
 }

@@ -115,6 +115,10 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'edit-client/:clientId',
+        loadComponent: () => import('./clients/pages/register-client/register-client.component').then(m => m.RegisterClientComponent),
+      },
+      {
         path: 'inventory',
         loadComponent: () =>
           import('./storage/pages/inventory/inventory.component').then(
