@@ -24,7 +24,12 @@
       @for (row of rows(); track $index) {
         <tr>
           @for (column of columns(); track column.key) {
-            <td>{{ row[column.key] }}</td>
+            <td>
+              @if (column.action && !row[column.action + 'Hidden']) {
+                <button type="button" class="cell-action" [disabled]="isRowActionDisabled(column.action, row)"
+                  (click)="rowAction.emit({ action: column.action, row })">{{ row[column.key] }}</button>
+              } @else { {{ row[column.key] }} }
+            </td>
           }
           @if (actions().length) {
             <td class="row-actions">
