@@ -1,18 +1,20 @@
 <app-page-header
-  [title]="id ? 'Editar producto' : 'Nuevo producto (Modo Cascarón)'"
+  [title]="id ? 'Editar producto' : 'Nuevo producto'"
   subtitle="Un producto puede tener varias variantes y modelos compatibles."
 >
-  <a class="button" routerLink="/app/catalog">Volver al catálogo</a>
+  <a class="button" routerLink="/app/products-list">Volver al catálogo</a>
 </app-page-header>
 
-@if (loading()) {
+@if (!store.selectedStoreId()) {
+  <p role="status">Selecciona una tienda para registrar o editar productos.</p>
+} @else if (loading()) {
   <app-skeleton />
 } @else if (failed()) {
   <p role="alert">No pudimos cargar los datos del formulario.</p>
   <button (click)="load()">Reintentar</button>
 } @else {
   <div class="product-editor">
-    <form [formGroup]="form" (ngSubmit)="save()">
+    <form [formGroup]="form" (ngSubmit)="save()" [attr.inert]="busy() ? '' : null">
       <!-- Sección 01: Información general -->
       <section class="card editor-section">
         <header class="editor-intro">
@@ -24,13 +26,13 @@
           <div class="form-grid">
             <label>
               Nombre del producto
-              <input formControlName="name" required />
+              <input formControlName="name" maxlength="100" required />
             </label>
             <label>
               Estado del producto
-              <select formControlName="status" aria-label="Estado del producto">
-                <option value="active">Activo</option>
-                <option value="inactive">Inactivo</option>
+              <select formControlName="isActive" aria-label="Estado del producto">
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
               </select>
             </label>
             <label>
@@ -39,8 +41,8 @@
                 formControlName="categoryId"
                 aria-label="Categoría del producto"
               >
-                <option value="">Sin categoría</option>
-                @for (category of lookups()?.categories; track category.id) {
+                <option value="">Selecciona una categoría</option>
+                @for (category of lookups().categories; track category.id) {
                   <option [value]="category.id">{{ category.name }}</option>
                 }
               </select>
@@ -48,17 +50,30 @@
             <label>
               Marca del producto
               <select formControlName="brandId" aria-label="Marca del producto">
-                <option value="">Sin marca</option>
-                @for (brand of lookups()?.brands; track brand.id) {
+                <option value="">Selecciona una marca</option>
+                @for (brand of lookups().brands; track brand.id) {
                   <option [value]="brand.id">{{ brand.name }}</option>
                 }
               </select>
+            </label>
+            <label>Precio base {{ currencySymbol() }} ({{ currency()?.code }})
+              <input formControlName="price" inputmode="decimal" placeholder="199.00" required />
             </label>
           </div>
           <label class="wide">
             Descripción
             <textarea formControlName="description" rows="3"></textarea>
           </label>
+          <div class="product-image-field">
+            <label for="product-image">Imagen del producto base (opcional)</label>
+            <input id="product-image" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" [disabled]="busy()" aria-describedby="product-image-hint" />
+            <p id="product-image-hint" class="hint">JPG, PNG o WebP, hasta 5 MB. La imagen se comparte con todas las variantes. Al editar, se conserva si no eliges otra.</p>
+            @if (imageName()) {
+              <p>{{ imageName() }}</p>
+              <button type="button" (click)="clearSelectedImage()" [disabled]="busy()">Cancelar cambio de imagen</button>
+            }
+            @if (imageError()) { <p class="form-error" role="alert">{{ imageError() }}</p> }
+          </div>
         </div>
       </section>
 
@@ -67,70 +82,37 @@
         <header class="editor-intro">
           <span class="editor-number">02</span>
           <h2>Variantes y precios</h2>
-          <p>Define SKU, códigos y valores por variante.</p>
+          <p>Define SKU, características y precio por variante.</p>
+          <p>Desactivar el producto también desactiva todas sus variantes. Reactivarlo no las activa automáticamente.</p>
         </header>
         <div class="editor-body">
-          <p>
-            Moneda de la empresa: {{ currency() }}. Usa dos decimales, por
-            ejemplo 199.00.
-          </p>
-          <div formArrayName="variants">
-            @for (
-              variant of variants.controls;
-              track variant;
-              let index = $index
-            ) {
-              <fieldset [formGroupName]="index">
+          <p class="hint">Cada producto debe tener al menos una variante. Si no indicas un precio por variante, se usará el precio base.</p>
+          <div formArrayName="variants" class="variants-scroll" role="region" aria-label="Registro de variantes" tabindex="0">
+            @for (variant of variants.controls; track variant; let index = $index) {
+              <fieldset [formGroupName]="index" [attr.data-variation-id]="variant.controls.id.value">
                 <legend>Variante {{ index + 1 }}</legend>
                 <div class="form-grid">
-                  <label
-                    >Nombre de variante<input formControlName="name" required
-                  /></label>
-                  <label>SKU<input formControlName="sku" required /></label>
-                  <label
-                    >Precio<input
-                      formControlName="price"
-                      inputmode="decimal"
-                      required
-                  /></label>
-                  <label
-                    >Costo<input
-                      formControlName="cost"
-                      inputmode="decimal"
-                      required
-                  /></label>
-                  <label>
-                    Estado de variante
-                    <select
-                      formControlName="status"
-                      [attr.aria-label]="'Estado de variante ' + (index + 1)"
-                    >
-                      <option value="active">Activa</option>
-                      <option value="inactive">Inactiva</option>
-                    </select>
-                  </label>
-                  <label>
-                    Códigos de barras
-                    <input
-                      formControlName="barcodes"
-                      placeholder="Separados por comas"
-                    />
-                  </label>
+                  <label>SKU<input formControlName="sku" maxlength="100" required /></label>
+                  <label>Color<input formControlName="color" required /></label>
+                  <label>Precio de la variante {{ currencySymbol() }} ({{ currency()?.code }})<input formControlName="price" inputmode="decimal" placeholder="Usar precio base" /></label>
+                  <label>Tamaño<input formControlName="size" /></label>
+                  <label>Material<input formControlName="material" /></label>
+                  <label>Capacidad<input formControlName="capacity" placeholder="Ej. 128 GB" /></label>
+                  <label>RAM<input formControlName="ram" placeholder="Ej. 8 GB" /></label>
+                  <label>Estado de variante<select formControlName="isActive" [attr.aria-label]="'Estado de variante ' + (index + 1)">
+                    <option [ngValue]="true">Activa</option><option [ngValue]="false">Inactiva</option>
+                  </select></label>
                 </div>
-                <p class="hint">
-                  Descuida, puedes conservar el historial desactivando la
-                  variante.
-                </p>
+                      <br>
+                @if (!variant.controls.id.value) {
+                  <button type="button" (click)="removeVariant(index)" [disabled]="variants.length <= 1 || busy()">Quitar variante</button>
+                } @else {
+                  <p class="hint">Puedes desactivar la variante para conservar su historial.</p>
+                }
               </fieldset>
             }
           </div>
-          <button
-            type="button"
-            (click)="addVariant()"
-            [disabled]="variants.length >= 100"
-          >
-            Agregar variante
-          </button>
+          <button type="button" (click)="addVariant()" [disabled]="variants.length >= 100 || busy()">Agregar variante</button>
         </div>
       </section>
 
@@ -184,7 +166,7 @@
             </div>
             @if (modelsOpen()) {
               <div class="model-dropdown">
-                <div role="listbox">
+                <div role="listbox" id="model-options">
                   @for (
                     model of availableModels().slice(0, 30);
                     track model.id;
@@ -214,7 +196,7 @@
       }
 
       <div class="form-actions">
-        <a class="button" routerLink="/app/catalog">Cancelar</a>
+        <a class="button" routerLink="/app/products-list">Cancelar</a>
         <button type="submit" class="primary" [disabled]="busy()">
           {{ busy() ? "Guardando…" : "Guardar producto" }}
         </button>
@@ -223,6 +205,11 @@
 
     <!-- Vista previa lateral -->
     <aside class="product-preview" aria-label="Vista previa del producto">
+      @if (imagePreview() && !imageFailed()) {
+        <img class="product-preview-image" [src]="imagePreview()" [alt]="form.controls.name.value || 'Imagen del producto'" (error)="imageFailed.set(true)" />
+      } @else if (imageFailed()) {
+        <p>No se pudo cargar la imagen.</p>
+      }
       <span class="preview-icon" aria-hidden="true">inventory_2</span>
       <p class="preview-label">VISTA PREVIA</p>
       <h2>{{ form.controls.name.value || "Nombre del producto" }}</h2>
@@ -234,14 +221,14 @@
       <dl>
         <dt>Estado</dt>
         <dd>
-          {{ form.controls.status.value === "active" ? "Activo" : "Inactivo" }}
+          {{ form.controls.isActive.value ? "Activo" : "Inactivo" }}
         </dd>
         <dt>Variantes</dt>
         <dd>{{ variants.length }}</dd>
         <dt>Modelos compatibles</dt>
         <dd>{{ selectedModels().length }}</dd>
-        <dt>Moneda</dt>
-        <dd>{{ currency() }}</dd>
+        <dt>Precio base</dt>
+        <dd>{{ form.controls.price.value ? money(form.controls.price.value) : "—" }}</dd>
       </dl>
     </aside>
   </div>

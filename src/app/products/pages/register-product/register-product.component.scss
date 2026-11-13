@@ -47,6 +47,15 @@ summary {
 }
 
 @include controls.page;
+.product-image-field { margin-top: 1.25rem; }
+.product-preview-image {
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+  margin-bottom: 1rem;
+}
 
 .product-editor {
   display: grid;
@@ -197,4 +206,17 @@ summary {
   border-top: 1px solid var(--border);
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.variants-scroll {
+  max-height: min(65vh, 640px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem;
+  margin-bottom: 1rem;
+}
+.variants-scroll:focus-visible {
+  outline: 2px solid #2388bd;
+  outline-offset: 2px;
 }
