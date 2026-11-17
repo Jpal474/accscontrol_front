@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { catalogsGuard } from './catalogs/catalogs.guard';
 import { productsGuard } from './products/products.guard';
+import { inventoryGuard } from './storage/inventory.guard';
 
 export const routes: Routes = [
   {
@@ -126,6 +127,7 @@ export const routes: Routes = [
       },
       {
         path: 'inventory',
+        canActivate: [inventoryGuard],
         loadComponent: () =>
           import('./storage/pages/inventory/inventory.component').then(
             (m) => m.InventoryComponent,
