@@ -15,7 +15,7 @@ export class DataTableComponent {
     action: string;
     row: Record<string, string | number>;
   }>();
-  readonly columns = input.required<{ key: string; label: string }[]>();
+  readonly columns = input.required<{ key: string; label: string; action?: string }[]>();
   readonly rows = input.required<Record<string, any>[]>();
   readonly caption = input('Registros');
 

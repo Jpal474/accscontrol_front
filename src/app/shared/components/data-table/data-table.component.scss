@@ -28,3 +28,15 @@ tr:last-child td {
   gap: 0.4rem;
   white-space: nowrap;
 }
+.cell-action {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary, #176a9a);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.cell-action:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }

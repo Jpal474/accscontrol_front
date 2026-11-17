@@ -1,183 +1,90 @@
-import { Component, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+﻿import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { EMPTY, Subject, catchError, combineLatest, finalize, forkJoin, startWith, switchMap, tap } from 'rxjs';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { AuthService } from '../../../auth/services/auth.service';
+import { SelectedStoreService } from '../../../shared/services/selected-store.service';
+import { ProductsService } from '../../services/products.service';
+import { Product, ProductVariation, StoreCurrency } from '../../interfaces/product.interface';
+import { productImageUrl } from '../../utils/product-image';
+import { formatProductMoney } from '../../utils/product-money';
 
 @Component({
-  selector: 'app-product-detail',
-  standalone: true,
-  imports: [
-    RouterLink,
-    PageHeaderComponent,
-    SkeletonComponent,
-    EmptyStateComponent,
-  ],
-  templateUrl: './product-detail.component.html',
-  styleUrl: './product-detail.component.scss',
+  selector: 'app-product-detail', standalone: true,
+  imports: [RouterLink, SkeletonComponent, EmptyStateComponent],
+  templateUrl: './product-detail.component.html', styleUrl: './product-detail.component.scss',
 })
 export class ProductDetailComponent {
-  // Auth mock para pruebas visuales (permite ver botones de gestión)
-  readonly auth = {
-    can: (permission: string) => true,
-  };
-
-  private readonly route = injectActivatedRouteMock();
-  readonly id = this.route.snapshot.paramMap.get('id') || 'prod-001';
-
-  private disposed = false;
-  readonly product = signal<any | null>(null);
-  readonly loading = signal(true);
+  readonly auth = inject(AuthService);
+  readonly store = inject(SelectedStoreService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly service = inject(ProductsService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly refresh = new Subject<void>();
+  readonly product = signal<Product | null>(null);
+  readonly currency = signal<StoreCurrency | null>(null);
+  readonly loading = signal(false);
   readonly failed = signal(false);
-  readonly busy = signal(false);
-  readonly images = signal<Record<string, string>>({});
   readonly imageError = signal(false);
+  readonly image = computed(() => productImageUrl(this.product()?.image));
+  readonly selectedVariantId = signal<string | null>(null);
+  readonly activeTab = signal<'details' | 'variants' | 'compatibility'>('details');
+  readonly selectedVariant = computed(() => this.product()?.variations.find(variant => variant.id === this.selectedVariantId()) ?? null);
+  readonly displayPrice = computed(() => this.selectedVariant()?.price ?? this.product()?.price ?? 0);
+  readonly activeVariantCount = computed(() => this.product()?.variations.filter(variant => variant.isActive).length ?? 0);
+  readonly characteristics = computed(() => {
+    const product = this.product();
+    const variant = this.selectedVariant();
+    return [
+      { label: 'SKU', value: variant?.sku },
+      { label: 'Marca', value: product?.brand?.name },
+      { label: 'Categoría', value: product?.category?.name },
+      { label: 'Modelo', value: product?.deviceModel?.model },
+      { label: 'Color', value: variant?.color },
+      { label: 'Talla / tamaño', value: variant?.size },
+      { label: 'Material', value: variant?.material },
+      { label: 'Capacidad', value: variant?.capacity },
+      { label: 'RAM', value: variant?.ram },
+    ].filter(item => !!item.value);
+  });
 
   constructor() {
-    void this.load();
+    combineLatest([this.route.paramMap, toObservable(this.store.selectedStoreId)]).pipe(
+      switchMap(([params, storeId]) => this.refresh.pipe(startWith(undefined), switchMap(() => {
+        this.product.set(null); this.currency.set(null); this.imageError.set(false); this.failed.set(false);
+        this.selectedVariantId.set(null); this.activeTab.set('details');
+        const id = params.get('id');
+        if (!storeId || !id) { this.loading.set(false); this.failed.set(!!storeId && !id); return EMPTY; }
+        this.loading.set(true);
+        return forkJoin({ product: this.service.get(id), currency: this.service.currency() }).pipe(
+          tap(({ product, currency }) => {
+            this.product.set(product.data); this.currency.set(currency.data);
+            this.selectedVariantId.set((product.data.variations.find(variant => variant.isActive) ?? product.data.variations[0])?.id ?? null);
+          }),
+          catchError(() => { this.failed.set(true); return EMPTY; }),
+          finalize(() => this.loading.set(false)),
+        );
+      }))), takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
   }
-
-  async load() {
-    this.loading.set(true);
-    this.failed.set(false);
-
-    // Simulamos latencia de red
-    await new Promise((r) => setTimeout(r, 250));
-
-    // Datos mock en bruto para el detalle del producto
-    const mockProduct = {
-      id: this.id,
-      name: 'Funda Protectora Antigolpes Uso Rudo',
-      status: 'active',
-      description:
-        'Funda de alta resistencia con protección reforzada en esquinas para absorción de impactos.',
-      categoryName: 'Fundas y Carcasas',
-      brandName: 'Motorola',
-      attributes: {
-        Material: 'TPU + Policarbonato',
-        Acabado: 'Mate anti-huellas',
-      },
-      variants: [
-        {
-          id: 'var-1',
-          name: 'Rojo Carmesí',
-          status: 'active',
-          sku: 'ACC-PRT-RED',
-          price: '250.00',
-          cost: '140.00',
-          currency: 'MXN',
-          barcodes: ['7501234567890'],
-          attributes: { Color: 'Rojo' },
-        },
-        {
-          id: 'var-2',
-          name: 'Azul Medianoche',
-          status: 'active',
-          sku: 'ACC-PRT-BLU',
-          price: '250.00',
-          cost: '140.00',
-          currency: 'MXN',
-          barcodes: ['7501234567891'],
-          attributes: { Color: 'Azul' },
-        },
-      ],
-      compatibilities: [
-        { id: 'mod-1', brandName: 'Motorola', name: 'Moto G54', active: true },
-      ],
-      images: [
-        {
-          id: 'img-1',
-          altText: 'Vista frontal de la funda',
-          url: 'https://placehold.co/400x400/png',
-        },
-      ],
-    };
-
-    if (!this.disposed) {
-      this.product.set(mockProduct);
-      // Precargamos una URL simulada para la imagen de prueba
-      this.images.set({ 'img-1': 'https://placehold.co/400x400/png' });
-      this.imageError.set(false);
-      this.loading.set(false);
-    }
+  load() { this.refresh.next(); }
+  money(value: number | string) { return formatProductMoney(value, this.currency()); }
+  variantLabel(variant: ProductVariation) {
+    return [variant.color, variant.size, variant.capacity, variant.ram].filter(Boolean).join(' · ') || variant.sku;
   }
-
-  attributes(value: Record<string, unknown>) {
-    return Object.entries(value || {}).map(([name, value]) => ({
-      name,
-      value: this.attributeText(value),
-    }));
+  selectVariant(id: string) {
+    if (this.product()?.variations.some(variant => variant.id === id)) this.selectedVariantId.set(id);
   }
-
-  private attributeText(value: unknown, depth = 0): string {
-    if (value === null) return '—';
-    if (depth > 4) return 'Valor estructurado';
-    if (Array.isArray(value))
-      return value
-        .map((item) => this.attributeText(item, depth + 1))
-        .join(', ');
-    if (typeof value === 'object')
-      return Object.entries(value as Record<string, unknown>)
-        .map(
-          ([name, item]) => name + ': ' + this.attributeText(item, depth + 1),
-        )
-        .join('; ');
-    return String(value);
+  tabKeydown(event: KeyboardEvent) {
+    const tabs = ['details', 'variants', 'compatibility'] as const;
+    const index = tabs.indexOf(this.activeTab());
+    const next = event.key === 'ArrowRight' ? (index + 1) % tabs.length
+      : event.key === 'ArrowLeft' ? (index + tabs.length - 1) % tabs.length
+      : event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : -1;
+    if (next < 0) return;
+    event.preventDefault(); this.activeTab.set(tabs[next]);
+    (event.currentTarget as HTMLElement).querySelector<HTMLButtonElement>(`#tab-${tabs[next]}`)?.focus();
   }
-
-  async upload(event: Event) {
-    const input = event.target as HTMLInputElement,
-      file = input.files?.[0];
-    if (!file) return;
-
-    this.busy.set(true);
-    await new Promise((r) => setTimeout(r, 300));
-
-    // Simulamos la inserción exitosa de una nueva imagen de prueba
-    const current = this.product();
-    if (current) {
-      const newImgId = 'img-' + Date.now();
-      current.images.push({
-        id: newImgId,
-        altText: file.name,
-        url: 'https://placehold.co/400x400/png',
-      });
-      this.images.update((urls) => ({
-        ...urls,
-        [newImgId]: 'https://placehold.co/400x400/png',
-      }));
-      this.product.set({ ...current });
-    }
-
-    this.busy.set(false);
-    input.value = '';
-  }
-
-  async remove(id: string) {
-    this.busy.set(true);
-    await new Promise((r) => setTimeout(r, 200));
-
-    const current = this.product();
-    if (current) {
-      current.images = current.images.filter((img: any) => img.id !== id);
-      this.product.set({ ...current });
-    }
-
-    this.busy.set(false);
-  }
-
-  ngOnDestroy() {
-    this.disposed = true;
-    this.images.set({});
-  }
-}
-
-function injectActivatedRouteMock() {
-  return {
-    snapshot: {
-      paramMap: {
-        get: (key: string) => 'prod-001',
-      },
-    },
-  };
 }

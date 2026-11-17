@@ -145,14 +145,16 @@
         Inventario</a
       >
       <!-- }
-      @if (auth.can("catalog.read")) { -->
+      -->
+      @if (authSevice.hasPermission('view_products')) {
       <a
-        routerLink="/app/catalog"
+        routerLink="/app/products-list"
         routerLinkActive="active"
         (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">category</span> Catálogo</a
+        ><span class="nav-icon" aria-hidden="true">category</span> Productos</a
       >
-      <!-- }
+      }
+      <!--
       @if (auth.can("members.read")) { -->
       <a
         routerLink="/app/members"

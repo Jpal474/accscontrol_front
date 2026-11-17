@@ -1,97 +1,51 @@
-<app-page-header
-  title="Catálogo (Modo Cascarón)"
-  subtitle="Productos, variantes y compatibilidades de la empresa seleccionada."
->
-  @if (auth.can("catalog.manage")) {
-    <a class="button" routerLink="/app/catalog/options">Categorías y modelos</a>
-    <a class="button primary" routerLink="/app/catalog/new">Nuevo producto</a>
+﻿<app-page-header title="Productos" subtitle="Productos, variantes y compatibilidades de la tienda seleccionada.">
+  @if (auth.hasPermission('manage_products')) {
+    <a class="button primary" routerLink="/app/register-product">Nuevo producto</a>
   }
 </app-page-header>
-
 <section class="card">
-  <form class="catalog-filters" [formGroup]="filters" (ngSubmit)="load()">
-    <label>
-      Buscar producto
-      <input
-        formControlName="q"
-        placeholder="Nombre, SKU, código de barras o modelo"
-      />
-    </label>
-
-    <label>
-      Modelo compatible
-      <select formControlName="modelId" aria-label="Modelo compatible">
-        <option value="">Todos los modelos</option>
-        @for (model of lookups()?.deviceModels; track model.id) {
-          <option [value]="model.id">
-            {{ model.brandName }} {{ model.name }}
-          </option>
-        }
-      </select>
-    </label>
-
-    <label>
-      Categoría
-      <select formControlName="categoryId" aria-label="Categoría">
-        <option value="">Todas</option>
-        @for (category of lookups()?.categories; track category.id) {
-          <option [value]="category.id">{{ category.name }}</option>
-        }
-      </select>
-    </label>
-
-    <label>
-      Estado
-      <select formControlName="status" aria-label="Estado">
-        <option value="active">Activos</option>
-        <option value="inactive">Inactivos</option>
-        <option value="all">Todos</option>
-      </select>
-    </label>
-
-    <button type="submit" class="primary" [disabled]="loading()">Buscar</button>
-  </form>
-
-  @if (loading()) {
-    <app-skeleton />
-  } @else if (failed()) {
-    <app-empty-state
-      title="No pudimos cargar el catálogo"
-      message="Vuelve a intentar la consulta."
-    />
-    <button (click)="load()">Reintentar</button>
-  } @else if (!rows().length) {
-    <app-empty-state
-      title="Sin productos"
-      message="No hay productos que coincidan con estos filtros."
-    />
+  @if (!store.selectedStoreId()) {
+    <p role="status">Selecciona una tienda para consultar sus productos.</p>
   } @else {
-    <app-data-table
-      [columns]="columns"
-      [rows]="rows()"
-      [actions]="[{ key: 'view', label: 'Ver' }]"
-      (rowAction)="open($event.row)"
-      caption="Productos del catálogo"
-    />
-  }
-
-  @if (result(); as result) {
-    <nav class="pagination" aria-label="Paginación del catálogo">
-      <button
-        type="button"
-        [disabled]="loading() || result.page === 1"
-        (click)="load(result.page - 1)"
-      >
-        Anterior
-      </button>
-      <span>{{ result.total }} productos · Página {{ result.page }}</span>
-      <button
-        type="button"
-        [disabled]="loading() || result.page * result.pageSize >= result.total"
-        (click)="load(result.page + 1)"
-      >
-        Siguiente
-      </button>
+    <form class="catalog-filters" [formGroup]="filters" (ngSubmit)="load()">
+      <label>Buscar producto<input formControlName="search" maxlength="50" placeholder="Nombre, descripción o SKU" /></label>
+      <label>Marca<select formControlName="brandId" (pointerdown)="loadLookup('brands')" (click)="loadLookup('brands')" (keydown.enter)="loadLookup('brands')" (keydown.space)="loadLookup('brands')" (keydown.arrowdown)="loadLookup('brands')"><option value="">{{ lookupLoading().brands ? 'Cargando…' : 'Todas' }}</option>
+        @for (brand of lookups().brands; track brand.id) { <option [value]="brand.id">{{ brand.name }}</option> }
+      </select></label>
+      <label>Categoría<select formControlName="categoryId" (pointerdown)="loadLookup('categories')" (click)="loadLookup('categories')" (keydown.enter)="loadLookup('categories')" (keydown.space)="loadLookup('categories')" (keydown.arrowdown)="loadLookup('categories')"><option value="">{{ lookupLoading().categories ? 'Cargando…' : 'Todas' }}</option>
+        @for (category of lookups().categories; track category.id) { <option [value]="category.id">{{ category.name }}</option> }
+      </select></label>
+      <label>Estado<select formControlName="status"><option value="active">Activos</option><option value="inactive">Inactivos</option><option value="all">Todos</option></select></label>
+      <button type="submit" class="primary" [disabled]="loading() || busy()">Buscar</button>
+    </form>
+    @if (loading()) { <app-skeleton /> }
+    @else if (failed()) {
+      <app-empty-state title="No pudimos cargar los productos" message="Vuelve a intentar la consulta." />
+      <button (click)="load(page)">Reintentar</button>
+    } @else if (!rows().length) {
+      <app-empty-state title="Sin productos" message="No hay productos que coincidan con estos filtros." />
+    } @else {
+      <app-data-table [columns]="columns" [rows]="rows()" [actions]="actions()" (rowAction)="handleAction($event)" caption="Productos y sus variantes" />
+    }
+    <nav class="pagination" aria-label="Paginación de productos">
+      <button type="button" [disabled]="loading() || busy() || page <= 1" (click)="load(page - 1)">Anterior</button>
+      <span>{{ total() }} productos · Página {{ page }} de {{ totalPages() || 1 }}</span>
+      <button type="button" [disabled]="loading() || busy() || page >= totalPages()" (click)="load(page + 1)">Siguiente</button>
     </nav>
+    @if (currency(); as currency) { <p class="currency-hint">Precios en {{ currency.code }} · {{ currency.description }}</p> }
   }
 </section>
+<app-confirm-dialog title="Cambiar estado" [message]="pending()?.row?.isActive && !pending()?.row?.variationId ? 'Se desactivará el producto y todas sus variantes. Al reactivar el producto, sus variantes seguirán inactivas.' : 'Se cambiará el estado del producto o variante seleccionada. Sus datos e historial se conservarán.'" confirmLabel="Cambiar estado" (confirmed)="toggle()" />
+<dialog #imageModal class="product-image-modal" aria-labelledby="product-image-title" (click)="closeImageOnBackdrop($event)" (close)="preview.set(null)">
+  <div class="image-modal-content">
+    <header>
+      <h2 id="product-image-title">{{ preview()?.name }}</h2>
+      <button type="button" class="image-modal-close" (click)="closeImage()" aria-label="Cerrar imagen" autofocus>&times;</button>
+    </header>
+    @if (preview()?.image && !imageFailed()) {
+      <img [src]="preview()?.image" [alt]="preview()?.name || 'Imagen del producto'" (error)="imageFailed.set(true)" />
+    } @else {
+      <p role="status">{{ imageFailed() ? 'No se pudo cargar la imagen del producto.' : 'Este producto no tiene imagen.' }}</p>
+    }
+  </div>
+</dialog>

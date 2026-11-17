@@ -1,62 +1,63 @@
-import {
-  Component,
-  computed,
-  ElementRef,
-  HostListener,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { EMPTY, Subject, catchError, finalize, firstValueFrom, forkJoin, of, startWith, switchMap, tap } from 'rxjs';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
-const money = /^(0|[1-9]\d{0,15})\.\d{2}$/;
+import { AuthService } from '../../../auth/services/auth.service';
+import { SelectedStoreService } from '../../../shared/services/selected-store.service';
+import { ToastService } from '../../../shared/services/toast.service';
+import { ProductsService } from '../../services/products.service';
+import { Product, ProductLookup, ProductVariation, SaveProduct } from '../../interfaces/product.interface';
+import { productImageUrl } from '../../utils/product-image';
+import { StoreCurrency } from '../../interfaces/product.interface';
+import { formatProductMoney, productCurrencySymbol } from '../../utils/product-money';
+
+interface EditorModel { id: string; name: string; brandName: string; active: boolean; }
+const money = /^\d{1,8}(\.\d{1,2})?$/;
 @Component({
-  selector: 'app-register-product',
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    PageHeaderComponent,
-    SkeletonComponent,
-  ],
-  templateUrl: './register-product.component.html',
-  styleUrl: './register-product.component.scss',
+  selector: 'app-register-product', standalone: true,
+  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent, SkeletonComponent],
+  templateUrl: './register-product.component.html', styleUrl: './register-product.component.scss',
 })
 export class RegisterProductComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly element: ElementRef<HTMLElement> = inject(ElementRef);
-  readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id');
-
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly service = inject(ProductsService);
+  private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly store = inject(SelectedStoreService);
+  readonly id = this.route.snapshot.paramMap.get('id');
+  private savedId: string | null = this.id;
+  private loadedStoreId: string | null = null;
+  private originalModels: string[] = [];
   private disposed = false;
-  readonly loading = signal(true);
+  private readonly refresh = new Subject<void>();
+  readonly loading = signal(false);
   readonly busy = signal(false);
   readonly failed = signal(false);
   readonly error = signal('');
-
-  // Datos Mock en bruto para categorías, marcas, moneda y modelos de dispositivos
-  readonly lookups = signal<any>({
-    categories: [
-      { id: 'cat-1', name: 'Fundas y Carcasas', active: true },
-      { id: 'cat-2', name: 'Protectores de Pantalla', active: true },
-    ],
-    brands: [
-      { id: 'brand-1', name: 'Motorola', active: true },
-      { id: 'brand-2', name: 'Apple', active: true },
-    ],
-    deviceModels: [
-      { id: 'mod-1', brandName: 'Motorola', name: 'Moto G54', active: true },
-      { id: 'mod-2', brandName: 'Apple', name: 'iPhone 13', active: true },
-      { id: 'mod-3', brandName: 'Samsung', name: 'Galaxy A54', active: true },
-    ],
+  readonly currency = signal<StoreCurrency | null>(null);
+  readonly currencySymbol = computed(() => productCurrencySymbol(this.currency()));
+  money(value: number | string) { return formatProductMoney(value, this.currency()); }
+  readonly imagePreview = signal<string | null>(null);
+  readonly imageError = signal('');
+  readonly imageFailed = signal(false);
+  readonly imageName = signal('');
+  private imageFile?: File;
+  private imageObjectUrl: string | null = null;
+  private existingImage: string | null = null;
+  readonly lookups = signal<{ categories: ProductLookup[]; brands: ProductLookup[]; deviceModels: EditorModel[] }>({
+    categories: [], brands: [], deviceModels: [],
   });
-
-  readonly currency = signal('MXN');
   readonly selectedModels = signal<string[]>([]);
   readonly modelSearch = signal('');
   readonly modelsOpen = signal(false);
   readonly activeModelIndex = signal(0);
-
   searchModels(value: string) {
     this.modelSearch.set(value);
     this.activeModelIndex.set(0);
@@ -116,7 +117,7 @@ export class RegisterProductComponent {
       .split(/\s+/)
       .filter(Boolean);
     const selected = new Set(this.selectedModels());
-    return (this.lookups()?.deviceModels || []).filter((model: any) => {
+    return (this.lookups()?.deviceModels || []).filter((model: EditorModel) => {
       const label = normalize(`${model.brandName || ''} ${model.name}`);
       return (
         model.active &&
@@ -128,7 +129,7 @@ export class RegisterProductComponent {
 
   readonly selectedModelRecords = computed(() => {
     const selected = new Set(this.selectedModels());
-    return (this.lookups()?.deviceModels || []).filter((model: any) =>
+    return (this.lookups()?.deviceModels || []).filter((model: EditorModel) =>
       selected.has(model.id),
     );
   });
@@ -137,132 +138,178 @@ export class RegisterProductComponent {
     this.selectedModels.update((ids) => ids.filter((value) => value !== id));
   }
 
-  private variant(value?: any) {
+  private variant(value?: ProductVariation) {
     return this.fb.nonNullable.group({
       id: value?.id || '',
-      name: [
-        value?.name || 'Estándar',
-        [
-          Validators.required,
-          Validators.maxLength(100),
-          Validators.pattern(/\S/),
-        ],
-      ],
-      sku: [
-        value?.sku || '',
-        [
-          Validators.required,
-          Validators.pattern(/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/),
-        ],
-      ],
-      price: [
-        value?.price || '',
-        [Validators.required, Validators.pattern(money)],
-      ],
-      cost: [
-        value?.cost || '',
-        [Validators.required, Validators.pattern(money)],
-      ],
-      status: value?.status || 'active',
-      barcodes: value?.barcodes?.join(', ') || '',
-      attributes: this.fb.group({}),
+      sku: [value?.sku || '', [Validators.required, Validators.maxLength(100), Validators.pattern(/\S/)]],
+      color: [value?.color || '', [Validators.required, Validators.pattern(/\S/)]],
+      size: value?.size || '', material: value?.material || '',
+      capacity: value?.capacity || '', ram: value?.ram || '',
+      price: [value?.price == null ? '' : String(value.price), Validators.pattern(money)],
+      isActive: value?.isActive ?? true,
     });
   }
 
   readonly form = this.fb.nonNullable.group({
-    name: [
-      '',
-      [
-        Validators.required,
-        Validators.maxLength(160),
-        Validators.pattern(/\S/),
-      ],
-    ],
+    name: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/\S/)]],
     description: ['', Validators.maxLength(4000)],
-    categoryId: '',
-    brandId: '',
-    status: 'active',
-    attributes: this.fb.group({}),
-    variants: this.fb.array([this.variant()]),
+    price: ['', [Validators.required, Validators.pattern(money)]],
+    categoryId: ['', Validators.required], brandId: ['', Validators.required],
+    isActive: true,
+    variants: this.fb.array([this.variant()], [Validators.required, Validators.minLength(1)]),
   });
-
-  get variants() {
-    return this.form.controls.variants;
-  }
+  get variants() { return this.form.controls.variants; }
 
   constructor() {
-    void this.load();
+    this.destroyRef.onDestroy(() => { this.disposed = true; this.revokeImagePreview(); });
+    toObservable(this.store.selectedStoreId).pipe(
+      tap(() => {
+        this.loadedStoreId = null; this.savedId = this.id; this.error.set('');
+        this.currency.set(null);
+        this.existingImage = null; this.clearSelectedImage();
+        this.form.reset({ name: '', description: '', price: '', categoryId: '', brandId: '', isActive: true });
+        this.variants.clear(); this.variants.push(this.variant());
+        this.selectedModels.set([]); this.originalModels = [];
+      }),
+      switchMap(storeId => this.refresh.pipe(startWith(undefined), switchMap(() => {
+        this.failed.set(false);
+        if (!storeId) { this.loading.set(false); return EMPTY; }
+        this.loading.set(true);
+        return forkJoin({
+          lookups: this.service.lookups(),
+          currency: this.service.currency(),
+          product: this.savedId ? this.service.get(this.savedId) : of(null),
+        }).pipe(
+          tap(({ lookups, product, currency }) => {
+            this.currency.set(currency.data);
+            this.lookups.set({ categories: lookups.categories, brands: lookups.brands,
+              deviceModels: lookups.models.map(model => ({ id: model.id, name: model.model, brandName: '', active: model.isActive })) });
+            this.loadedStoreId = storeId;
+            if (product) this.fillProduct(product.data);
+          }),
+          catchError(() => { this.failed.set(true); return EMPTY; }),
+          finalize(() => this.loading.set(false)),
+        );
+      }))), takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
   }
 
-  async load() {
-    this.loading.set(true);
-    this.failed.set(false);
+  load() { this.refresh.next(); }
 
-    // Simulamos latencia de red
-    await new Promise((r) => setTimeout(r, 250));
+  private fillProduct(product: Product) {
+    this.existingImage = productImageUrl(product.image);
+    this.clearSelectedImage();
+    this.form.patchValue({ name: product.name, description: product.description, price: String(product.price),
+      categoryId: product.categoryId, brandId: product.brandId, isActive: product.isActive });
+    this.fillVariants(product);
+    this.originalModels = (product.compatibleModels || []).map(item => item.deviceModelId || item.deviceModel.id);
+    this.selectedModels.set([...this.originalModels]);
+    const target = this.route.snapshot.queryParamMap.get('variation');
+    if (target) setTimeout(() => {
+      if (!this.disposed) this.element.nativeElement.querySelector<HTMLElement>(`[data-variation-id="${target.replace(/[^a-zA-Z0-9-]/g, '')}"]`)
+        ?.scrollIntoView({ block: 'center' });
+    });
+  }
 
-    if (this.disposed) return;
-    this.loading.set(false);
+  private fillVariants(product: Product) {
+    this.variants.clear();
+    for (const variation of product.variations || []) this.variants.push(this.variant(variation));
+    if (!this.variants.length) this.variants.push(this.variant());
   }
 
   addVariant() {
-    if (this.variants.length < 100) this.variants.push(this.variant());
+    if (!this.busy() && this.variants.length < 100) this.variants.push(this.variant());
   }
 
-  private showError(message: string) {
-    this.error.set(message);
-    setTimeout(() => {
-      if (this.disposed) return;
-      const alert =
-        this.element.nativeElement.querySelector<HTMLElement>(
-          '[data-save-error]',
-        );
-      alert?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-      alert?.focus();
-    });
+  selectImage(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.busy()) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024 || !file.size) {
+      this.imageError.set('Selecciona una imagen JPG, PNG o WebP de hasta 5 MB.');
+      return;
+    }
+    this.revokeImagePreview();
+    this.imageFile = file;
+    this.imageObjectUrl = URL.createObjectURL(file);
+    this.imagePreview.set(this.imageObjectUrl);
+    this.imageName.set(file.name); this.imageError.set(''); this.imageFailed.set(false);
   }
 
-  validationMessages(): string[] {
-    const messages: string[] = [];
-    if (this.form.controls.name.invalid)
-      messages.push('Nombre del producto: escribe entre 1 y 160 caracteres.');
-    if (this.form.controls.description.invalid)
-      messages.push('Descripción: máximo 4000 caracteres.');
+  clearSelectedImage() {
+    this.revokeImagePreview(); this.imageFile = undefined;
+    this.imagePreview.set(this.existingImage);
+    this.imageName.set(''); this.imageError.set(''); this.imageFailed.set(false);
+  }
 
-    this.variants.controls.forEach((variant, index) => {
-      const prefix = `Variante ${index + 1}`;
-      if (variant.controls.name.invalid)
-        messages.push(`${prefix}: escribe un nombre de hasta 100 caracteres.`);
-      if (variant.controls.sku.invalid)
-        messages.push(
-          `${prefix}: el SKU es obligatorio y admite hasta 64 letras, números, puntos, guiones o guiones bajos.`,
-        );
-      for (const field of ['price', 'cost'] as const)
-        if (variant.controls[field].invalid)
-          messages.push(
-            `${prefix}: ${field === 'price' ? 'precio' : 'costo'} obligatorio, sin comas y con dos decimales (ejemplo: 200.00).`,
-          );
-    });
-    return messages;
+  private revokeImagePreview() {
+    if (this.imageObjectUrl) URL.revokeObjectURL(this.imageObjectUrl);
+    this.imageObjectUrl = null;
+  }
+
+  removeVariant(index: number) {
+    if (!this.busy() && this.variants.length > 1 && !this.variants.at(index).controls.id.value) this.variants.removeAt(index);
+  }
+
+  private assertStore(storeId: string) {
+    if (this.disposed || this.store.selectedStoreId() !== storeId) throw new Error('La tienda activa cambió. Revisa los datos antes de guardar.');
   }
 
   async save() {
-    this.form.markAllAsTouched();
-    this.error.set('');
-    if (this.busy()) return;
-
-    if (this.form.invalid) {
-      this.showError(this.validationMessages().join(' '));
+    if (this.busy() || !this.auth.hasPermission('manage_products')) return;
+    const storeId = this.loadedStoreId;
+    if (!storeId || storeId !== this.store.selectedStoreId()) return;
+    this.form.markAllAsTouched(); this.error.set('');
+    if (this.form.invalid || !this.variants.length) {
+      this.error.set('Completa nombre (máximo 100 caracteres), marca, categoría, precio base y al menos una variante con SKU y color. Usa precios sin comas, con hasta dos decimales.');
       return;
     }
-
+    const values = this.form.getRawValue();
+    const skus = values.variants.map(variant => variant.sku.trim().toLowerCase());
+    if (new Set(skus).size !== skus.length) { this.error.set('Cada variante debe tener un SKU distinto dentro del producto.'); return; }
+    const payload: SaveProduct = {
+      name: values.name.trim(), description: values.description.trim(), price: Number(values.price),
+      brandId: values.brandId, productCategoryId: values.categoryId, isActive: values.isActive,
+      variations: values.variants.map(variant => ({
+        ...(variant.id ? { id: variant.id } : {}), sku: variant.sku.trim(), color: variant.color.trim(),
+        size: variant.size.trim(), material: variant.material.trim(), capacity: variant.capacity.trim(), ram: variant.ram.trim(),
+        price: variant.price === '' ? null : Number(variant.price), isActive: variant.isActive,
+      })),
+    };
+    const selected = [...this.selectedModels()];
     this.busy.set(true);
-    await new Promise((r) => setTimeout(r, 350)); // Simula guardado
-    alert('¡Producto guardado de forma simulada con éxito!');
-    this.busy.set(false);
-  }
-
-  ngOnDestroy() {
-    this.disposed = true;
+    let productSaved = false;
+    try {
+      const request = this.savedId
+        ? (this.imageFile ? this.service.update(this.savedId, payload, this.imageFile) : this.service.update(this.savedId, payload))
+        : (this.imageFile ? this.service.create(payload, this.imageFile) : this.service.create(payload));
+      const response = await firstValueFrom(request);
+      this.assertStore(storeId);
+      productSaved = true; this.savedId = response.data.id;
+      this.existingImage = productImageUrl(response.data.image); this.clearSelectedImage();
+      this.fillVariants(response.data);
+      const added = selected.filter(id => !this.originalModels.includes(id));
+      const removed = this.originalModels.filter(id => !selected.includes(id));
+      if (added.length) {
+        this.assertStore(storeId);
+        await firstValueFrom(this.service.addCompatibilities(this.savedId, added));
+        this.assertStore(storeId); this.originalModels = [...this.originalModels, ...added];
+      }
+      if (removed.length) {
+        this.assertStore(storeId);
+        await firstValueFrom(this.service.removeCompatibilities(this.savedId, removed));
+        this.assertStore(storeId); this.originalModels = this.originalModels.filter(id => !removed.includes(id));
+      }
+      this.assertStore(storeId);
+      this.toast.show('Producto y variantes guardados.', 'success');
+      await this.router.navigate([this.auth.hasPermission('view_products') ? '/app/products-list' : '/app']);
+    } catch (error: unknown) {
+      if (this.disposed || storeId !== this.store.selectedStoreId()) return;
+      const response = error as { error?: { message?: string | string[] }; message?: string };
+      const message = response.error?.message;
+      const detail = Array.isArray(message) ? message.join(' ') : message || 'Revisa los datos e inténtalo de nuevo.';
+      this.error.set(productSaved ? `El producto y sus variantes se guardaron, pero faltan compatibilidades. Puedes reintentar sin duplicar el producto. ${detail}` : `No se pudo guardar. ${detail}`);
+    } finally { if (!this.disposed) this.busy.set(false); }
   }
 }

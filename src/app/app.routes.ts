@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { catalogsGuard } from './catalogs/catalogs.guard';
+import { productsGuard } from './products/products.guard';
 
 export const routes: Routes = [
   {
@@ -136,6 +137,7 @@ export const routes: Routes = [
       },
       {
         path: 'products-list',
+        canActivate: [productsGuard], data: { permission: 'view_products' },
         loadComponent: () =>
           import('./products/pages/products-list/products-list.component').then(
             (m) => m.ProductsListComponent,
@@ -143,13 +145,20 @@ export const routes: Routes = [
       },
       {
         path: 'register-product',
+        canActivate: [productsGuard], data: { permission: 'manage_products' },
         loadComponent: () =>
           import('./products/pages/register-product/register-product.component').then(
             (m) => m.RegisterProductComponent,
           ),
       },
       {
-        path: 'product-detail',
+        path: 'edit-product/:id',
+        canActivate: [productsGuard], data: { permission: 'manage_products' },
+        loadComponent: () => import('./products/pages/register-product/register-product.component').then(m => m.RegisterProductComponent),
+      },
+      {
+        path: 'product-detail/:id',
+        canActivate: [productsGuard], data: { permission: 'view_products' },
         loadComponent: () =>
           import('./products/pages/product-detail/product-detail.component').then(
             (m) => m.ProductDetailComponent,

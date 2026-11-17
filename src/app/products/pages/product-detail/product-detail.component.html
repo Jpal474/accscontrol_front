@@ -1,154 +1,125 @@
-@if (loading()) {
+﻿@if (!store.selectedStoreId()) {
+  <app-empty-state title="Selecciona una tienda" message="Elige una tienda para consultar la ficha del producto." />
+} @else if (loading()) {
   <app-skeleton />
 } @else if (failed()) {
-  <app-empty-state
-    title="Producto no disponible"
-    message="Verifica tus permisos y la empresa seleccionada."
-  />
-  <a routerLink="/app/catalog">Volver al catálogo</a>
-  <button (click)="load()">Reintentar</button>
+  <div class="detail-error">
+    <app-empty-state title="Producto no disponible" message="Verifica tus permisos y la tienda seleccionada." />
+    <div class="error-actions">
+      <a class="button" routerLink="/app/products-list">Volver a productos</a>
+      <button type="button" (click)="load()">Reintentar</button>
+    </div>
+  </div>
 } @else {
-  <!-- ✅ Evaluamos el signal principal aquí con 'as' -->
   @if (product(); as product) {
-    <app-page-header
-      [title]="product.name"
-      [subtitle]="
-        product.status === 'active' ? 'Producto activo' : 'Producto inactivo'
-      "
-    >
-      <a class="button" routerLink="/app/catalog">Volver</a>
-      @if (auth.can("catalog.manage")) {
-        <a
-          class="button primary"
-          [routerLink]="['/app/catalog', product.id, 'edit']"
-          >Editar producto</a
-        >
-      }
-    </app-page-header>
+    <article class="product-sheet">
+      <header class="sheet-toolbar">
+        <a class="back-link" routerLink="/app/products-list"><span aria-hidden="true">←</span> Volver a productos</a>
+        <span class="status-pill" [class.inactive]="!product.isActive"><span class="status-dot" aria-hidden="true"></span>{{ product.isActive ? 'Producto activo' : 'Producto inactivo' }}</span>
+      </header>
 
-    <section class="card">
-      <h2>Información</h2>
-      <p>{{ product.description || "Sin descripción" }}</p>
-      <dl>
-        <dt>Categoría</dt>
-        <dd>{{ product.categoryName || "Sin categoría" }}</dd>
-        <dt>Marca</dt>
-        <dd>{{ product.brandName || "Sin marca" }}</dd>
-      </dl>
-      @if (attributes(product.attributes).length) {
-        <h3>Atributos</h3>
-        <dl>
-          @for (
-            attribute of attributes(product.attributes);
-            track attribute.name
-          ) {
-            <dt>{{ attribute.name }}</dt>
-            <dd>{{ attribute.value }}</dd>
-          }
-        </dl>
-      }
-    </section>
-
-    <section class="card">
-      <h2>Variantes</h2>
-      @for (variant of product.variants; track variant.id) {
-        <article class="variant">
-          <h3>
-            {{ variant.name }}
-            <span class="badge">{{
-              variant.status === "active" ? "Activa" : "Inactiva"
-            }}</span>
-          </h3>
-          <dl>
-            <dt>SKU</dt>
-            <dd>{{ variant.sku }}</dd>
-            <dt>Precio</dt>
-            <dd>{{ variant.price }} {{ variant.currency }}</dd>
-            @if (variant.cost !== undefined) {
-              <dt>Costo</dt>
-              <dd>{{ variant.cost }} {{ variant.currency }}</dd>
+      <div class="product-hero">
+        <section class="product-gallery" aria-label="Imagen y variantes del producto">
+          <figure class="main-image" [class.has-image]="image() && !imageError()">
+            @if (image() && !imageError()) {
+              <img class="product-photo" [src]="image()" [alt]="product.name" (error)="imageError.set(true)" />
+            } @else {
+              <div class="image-placeholder">
+                <img src="assets/products/product-placeholder.svg" alt="" aria-hidden="true" width="96" height="96" />
+                <span>{{ imageError() ? 'Imagen no disponible' : 'Sin imagen' }}</span>
+                <p>{{ imageError() ? 'No pudimos cargar la imagen de este producto.' : 'Este producto aún no tiene una imagen registrada.' }}</p>
+              </div>
             }
-            <dt>Códigos de barras</dt>
-            <dd>{{ variant.barcodes.join(", ") || "Sin códigos" }}</dd>
-          </dl>
-          @if (attributes(variant.attributes).length) {
-            <dl>
-              @for (
-                attribute of attributes(variant.attributes);
-                track attribute.name
-              ) {
-                <dt>{{ attribute.name }}</dt>
-                <dd>{{ attribute.value }}</dd>
-              }
-            </dl>
-          }
-        </article>
-      }
-    </section>
-
-    <section class="card">
-      <h2>Compatibilidad</h2>
-      @if (product.compatibilities.length) {
-        <ul>
-          @for (model of product.compatibilities; track model.id) {
-            <li>
-              {{ model.brandName }} {{ model.name }}
-              {{ model.active ? "" : "(inactivo)" }}
-            </li>
-          }
-        </ul>
-      } @else {
-        <p>Sin modelos compatibles asignados.</p>
-      }
-    </section>
-
-    <section class="card">
-      <h2>Imágenes</h2>
-      @if (auth.can("catalog.manage")) {
-        <label class="upload">
-          Agregar imagen privada
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            (change)="upload($event)"
-            [disabled]="busy()"
-          />
-        </label>
-        <p>PNG, JPEG o WebP, máximo 5 MiB.</p>
-      }
-      @if (busy()) {
-        <p role="status">Guardando imagen…</p>
-      }
-      @if (imageError()) {
-        <p role="alert">No pudimos autorizar alguna imagen.</p>
-        <button (click)="load()">Actualizar imágenes</button>
-      }
-      @if (!product.images.length) {
-        <p>No hay imágenes guardadas.</p>
-      }
-      <div class="gallery">
-        @for (image of product.images; track image.id) {
-          <figure>
-            @if (images()[image.id]) {
-              <img
-                [src]="images()[image.id]"
-                [alt]="image.altText || product.name"
-                (error)="imageError.set(true)"
-              />
-            }
-            <figcaption>{{ image.altText || product.name }}</figcaption>
-            @if (auth.can("catalog.manage")) {
-              <button
-                type="button"
-                [disabled]="busy()"
-                (click)="remove(image.id)"
-              >
-                Retirar imagen
-              </button>
-            }
+            <figcaption>{{ product.brand?.name || 'Producto' }} <span aria-hidden="true">/</span> {{ product.category?.name || 'Sin categoría' }}</figcaption>
           </figure>
-        }
+
+          @if (product.variations.length) {
+            <div class="variant-picker-heading"><h2>Explora sus variantes</h2><span>{{ product.variations.length }} opciones</span></div>
+            <div class="variant-picker" role="group" aria-label="Seleccionar variante">
+              @for (variant of product.variations; track variant.id; let index = $index) {
+                <button type="button" class="variant-choice" [class.selected]="selectedVariantId() === variant.id" [attr.aria-pressed]="selectedVariantId() === variant.id" (click)="selectVariant(variant.id)">
+                  <span class="variant-number" aria-hidden="true">{{ index + 1 < 10 ? '0' : '' }}{{ index + 1 }}</span>
+                  <span class="variant-choice-name">{{ variantLabel(variant) }}</span>
+                  <span class="variant-choice-state" [class.off]="!variant.isActive">{{ variant.isActive ? 'Activa' : 'Inactiva' }}</span>
+                </button>
+              }
+            </div>
+          }
+        </section>
+
+        <section class="product-summary" aria-labelledby="product-name">
+          <nav class="product-breadcrumb" aria-label="Ubicación del producto"><span>Catálogo</span><span aria-hidden="true">/</span><span>{{ product.category?.name || 'Productos' }}</span></nav>
+          <p class="product-brand">{{ product.brand?.name || 'Ficha de producto' }}</p>
+          <h1 id="product-name">{{ product.name }}</h1>
+          @if (selectedVariant(); as variant) {
+            <p class="sku-line">SKU <span>{{ variant.sku }}</span></p>
+          }
+          <div class="price-block">
+            <p class="product-price">{{ money(displayPrice()) }} <span>{{ currency()?.code }}</span></p>
+            <p class="price-caption">{{ selectedVariant()?.price != null ? 'Precio de la variante seleccionada' : 'Precio base del producto' }}</p>
+            @if (selectedVariant()?.price != null) { <p class="base-price">Precio base: {{ money(product.price) }}</p> }
+          </div>
+          <p class="product-description">{{ product.description || 'Este producto aún no tiene una descripción.' }}</p>
+
+          @if (selectedVariant(); as variant) {
+            <div class="selected-variant">
+              <div class="selection-heading"><span>Variante seleccionada</span><span class="variant-state" [class.off]="!variant.isActive">{{ variant.isActive ? 'Activa' : 'Inactiva' }}</span></div>
+              <h2>{{ variantLabel(variant) }}</h2>
+              <div class="variant-facts">
+                @if (variant.size) { <span>Talla <strong>{{ variant.size }}</strong></span> }
+                @if (variant.material) { <span>Material <strong>{{ variant.material }}</strong></span> }
+                @if (variant.capacity) { <span>Capacidad <strong>{{ variant.capacity }}</strong></span> }
+                @if (variant.ram) { <span>RAM <strong>{{ variant.ram }}</strong></span> }
+              </div>
+            </div>
+          }
+          @if (auth.hasPermission('manage_products')) {
+            <div class="management-actions">
+              <a class="button edit-product" [routerLink]="['/app/edit-product', product.id]">Editar producto <span aria-hidden="true">↗</span></a>
+              @if (selectedVariant(); as variant) {
+                <a class="edit-variant" [routerLink]="['/app/edit-product', product.id]" [queryParams]="{ variation: variant.id }">Editar esta variante</a>
+              }
+            </div>
+          }
+          <div class="product-footnote"><span class="footnote-icon" aria-hidden="true">◇</span><p><strong>{{ activeVariantCount() }} de {{ product.variations.length }} variantes activas</strong><span>Precios en {{ currency()?.description || currency()?.code }}.</span></p></div>
+        </section>
       </div>
-    </section>
+
+      <section class="product-information" aria-label="Información del producto">
+        <div class="detail-tabs" role="tablist" aria-label="Secciones del producto" (keydown)="tabKeydown($event)">
+          <button type="button" role="tab" id="tab-details" aria-controls="panel-details" [attr.aria-selected]="activeTab() === 'details'" [attr.tabindex]="activeTab() === 'details' ? 0 : -1" (click)="activeTab.set('details')">Características</button>
+          <button type="button" role="tab" id="tab-variants" aria-controls="panel-variants" [attr.aria-selected]="activeTab() === 'variants'" [attr.tabindex]="activeTab() === 'variants' ? 0 : -1" (click)="activeTab.set('variants')">Variantes <span>{{ product.variations.length }}</span></button>
+          <button type="button" role="tab" id="tab-compatibility" aria-controls="panel-compatibility" [attr.aria-selected]="activeTab() === 'compatibility'" [attr.tabindex]="activeTab() === 'compatibility' ? 0 : -1" (click)="activeTab.set('compatibility')">Compatibilidad <span>{{ product.compatibleModels?.length || 0 }}</span></button>
+        </div>
+
+        <div class="tab-panel" id="panel-details" role="tabpanel" aria-labelledby="tab-details" [hidden]="activeTab() !== 'details'" tabindex="0">
+          <div class="panel-heading"><h2>El producto, en detalle</h2><p>Información del producto y de la variante seleccionada.</p></div>
+          <dl class="specifications">
+            @for (item of characteristics(); track item.label) { <div><dt>{{ item.label }}</dt><dd>{{ item.value }}</dd></div> }
+            <div><dt>Precio base</dt><dd>{{ money(product.price) }} {{ currency()?.code }}</dd></div>
+          </dl>
+        </div>
+        <div class="tab-panel" id="panel-variants" role="tabpanel" aria-labelledby="tab-variants" [hidden]="activeTab() !== 'variants'" tabindex="0">
+          <div class="panel-heading"><h2>Todas las variantes</h2><p>Consulta sus características, precios y estado.</p></div>
+          <div class="variant-list">
+            @for (variant of product.variations; track variant.id) {
+              <article class="variant-row" [class.current]="selectedVariantId() === variant.id">
+                <div><button type="button" class="variant-link" (click)="selectVariant(variant.id)">{{ variantLabel(variant) }}</button><p>{{ variant.sku }} @if (variant.material) { <span>· {{ variant.material }}</span> }</p></div>
+                <span class="variant-state" [class.off]="!variant.isActive">{{ variant.isActive ? 'Activa' : 'Inactiva' }}</span>
+                <strong>{{ money(variant.price ?? product.price) }} <small>{{ currency()?.code }}</small></strong>
+                @if (auth.hasPermission('manage_products')) { <a class="variant-edit-link" [routerLink]="['/app/edit-product', product.id]" [queryParams]="{ variation: variant.id }">Editar <span aria-hidden="true">↗</span></a> }
+              </article>
+            } @empty { <p class="empty-copy">No hay variantes registradas.</p> }
+          </div>
+        </div>
+        <div class="tab-panel" id="panel-compatibility" role="tabpanel" aria-labelledby="tab-compatibility" [hidden]="activeTab() !== 'compatibility'" tabindex="0">
+          <div class="panel-heading"><h2>Modelos compatibles</h2><p>Modelos asociados a este producto.</p></div>
+          <ul class="compatibility-list">
+            @for (item of product.compatibleModels || []; track item.id) { <li><span class="model-icon" aria-hidden="true">▯</span><span>{{ item.deviceModel.model }}</span>@if (!item.deviceModel.isActive) { <span class="inactive-model">Inactivo</span> }</li> }
+            @empty { <li class="empty-copy">Este producto no tiene modelos compatibles asignados.</li> }
+          </ul>
+        </div>
+      </section>
+    </article>
   }
 }
