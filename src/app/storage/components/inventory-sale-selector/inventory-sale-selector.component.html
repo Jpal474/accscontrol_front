@@ -1,0 +1,29 @@
+<label for="inventory-sale-search">Venta (Folio) <small>opcional</small></label>
+<div class="sale-input">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+  <input id="inventory-sale-search" type="search" role="combobox" autocomplete="off" maxlength="50"
+    placeholder="Buscar por folio…" [value]="query" [attr.aria-expanded]="open()" aria-controls="inventory-sale-options"
+    aria-autocomplete="list" [attr.aria-activedescendant]="open() && sales().length ? 'inventory-sale-' + active() : null"
+    (focus)="focus()" (click)="focus()" (input)="search($any($event.target).value)" (keydown)="keydown($event)" />
+  <span aria-hidden="true">{{ open() ? '⌃' : '⌄' }}</span>
+</div>
+@if (selected()) { <button type="button" class="clear-sale" (click)="clear()">Quitar venta seleccionada</button> }
+@if (open()) {
+  <section class="sale-panel" [class.panel-before]="panelBefore()" aria-label="Selector de ventas">
+    <header><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l3 12h11l3-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/></svg><h3>Selecciona una venta</h3><button type="button" class="close" aria-label="Cerrar selector de ventas" (click)="open.set(false)">×</button></header>
+    <div class="sale-options" id="inventory-sale-options" role="listbox" aria-label="Ventas por folio" [attr.aria-busy]="loading()">
+      @for (sale of sales(); track sale.id; let index = $index) {
+        <button type="button" role="option" [id]="'inventory-sale-' + index" [attr.aria-selected]="selected()?.id === sale.id"
+          [class.highlighted]="index === active()" [disabled]="loading()" (click)="choose(sale)">
+          <span class="cart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 3h3l3 12h11l3-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="19" cy="20" r="1"/></svg></span>
+          <span class="sale-description"><strong>Folio: {{ sale.folio }}</strong><span>{{ sale.itemCount }} uds. · {{ sale.products.join(', ') || 'Sin productos' }}</span><small>{{ sale.date | date:'dd/MM/yyyy · HH:mm' }}</small></span>
+          <strong class="sale-total">{{ money(sale) }}</strong>
+        </button>
+      }
+    </div>
+    @if (loading()) { <p role="status">Buscando ventas…</p> }
+    @else if (failed()) { <p role="alert">No se pudieron cargar las ventas. <button type="button" (click)="load()">Reintentar</button></p> }
+    @else if (!sales().length) { <p role="status">No hay ventas que coincidan con ese folio.</p> }
+    <footer><small>Escribe un folio o selecciona una venta de la lista.</small>@if (page() < totalPages()) { <button type="button" [disabled]="loading()" (click)="load(page() + 1)">Ver más ventas →</button> }</footer>
+  </section>
+}

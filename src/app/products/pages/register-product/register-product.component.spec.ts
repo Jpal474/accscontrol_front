@@ -90,6 +90,13 @@ describe('RegisterProductComponent', () => {
     completeForm(); component.variants.clear(); await component.save();
     expect(service.create).not.toHaveBeenCalled(); expect(component.error()).toBeTruthy();
   });
+  it('configures per-unit tracking without assigning one serial to the whole variant', async () => {
+    await create(); completeForm();
+    expect(component.variants.at(0).get('serialNumber')).toBeNull();
+    component.variants.at(0).controls.trackSerialNumbers.setValue(true);
+    await component.save();
+    expect(service.create).toHaveBeenCalledWith(jasmine.objectContaining({ variations: [jasmine.objectContaining({ trackSerialNumbers: true })] }));
+  });
   it('uses the store currency symbol in base and variation price labels', async () => {
     await create(); await fixture.whenStable(); fixture.detectChanges();
     expect(component.currencySymbol()).toBe('€');

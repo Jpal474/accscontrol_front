@@ -93,6 +93,7 @@
                 <legend>Variante {{ index + 1 }}</legend>
                 <div class="form-grid">
                   <label>SKU<input formControlName="sku" maxlength="100" required /></label>
+                  <label>Control por número de serie<select formControlName="trackSerialNumbers"><option [ngValue]="false">Sin serie por unidad</option><option [ngValue]="true">Requiere una serie por unidad física</option></select></label>
                   <label>Color<input formControlName="color" required /></label>
                   <label>Precio de la variante {{ currencySymbol() }} ({{ currency()?.code }})<input formControlName="price" inputmode="decimal" placeholder="Usar precio base" /></label>
                   <label>Tamaño<input formControlName="size" /></label>

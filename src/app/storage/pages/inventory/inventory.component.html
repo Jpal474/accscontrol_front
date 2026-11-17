@@ -1,388 +1,156 @@
-<app-page-header
-  title="Inventario (Modo Cascarón)"
-  subtitle="Existencias por ubicación e historial de operaciones"
-/>
-
-@if (!auth.context()?.branchId) {
-  <section class="panel">
-    <h2>Selecciona una sucursal</h2>
-    <p>Usa el selector de la barra superior para consultar su inventario.</p>
-  </section>
+<app-page-header title="Inventario" subtitle="Existencias de la tienda e historial de entradas, salidas y traslados." />
+@if (!store.selectedStoreId()) {
+  <section class="panel"><h2>Selecciona una tienda</h2><p>Usa el selector de la barra superior para consultar su inventario.</p></section>
 } @else {
   <nav class="tabs" aria-label="Vistas de inventario">
     @for (tab of tabs; track tab.id) {
-      <button
-        type="button"
-        [class.selected]="view() === tab.id"
-        [attr.aria-pressed]="view() === tab.id"
-        (click)="choose(tab.id)"
-      >
-        {{ tab.label }}
-      </button>
+      <button type="button" [class.selected]="view() === tab.id" [attr.aria-pressed]="view() === tab.id" [disabled]="busy()" (click)="choose(tab.id)">{{ tab.label }}</button>
     }
   </nav>
-
-  @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
-  }
-
-  @if (view() !== "locations" && view() !== "counts") {
-    <div class="filters">
-      <label>
-        Variante
-        <select [(ngModel)]="variantFilter" (change)="filter()">
-          <option value="">Todas</option>
-          @for (v of variants(); track v.id) {
-            <option [value]="v.id">{{ v.product }} · {{ v.sku }}</option>
-          }
-        </select>
-      </label>
-      <label>
-        Posición
-        <select [(ngModel)]="positionFilter" (change)="filter()">
-          <option value="">Todas</option>
-          @for (p of positions(); track p.id) {
-            <option [value]="p.id">
-              {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
-            </option>
-          }
-        </select>
-      </label>
-      <button type="button" (click)="load()">Actualizar</button>
-    </div>
-  }
-
-  @if (loading()) {
-    <app-skeleton />
-  } @else {
-    @if (view() === "balances") {
-      <section class="panel table-wrap">
-        <table>
-          <caption>
-            Existencias de la sucursal
-          </caption>
-          <thead>
-            <tr>
-              <th>Producto / SKU</th>
-              <th>Posición</th>
-              <th>Físico</th>
-              <th>Reservado</th>
-              <th>Disponible</th>
-            </tr>
-          </thead>
+  @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+  <form class="filters" (ngSubmit)="filter()">
+    <label>Buscar<input name="search" [(ngModel)]="search" maxlength="50" placeholder="Producto, SKU o serie en movimientos" /></label>
+    <label>Variante<select name="variantFilter" [(ngModel)]="variantFilter" (pointerdown)="loadVariants()" (click)="loadVariants()" (keydown)="lookupKeydown($event, 'variants')"><option value="">{{ variantsLoading() ? 'Cargando variantes…' : 'Todas' }}</option>
+      @for (variant of variants(); track variant.id) { <option [value]="variant.id">{{ variant.productName }} · {{ variant.sku }}</option> }
+    </select></label>
+    @if (view() === 'movements') {
+      <label>Tipo<select name="typeFilter" [(ngModel)]="typeFilter"><option value="">Todos</option>
+        @for (type of types; track type) { <option [value]="type">{{ typeLabels[type] }}</option> }
+      </select></label>
+      <label>Motivo<select name="reasonFilter" [(ngModel)]="reasonFilter"><option value="">Todos</option>
+        @for (reason of reasons; track reason) { <option [value]="reason">{{ reasonLabels[reason] }}</option> }
+      </select></label>
+    }
+    <button type="submit" [disabled]="loading() || busy()">Consultar</button>
+  </form>
+  @if (variantsFailed()) { <p class="error" role="alert">No se pudieron cargar las variantes. <button type="button" (click)="loadVariants()">Reintentar variantes</button></p> }
+  @if (targetsFailed() && operation.controls.action.value === 'TRANSFER') { <p class="error" role="alert">No se pudieron cargar las tiendas de destino. <button type="button" (click)="loadTargets()">Reintentar tiendas</button></p> }
+  @if (loading()) { <app-skeleton /> } @else {
+    @if (view() === 'balances') {
+      <section class="panel table-wrap" tabindex="0" role="region" aria-label="Existencias">
+        <table><caption>Existencias de la tienda</caption>
+          <thead><tr><th>Producto / SKU</th><th>Variante</th><th>Existencias</th><th>Estado</th><th>Ubicación física</th></tr></thead>
           <tbody>
-            @for (b of balances(); track b.variantId + b.positionId) {
-              <tr>
-                <td>
-                  {{ b.product }}<small>{{ b.sku }}</small>
-                </td>
-                <td>{{ b.position }}</td>
-                <td>{{ b.quantity }}</td>
-                <td>{{ b.reserved }}</td>
-                <td>
-                  <strong>{{ b.available }}</strong>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="5">Todavía no hay existencias registradas.</td>
-              </tr>
-            }
+            @for (balance of balances(); track balance.productVariationId) {
+              <tr><td>{{ balance.productName }}<small>{{ balance.sku }}</small>@if (balance.trackSerialNumbers) { <button type="button" class="series-link" (click)="openUnits(balance)">Ver series</button> }</td><td>{{ balance.color }}</td>
+                <td><strong>{{ balance.existence }}</strong></td><td>{{ balance.isActive ? 'Activa' : 'Inactiva' }}</td>
+                <td class="physical-location">
+                  @for (location of balance.locations || []; track location.id) {
+                    <div>{{ locationLabel(location) }}<small>{{ location.existence }} uds.</small></div>
+                  } @empty { {{ balance.existence > 0 ? 'Sin ubicación física asignada' : 'Sin existencias' }} }
+                </td></tr>
+            } @empty { <tr><td colspan="5">No hay productos que coincidan con la consulta.</td></tr> }
           </tbody>
         </table>
       </section>
-    }
-
-    @if (view() === "movements") {
-      <section class="panel table-wrap">
-        <table>
-          <caption>
-            Historial inmutable
-          </caption>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Tipo / SKU</th>
-              <th>Posición</th>
-              <th>Cantidad</th>
-              <th>Motivo / Referencia</th>
-              <th>Actor / Correlación</th>
-            </tr>
-          </thead>
+    } @else {
+      <section class="panel table-wrap" tabindex="0" role="region" aria-label="Historial de movimientos">
+        <table><caption>Historial de movimientos</caption>
+          <thead><tr><th>Fecha</th><th>Tipo / Producto</th><th>Cantidad</th><th>Motivo / Referencia</th><th>Series</th><th>Notas / Usuario</th></tr></thead>
           <tbody>
-            @for (m of movements(); track m.id) {
-              <tr>
-                <td>{{ m.createdAt | date: "short" }}</td>
-                <td>
-                  {{ labels[m.kind] }}<small>{{ m.sku }}</small>
-                </td>
-                <td>{{ m.position }}</td>
-                <td>{{ m.quantity }}</td>
-                <td>
-                  {{ m.reason }}<small>{{ m.reference }}</small>
-                </td>
-                <td class="identifiers">
-                  {{ m.actorId }}<small>{{ m.correlationId }}</small>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="6">Sin movimientos.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </section>
-    }
-
-    @if (view() === "reservations") {
-      <section class="panel table-wrap">
-        <table>
-          <caption>
-            Reservas
-          </caption>
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>Posición</th>
-              <th>Cantidad</th>
-              <th>Estado</th>
-              <th>Referencia</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (r of reservations(); track r.id) {
-              <tr>
-                <td>{{ r.sku }}</td>
-                <td>{{ r.position }}</td>
-                <td>{{ r.quantity }}</td>
-                <td>{{ labels[r.status] }}</td>
-                <td>{{ r.reference }}</td>
-                <td>
-                  @if (r.status === "active" && auth.can("inventory.reserve")) {
-                    <button
-                      type="button"
-                      [disabled]="busy()"
-                      (click)="release(r.id)"
-                    >
-                      Liberar
-                    </button>
-                  }
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="6">Sin reservas.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </section>
-    }
-
-    @if (view() === "counts") {
-      @for (c of counts(); track c.id) {
-        <article class="panel">
-          <h2>{{ c.reference }} · {{ labels[c.status] }}</h2>
-          <p>{{ c.reason }}</p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Posición</th>
-                  <th>Esperado</th>
-                  <th>Contado</th>
-                  <th>Diferencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (i of c.items; track i.variantId + i.positionId) {
-                  <tr>
-                    <td>{{ i.sku }}</td>
-                    <td>{{ i.position }}</td>
-                    <td>{{ i.expected }}</td>
-                    <td>{{ i.counted }}</td>
-                    <td>{{ i.difference }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-          @if (c.status === "submitted" && auth.can("inventory.approve")) {
-            <div class="actions">
-              <button
-                type="button"
-                [disabled]="busy()"
-                (click)="review(c.id, 'approve')"
-              >
-                Aprobar ajustes
-              </button>
-              <button
-                type="button"
-                [disabled]="busy()"
-                (click)="review(c.id, 'reject')"
-              >
-                Rechazar
-              </button>
-            </div>
-          }
-        </article>
-      } @empty {
-        <section class="panel">Sin conteos registrados.</section>
-      }
-    }
-
-    @if (view() === "locations") {
-      <section class="panel table-wrap">
-        <table>
-          <caption>
-            Bodegas, estantes y posiciones
-          </caption>
-          <thead>
-            <tr>
-              <th>Bodega</th>
-              <th>Estante</th>
-              <th>Posición</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of positions(); track p.id) {
-              <tr>
-                <td>{{ p.warehouse }}</td>
-                <td>{{ p.shelf }}</td>
-                <td>{{ p.name }}</td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="3">Agrega tu primera ubicación.</td>
-              </tr>
-            }
+            @for (movement of movements(); track movement.id) {
+              <tr><td>{{ movement.createdAt | date:'short' }}</td><td>{{ typeLabels[movement.type] }} · {{ movement.productVariation.product.name }}<small>{{ movement.productVariation.sku }}</small></td>
+                <td>{{ movement.quantity }}</td><td>{{ reasonLabels[movement.reason] }}<small>{{ movement.saleId || '—' }}</small></td>
+                <td class="serial-cell">{{ movement.serialNumbers?.join(', ') || '—' }}</td>
+                <td>{{ movement.notes || '—' }}<small class="identifiers">{{ movement.userId }}</small></td></tr>
+            } @empty { <tr><td colspan="6">Sin movimientos para esta consulta.</td></tr> }
           </tbody>
         </table>
       </section>
     }
   }
+  <nav class="pagination" aria-label="Paginación de inventario">
+    <button type="button" [disabled]="loading() || busy() || page() <= 1" (click)="next(-1)">Anterior</button>
+    <span>{{ total() }} registros · Página {{ page() }} de {{ totalPages() || 1 }}</span>
+    <button type="button" [disabled]="loading() || busy() || page() >= totalPages()" (click)="next(1)">Siguiente</button>
+  </nav>
 
-  <!-- Formularios de Creación / Gestión -->
-  @if (view() === "locations" && auth.can("inventory.manage")) {
-    <form
-      class="editor-section panel"
-      [formGroup]="location"
-      (ngSubmit)="saveLocation()"
-    >
-      <header class="editor-intro">
-        <span class="editor-number">01</span>
-        <h3>Ubicación física</h3>
-        <p>Identifica bodega, estante y posición.</p>
-      </header>
-      <div class="editor-body">
-        <h2>Nueva posición</h2>
-        <div class="fields">
-          <label
-            >Bodega<input formControlName="warehouse" maxlength="100"
-          /></label>
-          <label
-            >Estante<input formControlName="shelf" maxlength="100"
-          /></label>
-          <label
-            >Posición<input formControlName="position" maxlength="100"
-          /></label>
-        </div>
-        <div class="form-actions">
-          <button
-            class="primary"
-            type="submit"
-            [disabled]="busy() || location.invalid"
-          >
-            Agregar posición
-          </button>
-        </div>
-      </div>
-    </form>
-  }
-
-  @if (
-    (view() === "balances" || view() === "reservations") &&
-    (auth.can("inventory.manage") || auth.can("inventory.reserve"))
-  ) {
-    <form
-      class="editor-section panel"
-      [formGroup]="operation"
-      (ngSubmit)="saveOperation()"
-    >
-      <header class="editor-intro">
-        <span class="editor-number">01</span>
-        <h3>Movimiento de inventario</h3>
-        <p>Selecciona origen, cantidad y referencia auditable.</p>
-      </header>
+  @if (auth.hasPermission('manage_inventory')) {
+    <div class="movement-workspace">
+    <form class="editor-section panel" [formGroup]="operation" (ngSubmit)="saveOperation()" [attr.inert]="busy() ? '' : null">
+      <header class="editor-intro"><span class="editor-number">01</span><h3>Movimiento de inventario</h3><p>Registra cantidades y, cuando aplique, una serie por cada pieza física. Los traslados registran salida y entrada en una misma operación.</p></header>
       <div class="editor-body">
         <h2>Registrar operación</h2>
-        <div class="fields">
-          <label>
-            Operación
-            <select formControlName="action">
-              <option value="entry">Entrada</option>
-              <option value="exit">Salida</option>
-              <option value="return">Devolución</option>
-              <option value="transfer">Traslado entre posiciones</option>
-              <option value="reserve">Reserva</option>
-            </select>
-          </label>
-          <label>
-            Variante
-            <select formControlName="variantId">
-              <option value="">Selecciona</option>
-              @for (v of variants(); track v.id) {
-                <option [value]="v.id">{{ v.product }} · {{ v.sku }}</option>
-              }
-            </select>
-          </label>
-          <label>
-            Posición
-            <select formControlName="positionId">
-              <option value="">Selecciona</option>
-              @for (p of positions(); track p.id) {
-                <option [value]="p.id">
-                  {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
-                </option>
-              }
-            </select>
-          </label>
-          @if (operation.controls.action.value === "transfer") {
-            <label>
-              Posición de destino
-              <select formControlName="targetPositionId">
-                <option value="">Selecciona</option>
-                @for (p of positions(); track p.id) {
-                  <option [value]="p.id">
-                    {{ p.warehouse }} / {{ p.shelf }} / {{ p.name }}
-                  </option>
-                }
-              </select>
-            </label>
+        <div class="fields movement-fields">
+          <label>Operación<select formControlName="action"><option value="IN">Entrada</option><option value="OUT">Salida</option><option value="TRANSFER">Traslado entre tiendas</option></select></label>
+          <label>Motivo<select formControlName="reason" required>
+            <option value="" disabled>Selecciona un motivo</option>
+            @if (operation.controls.action.value === 'TRANSFER') { <option value="TRANSFER">Traslado</option> }
+            @else { @for (reason of reasons; track reason) { @if (reason !== 'TRANSFER') { <option [value]="reason">{{ reasonLabels[reason] }}</option> } } }
+          </select></label>
+          @if (operation.controls.action.value === 'TRANSFER') {
+            <label>Tienda de destino<select formControlName="targetStoreId" (pointerdown)="loadTargets()" (click)="loadTargets()" (keydown)="lookupKeydown($event, 'targets')"><option value="">{{ targetsLoading() ? 'Cargando tiendas…' : 'Selecciona una tienda' }}</option>
+              @for (target of targets(); track target.id) { <option [value]="target.id">{{ target.name }}</option> }
+            </select></label>
+            @if (!targets().length && !targetsLoading() && !targetsFailed()) { <p class="hint">{{ targetsRequested() ? 'No hay otras tiendas activas del mismo dueño con este catálogo.' : 'Abre el selector para consultar las tiendas activas del mismo dueño que comparten catálogo.' }}</p> }
           }
-          <label
-            >Cantidad<input type="number" formControlName="quantity" min="1"
-          /></label>
-          <label
-            >Motivo<input formControlName="reason" maxlength="500"
-          /></label>
-          <label
-            >Referencia<input formControlName="reference" maxlength="200"
-          /></label>
+          @if (operation.controls.action.value !== 'TRANSFER' && (operation.controls.reason.value === 'SALE' || operation.controls.reason.value === 'RETURN')) {
+            <app-inventory-sale-selector [saleId]="operation.controls.saleId.value" (saleIdChange)="operation.controls.saleId.setValue($event)" />
+          }
         </div>
-        <div class="form-actions">
-          <button
-            class="primary"
-            type="submit"
-            [disabled]="busy() || operation.invalid"
-          >
-            Registrar operación
-          </button>
+        <div class="items-heading"><h3>Partidas del movimiento</h3><span>{{ items.length }} de 100</span></div>
+        <div formArrayName="items" class="operation-items" tabindex="0" role="region" aria-label="Partidas del movimiento">
+          @for (item of items.controls; track item; let index = $index) {
+            <fieldset [formGroupName]="index" [id]="'inventory-item-' + index" [class.highlighted]="highlightedItem() === index"><legend>Partida {{ index + 1 }}</legend>
+              <div class="fields">
+                <label>Variante<select formControlName="variantId" (pointerdown)="loadVariants()" (click)="loadVariants()" (keydown)="lookupKeydown($event, 'variants')" (change)="item.controls.serialText.setValue('')"><option value="">{{ variantsLoading() ? 'Cargando variantes…' : 'Selecciona una variante' }}</option>
+                  @for (variant of variants(); track variant.id) { <option [value]="variant.id" [disabled]="operation.controls.action.value === 'IN' && !variant.isActive">{{ variant.productName }} · {{ variant.sku }} {{ variant.isActive ? '' : '(inactiva)' }}</option> }
+                </select></label>
+                <label>Cantidad<input type="number" formControlName="quantity" min="1" max="2147483647" step="1" required /></label>
+                <label>{{ operation.controls.action.value === 'IN' ? 'Ubicación física' : 'Ubicación de origen' }}
+                  <select formControlName="locationId" required (pointerdown)="loadLocations(index)" (click)="loadLocations(index)" (keydown)="lookupKeydown($event, 'locations', index)">
+                    <option value="">{{ !item.controls.variantId.value ? 'Selecciona primero una variante' : locationState(index)?.loading ? 'Cargando ubicaciones…' : 'Selecciona una ubicación de esta tienda' }}</option>
+                    @for (location of options(index); track location.id) { <option [value]="location.id">{{ physicalLocationLabel(location) }} · {{ location.existence }} uds.</option> }
+                  </select>
+                </label>
+                @if (operation.controls.action.value === 'TRANSFER') {
+                  <label>Ubicación en la tienda destino
+                    <select formControlName="targetLocationId" required (pointerdown)="loadTargetLocations(index)" (click)="loadTargetLocations(index)" (keydown)="lookupKeydown($event, 'targetLocations', index)">
+                      <option value="">{{ !operation.controls.targetStoreId.value ? 'Selecciona primero la tienda destino' : !item.controls.variantId.value ? 'Selecciona primero una variante' : locationState(index, true)?.loading ? 'Cargando ubicaciones…' : 'Selecciona la ubicación de destino' }}</option>
+                      @for (location of options(index, true); track location.id) { <option [value]="location.id">{{ physicalLocationLabel(location) }} · {{ location.existence }} uds.</option> }
+                    </select>
+                  </label>
+                }
+              </div>
+              @if (locationState(index)?.failed) { <p class="error">No se pudieron cargar las ubicaciones. <button type="button" (click)="loadLocations(index)">Reintentar</button></p> }
+              @if (locationState(index, true)?.failed && operation.controls.action.value === 'TRANSFER') { <p class="error">No se pudieron cargar las ubicaciones de destino. <button type="button" (click)="loadTargetLocations(index)">Reintentar</button></p> }
+              @if (locationState(index) && !locationState(index)?.loading && !locationState(index)?.failed && !options(index).length) { <p class="hint">{{ operation.controls.action.value === 'IN' ? 'Esta tienda no tiene ubicaciones físicas activas.' : 'La variante no tiene existencias en ubicaciones físicas activas de esta tienda.' }}</p> }
+              @if (operation.controls.action.value === 'TRANSFER' && locationState(index, true) && !locationState(index, true)?.loading && !locationState(index, true)?.failed && !options(index, true).length) { <p class="hint">La tienda de destino no tiene ubicaciones físicas activas.</p> }
+              @if (variant(item.controls.variantId.value)?.trackSerialNumbers) {
+                <label>Números de serie de las unidades<textarea formControlName="serialText" rows="3" placeholder="Una serie por línea; también puedes separarlas con comas." maxlength="101000"></textarea></label>
+                <p class="hint">{{ serials(item.controls.serialText.value).length }} series capturadas para {{ item.controls.quantity.value }} unidades. En salidas y traslados, usa las series disponibles en Existencias.</p>
+              }
+              <button type="button" (click)="removeItem(index)" [disabled]="items.length <= 1 || busy()">Quitar partida</button>
+            </fieldset>
+          }
         </div>
+        <button type="button" (click)="addItem()" [disabled]="items.length >= 100 || busy()">Agregar partida</button>
+        <label>Notas (opcional)<textarea formControlName="notes" rows="2" maxlength="2000"></textarea></label>
+        <div class="form-actions"><button class="primary" type="submit" [disabled]="busy() || lookupLoading() || lookupFailed()">{{ busy() ? 'Registrando…' : 'Registrar movimiento' }}</button></div>
       </div>
     </form>
+    <aside class="panel movement-summary" aria-labelledby="movement-summary-title">
+      <p class="summary-eyebrow">VISTA PREVIA</p>
+      <h2 id="movement-summary-title">Resumen del movimiento</h2>
+      <p class="summary-operation">{{ operationLabels[draft().action] }} · {{ reasonLabels[draft().reason] }}</p>
+      @if (draft().action === 'TRANSFER') { <p class="summary-destination">Destino: <strong>{{ destinationName() }}</strong></p> }
+      <div class="summary-stats" aria-live="polite"><div><strong>{{ summary().length }}</strong><span>Partidas</span></div><div><strong>{{ totalUnits() }}</strong><span>Unidades</span></div><div [class.has-pending]="pendingItems() > 0"><strong>{{ pendingItems() }}</strong><span>Por revisar</span></div></div>
+      <div class="summary-table-wrap" role="region" aria-label="Resumen de todas las partidas" tabindex="0">
+        <table class="summary-table"><thead><tr><th>#</th><th>Producto / SKU</th><th>Cant.</th></tr></thead><tbody>
+          @for (row of summary(); track row.index) {
+            <tr [class.summary-pending]="!row.ready"><td><button type="button" (click)="focusItem(row.index)" [attr.aria-label]="'Revisar partida ' + (row.index + 1)" [disabled]="busy()">{{ row.index + 1 }}</button></td><td><strong>{{ row.name }}</strong><small>{{ row.sku }}</small><small>Ubicación: {{ row.location }}</small>@if (draft().action === 'TRANSFER') { <small>Destino: {{ row.targetLocation || 'Selecciona ubicación' }}</small> }<span class="summary-row-state" [class.ready]="row.ready">{{ row.ready ? 'Lista' : 'Revisar' }} @if (row.needsSeries) { · {{ row.series }}/{{ row.quantity }} series }</span></td><td>{{ row.quantity }}</td></tr>
+          }
+        </tbody></table>
+      </div>
+      <p class="summary-hint">Pulsa el número de una partida para ir directamente a editarla. Las existencias se actualizan al registrar el movimiento.</p>
+    </aside>
+    </div>
   }
 }
+<dialog #unitDialog class="units-dialog" aria-labelledby="units-title" (close)="unitVariant.set(null)">
+  <header class="units-header"><h2 id="units-title">Series disponibles · {{ unitVariant()?.productName }}</h2><button type="button" aria-label="Cerrar series" (click)="closeUnits()">×</button></header>
+  @if (unitsLoading()) { <p role="status">Cargando series…</p> }
+  @else if (unitsError()) { <p class="error" role="alert">{{ unitsError() }}</p> }
+  @else { <ul class="unit-list">@for (unit of units(); track unit.id) { <li>{{ unit.serialNumber }}</li> } @empty { <li>No hay unidades disponibles con número de serie.</li> }</ul> }
+  <nav class="pagination" aria-label="Paginación de series"><button type="button" [disabled]="unitsLoading() || unitPage <= 1" (click)="unitsPage(-1)">Anterior</button><span>{{ unitPage }} de {{ unitsTotalPages() || 1 }}</span><button type="button" [disabled]="unitsLoading() || unitPage >= unitsTotalPages()" (click)="unitsPage(1)">Siguiente</button></nav>
+</dialog>
