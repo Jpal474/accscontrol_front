@@ -1,4 +1,6 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -26,6 +28,7 @@ import { RoutesService } from '../../../shared/services/routes.service';
 })
 export class RegisterStoreComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly storeService = inject(StoreService);
   private readonly catalogsService = inject(CatalogsService);
@@ -35,6 +38,9 @@ export class RegisterStoreComponent implements OnInit {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly storeId = signal<string | null>(null);
+  readonly hasShareableCatalogs = signal(false);
+  readonly checkingCatalogs = signal(false);
+  readonly catalogCheckFailed = signal(false);
 
   readonly company = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(160)]],
@@ -44,6 +50,8 @@ export class RegisterStoreComponent implements OnInit {
     ],
     currency: ['MXN', Validators.required],
     email: ['', [Validators.required, Validators.email]],
+    catalogMode: ['own'],
+    productCatalogId: [''],
     address: addressForm(),
   });
 
@@ -52,7 +60,30 @@ export class RegisterStoreComponent implements OnInit {
     if (id) {
       this.storeId.set(id);
       this.loadStoreData(id);
+    } else {
+      this.checkCatalogs();
     }
+    this.company.controls.catalogMode.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(mode => {
+      const control = this.company.controls.productCatalogId;
+      control.reset();
+      control.setValidators(mode === 'shared' ? Validators.required : null);
+      control.updateValueAndValidity();
+    });
+  }
+
+  readonly fetchProductCatalogs = (query: CatalogRequest) => this.storeService.getOwnerProductCatalogs(query);
+
+  checkCatalogs() {
+    this.checkingCatalogs.set(true); this.catalogCheckFailed.set(false);
+    this.storeService.getOwnerProductCatalogs({ page: 1, pageSize: 1 }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: response => { this.hasShareableCatalogs.set((response.meta?.total ?? response.data.length) > 0); this.checkingCatalogs.set(false); },
+      error: () => { this.catalogCheckFailed.set(true); this.checkingCatalogs.set(false); },
+    });
+  }
+
+  registerAnother() {
+    this.company.reset({ currency: 'MXN', catalogMode: 'own', productCatalogId: '' });
+    this.registered.set(false); this.checkCatalogs();
   }
 
   readonly fetchCurrencies = (q: any) => this.catalogsService.getCurrencies(q);
@@ -88,6 +119,7 @@ export class RegisterStoreComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.busy() || this.checkingCatalogs()) return;
     if (this.company.invalid) {
       this.company.markAllAsTouched();
       return;
@@ -109,6 +141,7 @@ export class RegisterStoreComponent implements OnInit {
       neighborhood: rawValues.address.neighborhood,
       postalCode: rawValues.address.postalCode,
       localityId: rawValues.address.localityId,
+      ...(!this.storeId() && rawValues.catalogMode === 'shared' ? { productCatalogId: rawValues.productCatalogId } : {}),
     };
 
     const currentId = this.storeId();

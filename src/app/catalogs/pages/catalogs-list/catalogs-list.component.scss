@@ -1,0 +1,11 @@
+﻿@use '../../../../styles/workspace-controls' as controls;
+@include controls.page;
+.filters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 1rem; margin-bottom: 1.5rem; }
+label { display: grid; gap: .5rem; min-width: 0; }
+.catalog-form { display: grid; gap: 1.25rem; margin-top: 1.5rem; }
+.actions, .checkbox-label { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.error { color: var(--danger, #b42318); }
+.pagination { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .5rem; margin-top: 1.5rem; }
+.pagination span { text-align: center; font-size: .85rem; overflow-wrap: anywhere; }
+.pagination button { white-space: nowrap; padding-inline: .6rem; }
+@media (max-width: 600px) { .filters { grid-template-columns: minmax(0, 1fr); } .pagination span { font-size: .75rem; } .pagination button { padding-inline: .4rem; } }

@@ -25,6 +25,11 @@
     </div>
     <p class="nav-label">ESPACIO DE TRABAJO</p>
     <nav aria-label="Navegación principal">
+      @if (canManageCatalogs()) {
+        <a routerLink="/app/catalogs-list" routerLinkActive="active" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">category</span> Catálogos
+        </a>
+      }
       @if (authSevice.hasPermission('manage_platform_admins')) {
         <a routerLink="/app/admin/administrators" routerLinkActive="active" (click)="closeMenu()">
           <span class="nav-icon" aria-hidden="true">admin_panel_settings</span> Administradores de plataforma

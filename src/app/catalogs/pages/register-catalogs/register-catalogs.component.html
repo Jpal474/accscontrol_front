@@ -1,0 +1,24 @@
+﻿<app-page-header title="Registrar en catálogos" subtitle="Elige el catálogo y captura los datos del nuevo registro." />
+<section class="card">
+  <label>Catálogo<select [ngModel]="kind()" (ngModelChange)="selectKind($event)" [disabled]="busy()">@for (item of definitions; track item.key) { <option [value]="item.key">{{ item.label }}</option> }</select></label>
+  @if (!store.selectedStoreId()) { <p>Selecciona una tienda para registrar datos en sus catálogos.</p> }
+  @else {
+    @if (definition()?.shared) { <p>Este registro estará disponible en todas las tiendas que comparten el catálogo de productos.</p> }
+    <form [formGroup]="form" (ngSubmit)="submit()" class="catalog-form">
+      <label>{{ kind() === 'locations' ? 'Código de ubicación' : kind() === 'models' ? 'Modelo' : 'Nombre' }}
+        <input formControlName="name" [maxlength]="kind() === 'locations' ? 15 : 100" required />
+        @if (form.controls.name.invalid && form.controls.name.touched) { <small class="error">Este campo es obligatorio. Máximo {{ kind() === 'locations' ? 15 : 100 }} caracteres.</small> }
+      </label>
+      @if (kind() === 'locations') {
+        <label>Descripción<input formControlName="description" maxlength="100" /></label>
+        <div><span>Categoría de ubicación</span>
+          <app-catalog-select [fetchFn]="fetchLocationCategories" [parentId]="store.selectedStoreId()" [parentRequired]="true" formControlName="locationCategoryId" placeholder="Selecciona una categoría activa" />
+          @if (form.controls.locationCategoryId.invalid && form.controls.locationCategoryId.touched) { <small class="error">Selecciona una categoría de esta tienda.</small> }
+        </div>
+      }
+      <label class="checkbox-label"><input type="checkbox" formControlName="isActive" />Activo</label>
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+      <div class="actions"><button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Guardando...' : 'Guardar registro' }}</button><a class="button" routerLink="/app/catalogs-list" [queryParams]="{ kind: kind() }">Volver al listado</a></div>
+    </form>
+  }
+</section>

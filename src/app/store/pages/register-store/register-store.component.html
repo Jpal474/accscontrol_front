@@ -52,6 +52,26 @@
           </label>
         </div>
 
+        @if (!storeId()) {
+          @if (checkingCatalogs()) { <p>Consultando catálogos disponibles...</p> }
+          @else if (catalogCheckFailed()) {
+            <p role="alert">No se pudieron consultar los catálogos compartidos. Puedes crear uno propio o reintentar.</p>
+            <button type="button" (click)="checkCatalogs()">Reintentar consulta de catálogos</button>
+          }
+          @if (hasShareableCatalogs()) {
+            <fieldset>
+              <legend>Catálogo de productos</legend>
+              <label><input type="radio" formControlName="catalogMode" value="own" />Crear catálogo propio para esta tienda</label>
+              <label><input type="radio" formControlName="catalogMode" value="shared" />Compartir catálogo de una de mis tiendas</label>
+              @if (company.controls.catalogMode.value === 'shared') {
+                <app-catalog-select [fetchFn]="fetchProductCatalogs" formControlName="productCatalogId" placeholder="Selecciona un catálogo de productos" />
+                <p>Las marcas, modelos y categorías de producto serán compartidos entre las tiendas que usen este catálogo.</p>
+                @if (company.controls.productCatalogId.invalid && company.controls.productCatalogId.touched) { <small role="alert">Selecciona el catálogo que deseas compartir.</small> }
+              }
+            </fieldset>
+          }
+        }
+
         <!-- Componente reutilizable de dirección -->
         <app-address
           [form]="$any(company.controls.address)"
@@ -70,7 +90,7 @@
         }
 
         <div class="form-actions">
-          <button class="primary" type="submit" [disabled]="busy()">
+          <button class="primary" type="submit" [disabled]="busy() || checkingCatalogs()">
             {{
               busy()
                 ? "Guardando..."
@@ -91,17 +111,16 @@
         ¡Registro exitoso!
       </h3>
       <p style="color: var(--muted); margin-bottom: 1.5rem">
-        El nuevo dueño ha sido registrado correctamente en el sistema y se le
-        han enviado sus credenciales de acceso por correo.
+        La tienda ha sido registrada correctamente con el catálogo de productos seleccionado.
       </p>
 
       <div class="form-actions" style="justify-content: center">
         <button
           class="primary"
           type="button"
-          (click)="registered.set(false); company.reset()"
+          (click)="registerAnother()"
         >
-          Registrar otro dueño
+          Registrar otra tienda
         </button>
       </div>
     </div>
