@@ -141,6 +141,7 @@ export class RegisterProductComponent {
   private variant(value?: ProductVariation) {
     return this.fb.nonNullable.group({
       id: value?.id || '',
+      trackSerialNumbers: value?.trackSerialNumbers ?? false,
       sku: [value?.sku || '', [Validators.required, Validators.maxLength(100), Validators.pattern(/\S/)]],
       color: [value?.color || '', [Validators.required, Validators.pattern(/\S/)]],
       size: value?.size || '', material: value?.material || '',
@@ -273,6 +274,7 @@ export class RegisterProductComponent {
       brandId: values.brandId, productCategoryId: values.categoryId, isActive: values.isActive,
       variations: values.variants.map(variant => ({
         ...(variant.id ? { id: variant.id } : {}), sku: variant.sku.trim(), color: variant.color.trim(),
+        trackSerialNumbers: variant.trackSerialNumbers,
         size: variant.size.trim(), material: variant.material.trim(), capacity: variant.capacity.trim(), ram: variant.ram.trim(),
         price: variant.price === '' ? null : Number(variant.price), isActive: variant.isActive,
       })),

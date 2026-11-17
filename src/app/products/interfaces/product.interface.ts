@@ -11,6 +11,7 @@ export interface ProductModel {
 }
 
 export interface ProductVariation {
+  trackSerialNumbers?: boolean;
   id: string;
   productId: string;
   sku: string;
@@ -41,6 +42,7 @@ export interface Product {
 }
 
 export interface SaveProductVariation {
+  trackSerialNumbers?: boolean;
   id?: string;
   sku: string;
   color: string;

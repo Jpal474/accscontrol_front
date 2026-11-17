@@ -136,7 +136,7 @@
         venta</a
       >
       <!-- } -->
-      <!-- @if (auth.can("inventory.read")) { -->
+      @if (authSevice.hasPermission('view_inventory')) {
       <a
         routerLink="/app/inventory"
         routerLinkActive="active"
@@ -144,8 +144,7 @@
         ><span class="nav-icon" aria-hidden="true">inventory_2</span>
         Inventario</a
       >
-      <!-- }
-      -->
+      }
       @if (authSevice.hasPermission('view_products')) {
       <a
         routerLink="/app/products-list"

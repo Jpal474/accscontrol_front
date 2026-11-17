@@ -1,99 +1,45 @@
-export type InventoryAction =
-  | 'location'
-  | 'entry'
-  | 'exit'
-  | 'sale'
-  | 'return'
-  | 'transfer'
-  | 'reserve'
-  | 'release'
-  | 'consume'
-  | 'count'
-  | 'approve'
-  | 'reject';
-export interface InventoryCommand {
-  action: InventoryAction;
-  idempotencyKey: string;
-  reason: string;
-  reference: string;
-  warehouse?: string;
-  shelf?: string;
-  position?: string;
-  variantId?: string;
-  positionId?: string;
-  targetPositionId?: string;
-  quantity?: number;
-  reservationId?: string;
-  countId?: string;
-  items?: { variantId: string; positionId: string; counted: number }[];
+﻿export enum MovementType { IN = 'IN', OUT = 'OUT' }
+export enum MovementReason {
+  PURCHASE = 'PURCHASE', SALE = 'SALE', TRANSFER = 'TRANSFER', DAMAGE = 'DAMAGE',
+  AUDIT_ADJUSTMENT = 'AUDIT_ADJUSTMENT', RETURN = 'RETURN', CANCELLATION = 'CANCELLATION',
+}
+export const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = { IN: 'Entrada', OUT: 'Salida' };
+export const MOVEMENT_REASON_LABELS: Record<MovementReason, string> = {
+  PURCHASE: 'Compra', SALE: 'Venta', TRANSFER: 'Traslado', DAMAGE: 'Daño',
+  AUDIT_ADJUSTMENT: 'Ajuste por auditoría', RETURN: 'Devolución', CANCELLATION: 'Cancelación',
+};
+export interface InventoryVariant {
+  id: string; productName: string; sku: string; color: string; trackSerialNumbers: boolean; isActive: boolean;
+}
+export interface StockBalance extends Omit<InventoryVariant, 'id'> {
+  productVariationId: string; productId: string; existence: number;
+  locations?: StockLocation[];
+}
+export interface StockLocation {
+  id: string; code: string; description: string; categoryName?: string | null; existence: number;
 }
 export interface InventoryLocation {
-  id: string;
-  name: string;
-  shelf: string;
-  warehouse: string;
-  active: boolean;
-}
-export interface InventoryVariant {
-  id: string;
-  sku: string;
-  name: string;
-  product: string;
-  status: string;
-}
-export interface StockBalance {
-  positionId: string;
-  variantId: string;
-  sku: string;
-  product: string;
-  position: string;
-  quantity: string;
-  reserved: string;
-  available: string;
-  version: string;
+  id: string; code: string; description: string; locationCategory?: { name: string };
+  existence: number;
 }
 export interface StockMovement {
-  id: string;
-  kind: string;
-  quantity: string;
-  sku: string;
-  position: string;
-  actorId: string;
-  reason: string;
-  reference: string;
-  correlationId: string;
-  createdAt: string;
+  id: string; type: MovementType; reason: MovementReason; quantity: number;
+  previousExistence: number; newExistence: number; createdAt: string; notes?: string; saleId?: string; userId?: string;
+  serialNumbers?: string[];
+  productVariation: { id: string; sku: string; color: string; product: { id: string; name: string } };
 }
-export interface StockReservation {
-  id: string;
-  status: string;
-  quantity: string;
-  sku: string;
-  position: string;
-  reason: string;
-  reference: string;
+export interface InventoryUnit {
+  id: string; serialNumber: string; productVariationId: string; status: 'AVAILABLE' | 'OUT';
 }
-export interface StockCountItem {
-  variantId: string;
-  positionId: string;
-  sku: string;
-  position: string;
-  expected: string;
-  counted: string;
-  difference: string;
+export interface InventoryQuery {
+  page?: number; pageSize?: number; search?: string; productVariationId?: string; type?: MovementType; reason?: MovementReason; isActive?: boolean;
 }
-export interface StockCount {
-  id: string;
-  status: string;
-  reason: string;
-  reference: string;
-  actorId: string;
-  reviewerId: string | null;
-  items: StockCountItem[];
+export interface InventoryMovementRequest {
+  reason: MovementReason; notes?: string; saleId?: string;
+  items: { productVariationId: string; quantity: number; locationId: string; targetLocationId?: string; serialNumbers?: string[] }[];
 }
-export interface InventoryPage<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
+export interface TransferTarget { id: string; name: string; }
+export interface InventorySale {
+  id: string; folio: string; date: string; total: number | string;
+  currency: string | null; itemCount: number; products: string[];
 }
