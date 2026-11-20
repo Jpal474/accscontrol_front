@@ -1,4 +1,4 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, UrlTree, convertToParamMap } from '@angular/router';
 import { EMPTY, of, throwError } from 'rxjs';
 import { RegisterProductComponent } from './register-product.component';
@@ -61,11 +61,11 @@ describe('RegisterProductComponent', () => {
 
   it('keeps the existing image unless a replacement is selected', async () => {
     await create('product');
-    expect(component.imagePreview()).toBe('http://localhost:3000/uploads/products/old.png');
+    expect(component.imagePreview()).toBe('/api/uploads/products/old.png');
     chooseImage(new File(['image'], 'new.png', { type: 'image/png' }));
     expect(component.imagePreview()?.startsWith('blob:')).toBeTrue();
     component.clearSelectedImage();
-    expect(component.imagePreview()).toBe('http://localhost:3000/uploads/products/old.png');
+    expect(component.imagePreview()).toBe('/api/uploads/products/old.png');
     await component.save();
     expect(service.update).toHaveBeenCalledWith('product', jasmine.any(Object));
   });

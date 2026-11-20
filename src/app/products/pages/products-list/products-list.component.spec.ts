@@ -1,4 +1,4 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, UrlTree } from '@angular/router';
 import { EMPTY, of } from 'rxjs';
 import { ProductsListComponent } from './products-list.component';
@@ -56,7 +56,7 @@ describe('ProductsListComponent', () => {
     const modal = component.imageModal()!.nativeElement;
     expect(modal.open).toBeTrue();
     expect(modal.querySelector('h2')?.textContent).toBe('Funda');
-    expect(modal.querySelector('img')?.getAttribute('src')).toBe('http://localhost:3000/uploads/products/funda.png');
+    expect(modal.querySelector('img')?.getAttribute('src')).toBe('/api/uploads/products/funda.png');
     component.closeImage(); expect(modal.open).toBeFalse();
   });
 
