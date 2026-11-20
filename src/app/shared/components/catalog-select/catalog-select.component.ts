@@ -55,6 +55,12 @@ export class CatalogSelectComponent
   @Input() parentId?: string | null;
   /** Si es true, no carga nada hasta que exista parentId */
   @Input() parentRequired = false;
+  @Input() initialOption?: CatalogApiResponse;
+
+  get displayValue(): string {
+    return this.selectedValue()
+      || (this.initialOption?.id === this.selectedId() ? this.initialOption?.value : '') || '';
+  }
   @Input() placeholder = 'Selecciona una opción...';
 
   readonly isOpen = signal(false);
@@ -225,6 +231,7 @@ export class CatalogSelectComponent
       this.selectedValue.set(value.value);
     } else if (typeof value === 'string') {
       // Si solo manda el ID plano
+      if (this.selectedId() !== value) this.selectedValue.set('');
       this.selectedId.set(value);
       this.syncSelectedLabel();
     }

@@ -1,0 +1,66 @@
+<app-page-header title="Proveedores" subtitle="Consulta los proveedores de la tienda seleccionada.">
+  @if (canManage() && store.selectedStoreId()) {
+    <a class="button primary" routerLink="/app/register-provider">Registrar proveedor</a>
+  }
+</app-page-header>
+
+<section class="card">
+  @if (!store.selectedStoreId()) {
+    <p role="status">Selecciona una tienda para consultar sus proveedores.</p>
+  } @else {
+    <label class="search">Buscar proveedor
+      <input #searchBox type="search" maxlength="50" placeholder="Nombre comercial, razón social o contacto"
+        [value]="searchText()" (input)="search(searchBox.value)" />
+    </label>
+    @if (loading()) {
+      <app-skeleton />
+    } @else if (failed()) {
+      <p role="alert">No se pudieron cargar los proveedores.</p>
+      <button type="button" (click)="load()">Reintentar</button>
+    } @else if (!rows().length) {
+      <app-empty-state title="Sin proveedores" message="No hay proveedores para mostrar." />
+    } @else {
+      <app-data-table caption="Proveedores de la tienda" [columns]="columns" [rows]="rows()"
+        [actions]="actions()" (rowAction)="act($event)" />
+    }
+    @if (!failed() && (total() || page() > 1)) {
+      <nav class="pagination" aria-label="Paginación de proveedores">
+        <button type="button" [disabled]="loading() || page() <= 1" (click)="load(page() - 1)">Anterior</button>
+        <span>{{ total() }} {{ total() === 1 ? 'proveedor' : 'proveedores' }} · Página {{ page() }} de {{ totalPages() || 1 }}</span>
+        <button type="button" [disabled]="loading() || page() >= totalPages()" (click)="load(page() + 1)">Siguiente</button>
+      </nav>
+    }
+  }
+</section>
+
+<dialog #detailsDialog class="provider-dialog" aria-labelledby="provider-details-title" (close)="closeDetails()">
+  <div class="dialog-header">
+    <h2 id="provider-details-title">Detalles del proveedor</h2>
+    <button class="dialog-close" type="button" aria-label="Cerrar" (click)="closeDetails()" autofocus>&times;</button>
+  </div>
+  @if (detailsLoading()) {
+    <p role="status">Cargando proveedor…</p>
+  } @else if (detailsFailed()) {
+    <p role="alert">No se pudo cargar el detalle del proveedor.</p>
+  }
+  @if (details(); as provider) {
+    @for (section of detailFields(); track section.title) {
+      <section class="detail-section">
+        <h3>{{ section.title }}</h3>
+        <dl>
+          @for (field of section.fields; track field[0]) {
+            <div><dt>{{ field[0] }}</dt><dd>{{ field[1] || '—' }}</dd></div>
+          }
+        </dl>
+      </section>
+    }
+    <section class="detail-section">
+      <h3>Notas</h3>
+      <p class="notes">{{ provider.notes || '—' }}</p>
+    </section>
+  }
+</dialog>
+
+<app-confirm-dialog [title]="pending()?.provider?.isActive ? 'Desactivar proveedor' : 'Activar proveedor'"
+  [message]="(pending()?.provider?.isActive ? '¿Quieres desactivar a ' : '¿Quieres activar a ') + (pending()?.provider?.commercialName || '') + '?'"
+  [confirmLabel]="pending()?.provider?.isActive ? 'Desactivar' : 'Activar'" (confirmed)="toggle()" />

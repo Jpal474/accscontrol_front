@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { catalogsGuard } from './catalogs/catalogs.guard';
 import { productsGuard } from './products/products.guard';
+import { providersGuard } from './providers/providers.guard';
 import { inventoryGuard } from './storage/inventory.guard';
 
 export const routes: Routes = [
@@ -110,6 +111,30 @@ export const routes: Routes = [
           import('./staff/pages/staff-list/staff-list.component').then(
             (m) => m.StaffListComponent,
           ),
+      },
+      {
+        path: 'providers-list',
+        title: 'Proveedores',
+        canActivate: [providersGuard],
+        data: { permission: 'view_providers' },
+        loadComponent: () => import('./providers/pages/providers-list/providers-list.component')
+          .then(m => m.ProvidersListComponent),
+      },
+      {
+        path: 'register-provider',
+        title: 'Registrar proveedor',
+        canActivate: [providersGuard],
+        data: { permission: 'manage_providers' },
+        loadComponent: () => import('./providers/pages/register-provider/register-provider.component')
+          .then(m => m.RegisterProviderComponent),
+      },
+      {
+        path: 'edit-provider/:providerId',
+        title: 'Editar proveedor',
+        canActivate: [providersGuard],
+        data: { permission: 'manage_providers' },
+        loadComponent: () => import('./providers/pages/register-provider/register-provider.component')
+          .then(m => m.RegisterProviderComponent),
       },
       {
         path: 'clients-list',

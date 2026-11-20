@@ -6,6 +6,8 @@ import { CatalogsService } from '../../services/catalogs.service';
 import { CatalogApiResponse } from '../../interfaces/catalogs.interface';
 import { ApiStandardResponse } from '../../interfaces/api-response.interface';
 
+export type AddressOptions = Partial<Record<'country' | 'state' | 'municipality' | 'locality', CatalogApiResponse>>;
+
 @Component({
   selector: 'app-address',
   standalone: true,
@@ -19,6 +21,7 @@ export class AddressComponent {
   readonly prefix = input.required<string>();
   readonly title = input('Dirección');
   readonly form = input.required<FormGroup>();
+  readonly initialOptions = input<AddressOptions>({});
 
   // 1. País
   readonly fetchCountries = (q: any) => this.catalogService.getCountries(q);

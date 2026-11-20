@@ -1,8 +1,8 @@
 <div class="custom-select-container">
   <!-- Botón / Caja disparadora -->
   <div class="select-trigger" (click)="toggleDropdown()">
-    <span [class.placeholder]="!selectedValue()">
-      {{ selectedValue() || placeholder }}
+    <span [class.placeholder]="!displayValue">
+      {{ displayValue || placeholder }}
     </span>
     <span class="chevron" [class.open]="isOpen()">▼</span>
   </div>

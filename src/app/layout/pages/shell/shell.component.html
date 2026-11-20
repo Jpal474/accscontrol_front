@@ -126,8 +126,13 @@
         routerLinkActive="active"
         (click)="closeMenu()"
         ><span class="nav-icon" aria-hidden="true">local_shipping</span> Compras
-        y proveedores</a
-      >
+      </a>
+      @if (authSevice.hasPermission('view_providers') || authSevice.hasPermission('manage_providers')) {
+        <a [routerLink]="authSevice.hasPermission('view_providers') ? '/app/providers-list' : '/app/register-provider'"
+          routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">business</span> Proveedores
+        </a>
+      }
       <!-- }
       @if (auth.can("cash.read")) { -->
       <a routerLink="/app/cash" routerLinkActive="active" (click)="closeMenu()"

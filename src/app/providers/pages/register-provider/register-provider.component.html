@@ -1,0 +1,95 @@
+<app-page-header [title]="providerId() ? 'Editar proveedor' : 'Registrar proveedor'"
+  subtitle="Administra los datos comerciales, fiscales y de contacto.">
+  @if (auth.hasPermission('view_providers')) {
+    <a class="button" routerLink="/app/providers-list">Volver al listado</a>
+  }
+</app-page-header>
+
+<section class="card">
+  @if (!store.selectedStoreId()) {
+    <p role="status">Selecciona una tienda para registrar o editar un proveedor.</p>
+  } @else if (loading()) {
+    <app-skeleton />
+  } @else if (loadFailed()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  } @else if (saved()) {
+    <div class="success-message-container">
+      <div role="status">
+        <h3>{{ providerId() ? 'Proveedor actualizado' : '¡Registro exitoso!' }}</h3>
+        <p>{{ providerId() ? 'Se guardaron los cambios del proveedor.' : 'El nuevo proveedor se registró correctamente.' }}</p>
+      </div>
+      <div class="form-actions">
+        @if (!providerId()) {
+          <button class="primary" type="button" (click)="reset()">Registrar otro proveedor</button>
+        } @else {
+          <button class="primary" type="button" (click)="saved.set(false)">Seguir editando</button>
+        }
+        @if (auth.hasPermission('view_providers')) {
+          <a class="button" routerLink="/app/providers-list">Ir al listado</a>
+        }
+      </div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <fieldset [disabled]="busy()">
+        <legend>Datos del proveedor</legend>
+        <div class="form-grid">
+          <label>Nombre comercial <input formControlName="commercialName" maxlength="150" required /></label>
+          <label>Razón social <input formControlName="fiscalName" maxlength="150" /></label>
+          <label>Teléfono <input type="tel" formControlName="phoneNumber" maxlength="20" required [attr.aria-invalid]="invalid('phoneNumber')"
+              [attr.aria-describedby]="invalid('phoneNumber') ? 'provider-phoneNumber-error' : null" />
+            @if (invalid('phoneNumber')) {
+              <small id="provider-phoneNumber-error" class="error">Ingresa un teléfono de 7 a 15 dígitos.</small>
+            }</label>
+          <label>Correo electrónico <input type="email" formControlName="email" required maxlength="254" [attr.aria-invalid]="invalid('email')"
+              [attr.aria-describedby]="invalid('email') ? 'provider-email-error' : null" />
+            @if (invalid('email')) {
+              <small id="provider-email-error" class="error">Ingresa un correo electrónico válido.</small>
+            }</label>
+          <label>RFC
+            <input formControlName="rfc" maxlength="13" autocapitalize="characters" spellcheck="false"
+              [attr.aria-invalid]="invalid('rfc')" [attr.aria-describedby]="invalid('rfc') ? 'provider-rfc-error' : null" />
+            @if (invalid('rfc')) {
+              <small id="provider-rfc-error" class="error">Ingresa un RFC de 12 o 13 caracteres, con fecha y homoclave.</small>
+            }</label>
+          <label class="checkbox"><input type="checkbox" formControlName="isActive" /> Proveedor activo</label>
+        </div>
+      </fieldset>
+      <fieldset [disabled]="busy()">
+        <legend>Persona de contacto</legend>
+        <div class="form-grid">
+          <label>Nombre
+            <input formControlName="contactName" maxlength="100" [attr.aria-invalid]="invalid('contactName')"
+              [attr.aria-describedby]="invalid('contactName', 'pattern') ? 'provider-contact-name-error' : null" />
+            @if (invalid('contactName', 'pattern')) {
+              <small id="provider-contact-name-error" class="error">
+                Escribe al menos dos palabras con letras, separadas por un espacio, un guion o un apóstrofo.
+              </small>
+            }
+          </label>
+          <label>Teléfono de contacto <input type="tel" formControlName="contactPhone" maxlength="20" [attr.aria-invalid]="invalid('contactPhone')"
+              [attr.aria-describedby]="invalid('contactPhone') ? 'provider-contactPhone-error' : null" />
+            @if (invalid('contactPhone')) {
+              <small id="provider-contactPhone-error" class="error">Ingresa un teléfono de 7 a 15 dígitos.</small>
+            }</label>
+          <label>Correo de contacto <input type="email" formControlName="contactEmail" maxlength="254" [attr.aria-invalid]="invalid('contactEmail')"
+              [attr.aria-describedby]="invalid('contactEmail') ? 'provider-contactEmail-error' : null" />
+            @if (invalid('contactEmail')) {
+              <small id="provider-contactEmail-error" class="error">Ingresa un correo electrónico válido.</small>
+            }</label>
+        </div>
+      </fieldset>
+      <fieldset [disabled]="busy()">
+        <legend>Ubicación y notas</legend>
+        <app-address [form]="form.controls.address" [initialOptions]="addressOptions()" prefix="provider-address" title="Dirección del proveedor" />
+        <label class="notes">Notas <textarea formControlName="notes" rows="3"></textarea></label>
+      </fieldset>
+      @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+      <div class="form-actions">
+        <button type="submit" class="primary" [disabled]="busy()">
+          {{ busy() ? 'Guardando…' : providerId() ? 'Guardar cambios' : 'Registrar proveedor' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

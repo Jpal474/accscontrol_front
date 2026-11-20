@@ -1,0 +1,45 @@
+@use '../../../../styles/workspace-controls' as controls;
+@include controls.page;
+
+.search { display: grid; gap: .45rem; max-width: 32rem; margin-bottom: 1.25rem; }
+.pagination { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; margin-top: 1rem; }
+.pagination span { text-align: center; overflow-wrap: anywhere; }
+.provider-dialog {
+  width: min(42rem, calc(100% - 1.5rem));
+  max-height: min(85dvh, 48rem);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border: 1px solid var(--border);
+  border-radius: var(--panel-radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.provider-dialog::backdrop { background: #0a1036a8; }
+.dialog-header { display: flex; justify-content: space-between; align-items: center; gap: .75rem; }
+.provider-dialog .dialog-close,
+.provider-dialog .dialog-close:hover {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.dialog-close {
+  flex-shrink: 0;
+  width: var(--control-height);
+  padding: 0;
+  font-size: 2rem;
+  line-height: 1;
+}
+.provider-dialog .dialog-close:focus-visible {
+  outline: none;
+  text-decoration: underline;
+}
+.dialog-header h2, .detail-section h3 { margin: 0; }
+.detail-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: .75rem 0 0; }
+dt { color: var(--muted); font-size: .85rem; }
+dd { margin: .25rem 0 0; overflow-wrap: anywhere; }
+.notes { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 520px) {
+  dl { grid-template-columns: 1fr; }
+  .pagination { grid-template-columns: 1fr 1fr; gap: .4rem; }
+  .pagination span { grid-column: 1 / -1; grid-row: 1; font-size: .85rem; }
+}

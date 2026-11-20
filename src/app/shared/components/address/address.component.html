@@ -62,6 +62,7 @@
       <span>País</span>
       <app-catalog-select
         formControlName="countryId"
+        [initialOption]="initialOptions().country"
         [fetchFn]="fetchCountries"
         placeholder="Selecciona un país..."
       />
@@ -72,6 +73,7 @@
       <span>Estado / Región</span>
       <app-catalog-select
         formControlName="stateId"
+        [initialOption]="initialOptions().state"
         [parentId]="form().get('countryId')?.value"
         [fetchFn]="fetchStates"
         [parentRequired]="true"
@@ -88,6 +90,7 @@
       <span>Municipio</span>
       <app-catalog-select
         formControlName="municipalityId"
+        [initialOption]="initialOptions().municipality"
         [parentId]="form().get('stateId')?.value"
         [fetchFn]="fetchMunicipalities"
         [parentRequired]="true"
@@ -104,6 +107,7 @@
       <span>Localidad</span>
       <app-catalog-select
         formControlName="localityId"
+        [initialOption]="initialOptions().locality"
         [parentId]="form().get('municipalityId')?.value"
         [fetchFn]="fetchLocalities"
         [parentRequired]="true"

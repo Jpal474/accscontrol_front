@@ -1,0 +1,20 @@
+@use '../../../../styles/workspace-controls' as controls;
+@include controls.page;
+
+form, .form-grid { display: grid; gap: 1rem; }
+.form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+fieldset { min-inline-size: 0; margin: 0; padding: 1rem; border: 1px solid var(--border); border-radius: var(--control-radius); }
+legend { padding-inline: .4rem; font-weight: 700; }
+label { display: grid; gap: .45rem; }
+.checkbox, .form-actions { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.notes { margin-top: 1rem; }
+.error { color: var(--danger, #b42318); }
+input.ng-invalid.ng-touched { border-color: var(--danger, #b42318); }
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+.success-message-container { text-align: center; padding: 2rem 0; }
+.success-message-container h3 { color: var(--accent); margin: 0 0 .5rem; }
+.success-message-container p { color: var(--muted); margin: 0 0 1.5rem; }
+.success-message-container .form-actions { justify-content: center; }
