@@ -84,3 +84,27 @@ export interface StoreCurrency {
   code: string;
   description: string;
 }
+
+export interface CompatibilityModel {
+  id: string;
+  name: string;
+  brand: { id: string; name: string } | null;
+}
+
+export interface CompatibleAccessory {
+  id: string;
+  name: string;
+  image?: string;
+  description?: string;
+  sizes: string[];
+  price: number | string;
+  stock: number;
+  locations: string[];
+  otherModels: CompatibilityModel[];
+}
+
+export interface CompatibilityResults {
+  model: CompatibilityModel;
+  currency: StoreCurrency | null;
+  categories: { id: string; name: string; rows: CompatibleAccessory[] }[];
+}

@@ -11,9 +11,11 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
+import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 @Component({ selector: 'app-catalogs-list', standalone: true,
-  imports: [FormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
+  imports: [FormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent, CatalogSelectComponent],
   templateUrl: './catalogs-list.component.html', styleUrl: './catalogs-list.component.scss' })
 export class CatalogsListComponent {
   private readonly service = inject(CatalogsService);
@@ -31,14 +33,20 @@ export class CatalogsListComponent {
   private readonly reload = new Subject<void>(); private readonly searchChanges = new Subject<string>();
   private query = ''; search = ''; page = 1;
   readonly columns = [{ key: 'label', label: 'Nombre / código' }, { key: 'description', label: 'Descripción' }, { key: 'status', label: 'Estatus' }];
-  readonly actions = [{ key: 'toggle', label: 'Cambiar estado' }];
+  readonly actions = computed(() => [
+    { key: 'toggle', label: 'Cambiar estado' },
+    ...(this.kind() === 'models' ? [{ key: 'assign-brand', label: 'Asignar marca' }] : []),
+  ]);
+  readonly modelToAssign = signal<CatalogEntry | null>(null);
+  readonly fetchBrands = (query: CatalogRequest) => this.service.brands(query);
+  selectedBrandId: string | null = null;
   readonly rows = computed(() => this.entries().map(item => ({ ...item, label: item.name || item.model || item.code,
     description: item.description || '—', status: item.isActive ? 'Activo' : 'Inactivo', disableAction: this.busy() })));
   constructor() {
     const initial = inject(ActivatedRoute).snapshot.queryParamMap.get('kind');
     if (this.definitions.some(item => item.key === initial)) this.kind.set(initial as CatalogKind);
     combineLatest([toObservable(this.store.selectedStoreId), toObservable(this.kind)]).pipe(
-      tap(() => { this.page = 1; this.pending.set(null); }),
+      tap(() => { this.page = 1; this.pending.set(null); this.modelToAssign.set(null); }),
       switchMap(([storeId, kind]) => this.reload.pipe(startWith(undefined), switchMap(() => {
         this.entries.set([]); this.failed.set(false); this.total.set(0); this.pages.set(0);
         if (!storeId || !this.definitions.some(item => item.key === kind)) { this.loading.set(false); return EMPTY; }
@@ -56,9 +64,38 @@ export class CatalogsListComponent {
   load(page = this.page) { this.page = page; this.reload.next(); }
   handleAction(event: { action: string; row: Record<string, any> }) {
     const storeId = this.store.selectedStoreId();
-    if (event.action !== 'toggle' || this.busy() || !storeId) return;
+    if (this.busy() || !storeId) return;
+    if (event.action === 'assign-brand' && this.kind() === 'models') {
+      const model = this.entries().find(item => item.id === event.row['id']);
+      if (model) {
+        this.selectedBrandId = model.brandId ?? null;
+        this.modelToAssign.set(model);
+      }
+      return;
+    }
+    if (event.action !== 'toggle') return;
     this.pending.set({ id: event.row['id'], storeId, kind: this.kind() }); this.dialog().open();
   }
+  saveModelBrand() {
+    const model = this.modelToAssign();
+    const storeId = this.store.selectedStoreId();
+    if (!model || !storeId || !this.selectedBrandId || this.busy() || this.kind() !== 'models') return;
+    this.busy.set(true);
+    this.service.assignModelBrand(model.id, this.selectedBrandId).pipe(
+      takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false)),
+    ).subscribe({
+      next: () => {
+        if (this.modelToAssign() !== model || this.store.selectedStoreId() !== storeId) return;
+        this.modelToAssign.set(null);
+        this.load();
+        this.toast.show('Marca actualizada.', 'success');
+      },
+      error: () => {
+        if (this.modelToAssign() === model) this.toast.show('No se pudo asignar la marca.', 'error');
+      },
+    });
+  }
+
   toggle() {
     const pending = this.pending();
     if (!pending || this.busy() || pending.storeId !== this.store.selectedStoreId() || pending.kind !== this.kind()) return;

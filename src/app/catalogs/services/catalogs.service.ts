@@ -22,6 +22,16 @@ export class CatalogsService {
   toggle(kind: CatalogKind, id: string) {
     return this.http.patch<ApiStandardResponse<boolean>>(`${this.base}/${kind}/${id}/toggle`, {});
   }
+  assignModelBrand(modelId: string, brandId: string) {
+    return this.http.patch<ApiStandardResponse<CatalogEntry>>(
+      `${environment.apiUrl}products/models/${modelId}/brand`, { brandId },
+    );
+  }
+  brands(query: CatalogRequest) {
+    return this.list('brands', { ...query, isActive: true }).pipe(map(response => ({
+      ...response, data: response.data.map(item => ({ id: item.id, value: item.name || '' })),
+    })));
+  }
   locationCategories(query: CatalogRequest) {
     return this.list('location-categories', { ...query, isActive: true }).pipe(map(response => ({
       ...response, data: response.data.map(item => ({ id: item.id, value: item.name || '' } as CatalogApiResponse)),

@@ -27,8 +27,9 @@ export class RegisterCatalogsComponent {
   readonly busy = signal(false); readonly error = signal('');
   readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(100)]],
-    description: ['', Validators.maxLength(100)], locationCategoryId: [''], isActive: [true],
+    description: ['', Validators.maxLength(100)], locationCategoryId: [''], brandId: [''], isActive: [true],
   });
+  readonly fetchBrands = (query: CatalogRequest) => this.service.brands(query);
   readonly fetchLocationCategories = (query: CatalogRequest) => this.service.locationCategories(query);
   constructor() {
     const initial = inject(ActivatedRoute).snapshot.queryParamMap.get('kind');
@@ -41,6 +42,8 @@ export class RegisterCatalogsComponent {
     this.kind.set(kind); this.form.reset({ isActive: true }); this.error.set('');
     this.form.controls.name.setValidators([Validators.required, Validators.pattern(/\S/), Validators.maxLength(kind === 'locations' ? 15 : 100)]);
     this.form.controls.locationCategoryId.setValidators(kind === 'locations' ? [Validators.required] : []);
+    this.form.controls.brandId.setValidators(kind === 'models' ? [Validators.required] : []);
+    this.form.controls.brandId.updateValueAndValidity();
     this.form.controls.name.updateValueAndValidity(); this.form.controls.locationCategoryId.updateValueAndValidity();
   }
   submit() {
@@ -51,6 +54,7 @@ export class RegisterCatalogsComponent {
     const values = this.form.getRawValue();
     const body: CreateCatalogEntry = { name: values.name, isActive: values.isActive };
     if (kind === 'locations') { body.description = values.description.trim(); body.locationCategoryId = values.locationCategoryId; }
+    if (kind === 'models') body.brandId = values.brandId;
     this.busy.set(true); this.error.set('');
     this.service.create(kind, body).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.busy.set(false))).subscribe({
       next: () => {

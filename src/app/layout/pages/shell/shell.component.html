@@ -72,16 +72,21 @@
         ><span class="nav-icon" aria-hidden="true">insights</span> Reportes</a
       >
       <!-- } -->
-      <!-- @if (auth.can("branches.read")) { -->
+      @if (authSevice.hasPermission('view_all_stores') || authSevice.hasPermission('manage_store')) {
       <a
-        routerLink="/app/branches"
+        routerLink="/app/stores-list"
         routerLinkActive="active"
         ariaCurrentWhenActive="page"
         (click)="closeMenu()"
         ><span class="nav-icon" aria-hidden="true">storefront</span>
         Sucursales</a
       >
-      <!-- } -->
+      }
+      @if (authSevice.hasPermission('manage_store_owners')) {
+      <a routerLink="/app/owners-list" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
+        <span class="nav-icon" aria-hidden="true">supervisor_account</span> Propietarios
+      </a>
+      }
       <a
         routerLink="/app/account"
         routerLinkActive="active"
@@ -90,14 +95,14 @@
         ><span class="nav-icon" aria-hidden="true">account_circle</span> Mi
         cuenta</a
       >
-      <!-- @if (auth.can("customers.read")) { -->
+      @if (authSevice.hasPermission('view_clients')) {
       <a
-        routerLink="/app/customers"
+        routerLink="/app/clients-list"
         routerLinkActive="active"
         (click)="closeMenu()"
         ><span class="nav-icon" aria-hidden="true">contacts</span> Clientes</a
       >
-      <!-- } -->
+      }
       <!-- @if (auth.can("repairs.read")) { -->
       <a
         routerLink="/app/repairs"
@@ -153,25 +158,35 @@
         ><span class="nav-icon" aria-hidden="true">category</span> Productos</a
       >
       }
-      <!--
-      @if (auth.can("members.read")) { -->
+      @if (authSevice.isAuthenticated()) {
+        <a routerLink="/app/compabilities-list" routerLinkActive="active"
+          ariaCurrentWhenActive="page" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">smartphone</span> Accesorios por celular
+        </a>
+      }
+      @if (authSevice.hasPermission('view_staff')) {
       <a
-        routerLink="/app/members"
+        routerLink="/app/staff-list"
         routerLinkActive="active"
         (click)="closeMenu()"
         ><span class="nav-icon" aria-hidden="true">groups</span> Equipo</a
       >
-      <!-- } -->
-      <!-- @if (onboarding.policy()?.allowed) { -->
+      }
+      @if (authSevice.hasPermission('manage_staff')) {
+      <a routerLink="/app/register-staff" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
+        <span class="nav-icon" aria-hidden="true">person_add</span> Registrar personal
+      </a>
+      }
+      @if (authSevice.hasPermission('manage_store')) {
       <a
-        routerLink="/app/onboarding"
+        routerLink="/app/register-store"
         routerLinkActive="active"
         (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">add_business</span> Crear
-        empresa</a
+        ><span class="nav-icon" aria-hidden="true">add_business</span> Registrar
+        tienda</a
       >
-      <!-- }
-      @if (onboarding.policy()?.platformAdmin) { -->
+      }
+      <!-- @if (onboarding.policy()?.platformAdmin) { -->
       <a
         routerLink="/app/platform-billing"
         routerLinkActive="active"

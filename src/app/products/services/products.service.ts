@@ -4,7 +4,7 @@ import { expand, forkJoin, map, EMPTY, reduce } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 import { ApiStandardResponse } from '../../shared/interfaces/api-response.interface';
 import { Product, ProductLookup, ProductModel, ProductQuery, SaveProduct, SaveProductVariation } from '../interfaces/product.interface';
-import { StoreCurrency } from '../interfaces/product.interface';
+import { CompatibilityModel, CompatibilityResults, StoreCurrency } from '../interfaces/product.interface';
 
 @Injectable({ providedIn: 'root' })
 export class ProductsService {
@@ -26,6 +26,14 @@ export class ProductsService {
 
   currency() {
     return this.http.get<ApiStandardResponse<StoreCurrency>>(`${this.base}/store-currency`);
+  }
+
+  compatibilityModels() {
+    return this.http.get<ApiStandardResponse<CompatibilityModel[]>>(`${this.base}/compatibilities/models`);
+  }
+
+  compatibleAccessories(modelId: string) {
+    return this.http.get<ApiStandardResponse<CompatibilityResults>>(`${this.base}/compatibilities/models/${modelId}`);
   }
 
   brands() { return this.allPages<ProductLookup>('brands'); }

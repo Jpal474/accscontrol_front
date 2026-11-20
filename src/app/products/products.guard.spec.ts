@@ -16,11 +16,18 @@ describe('productsGuard', () => {
       { provide: Router, useValue: { createUrlTree } },
     ] });
   });
-  const check = (permission: string) => TestBed.runInInjectionContext(() => productsGuard(
-    { data: { permission } } as unknown as ActivatedRouteSnapshot, {} as RouterStateSnapshot,
+  const check = (permission?: string, authenticatedOnly = false) => TestBed.runInInjectionContext(() => productsGuard(
+    { data: { permission, authenticatedOnly } } as unknown as ActivatedRouteSnapshot, {} as RouterStateSnapshot,
   ));
 
   it('requires authentication', () => { authenticated = false; expect(check('view_products')).toBe(redirect); expect(createUrlTree).toHaveBeenCalledWith(['/login']); });
+  it('allows authenticated users to view compatibilities without product permissions', () => {
+    permissions = [];
+    expect(check(undefined, true)).toBe(true);
+    expect(check()).toBe(redirect);
+    authenticated = false;
+    expect(check(undefined, true)).toBe(redirect);
+  });
   it('allows viewing while denying edits without manage_products', () => {
     expect(check('view_products')).toBe(true); expect(check('manage_products')).toBe(redirect); expect(createUrlTree).toHaveBeenCalledWith(['/app']);
   });

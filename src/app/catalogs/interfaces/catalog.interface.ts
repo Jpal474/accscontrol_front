@@ -11,6 +11,6 @@ export const MANAGED_CATALOGS: readonly CatalogDefinition[] = [
 ];
 export interface CatalogEntry {
   id: string; name?: string; model?: string; code?: string; description?: string;
-  locationCategoryId?: string; isActive: boolean;
+  locationCategoryId?: string; brandId?: string | null; isActive: boolean;
 }
-export interface CreateCatalogEntry { name: string; isActive: boolean; description?: string; locationCategoryId?: string; }
+export interface CreateCatalogEntry { name: string; isActive: boolean; description?: string; locationCategoryId?: string; brandId?: string; }

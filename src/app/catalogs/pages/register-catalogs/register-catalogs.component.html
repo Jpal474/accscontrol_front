@@ -16,6 +16,12 @@
           @if (form.controls.locationCategoryId.invalid && form.controls.locationCategoryId.touched) { <small class="error">Selecciona una categoría de esta tienda.</small> }
         </div>
       }
+      @if (kind() === 'models') {
+        <label>Marca del celular
+          <app-catalog-select [fetchFn]="fetchBrands" [parentId]="store.selectedStoreId()" [parentRequired]="true"
+            formControlName="brandId" placeholder="Selecciona una marca activa" />
+        </label>
+      }
       <label class="checkbox-label"><input type="checkbox" formControlName="isActive" />Activo</label>
       @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
       <div class="actions"><button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Guardando...' : 'Guardar registro' }}</button><a class="button" routerLink="/app/catalogs-list" [queryParams]="{ kind: kind() }">Volver al listado</a></div>

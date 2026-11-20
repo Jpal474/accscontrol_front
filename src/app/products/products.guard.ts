@@ -6,6 +6,7 @@ export const productsGuard: CanActivateFn = route => {
   const auth = inject(AuthService);
   const router = inject(Router);
   if (!auth.isAuthenticated()) return router.createUrlTree(['/login']);
-  const permission = route.data['permission'] as string;
-  return auth.hasPermission(permission) || router.createUrlTree(['/app']);
+  if (route.data['authenticatedOnly'] === true) return true;
+  const permission = route.data['permission'];
+  return (typeof permission === 'string' && auth.hasPermission(permission)) || router.createUrlTree(['/app']);
 };

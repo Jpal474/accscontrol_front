@@ -1,0 +1,119 @@
+<app-page-header title="Accesorios por celular" subtitle="Consulta los accesorios compatibles con un modelo." />
+
+@if (!store.selectedStoreId()) {
+  <p class="card status" role="status">Selecciona una tienda para consultar sus compatibilidades.</p>
+} @else {
+  <form class="card compatibility-filters" [formGroup]="filters" (ngSubmit)="search()">
+    <label>Marca del celular
+      <select formControlName="brand" (change)="changeBrand()">
+        <option value="">{{ modelsLoading() ? 'Cargando marcas…' : 'Selecciona una marca' }}</option>
+        @for (item of brands(); track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+    </label>
+    <label>Modelo
+      <select formControlName="model" (change)="clearResults()" [attr.disabled]="brand() ? null : ''">
+        <option value="">Selecciona un modelo</option>
+        @for (model of modelOptions(); track model.id) {
+          <option [value]="model.id">{{ model.name }}</option>
+        }
+      </select>
+    </label>
+    <button type="submit" class="primary" [disabled]="!filters.controls.model.value || resultsLoading()">Buscar</button>
+  </form>
+
+  @if (modelsError()) {
+    <div class="card status" role="alert">
+      No se pudieron cargar los modelos. <button type="button" (click)="retryModels()">Reintentar</button>
+    </div>
+  } @else if (!modelsLoading() && !models().length) {
+    <p class="card status" role="status">Esta tienda aún no tiene modelos activos registrados.</p>
+  }
+
+  @if (resultsLoading()) {
+    <p class="card status" role="status">Buscando accesorios compatibles…</p>
+  } @else if (resultsError()) {
+    <div class="card status" role="alert">
+      No se pudieron consultar los accesorios. <button type="button" (click)="search()">Reintentar</button>
+    </div>
+  }
+  @if (results(); as result) {
+    <h2>Accesorios compatibles con {{ result.model.brand?.name }} {{ result.model.name }}</h2>
+    @for (category of result.categories; track category.id; let first = $first) {
+      <details class="card category" [open]="first">
+        <summary>
+          <span class="category-name">{{ category.name }}</span>
+          <span class="count">{{ category.rows.length }} {{ category.rows.length === 1 ? 'registro' : 'registros' }}</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </summary>
+        <div class="table-scroll">
+          <table [attr.aria-label]="category.name">
+            <thead>
+              <tr>
+                <th scope="col">Producto</th><th scope="col">Medidas</th><th scope="col">Precio</th>
+                <th scope="col">Existencias</th><th scope="col">Ubicación</th><th scope="col">Compatibilidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of category.rows; track row.id) {
+                <tr>
+                  <th scope="row">
+                    <div class="product">
+                      <img [src]="imageUrl(row.image) || 'assets/products/product-placeholder.svg'" alt="" loading="lazy" />
+                      <div>
+                        {{ row.name }}
+                        @if (row.description) { <small>{{ row.description }}</small> }
+                      </div>
+                    </div>
+                  </th>
+                  <td>{{ row.sizes.join(', ') || '—' }}</td>
+                  <td>{{ formatMoney(row.price, result.currency) }}</td>
+                  <td><span class="stock" [class.available]="row.stock > 0">{{ row.stock }}</span></td>
+                  <td>{{ row.locations.join(', ') || '—' }}</td>
+                  <td>
+                    @if (row.otherModels.length) {
+                      <button type="button" class="model-toggle" (click)="toggleModels(row.id)"
+                        [attr.aria-expanded]="expandedRow() === row.id" [attr.aria-controls]="expandedRow() === row.id ? 'models-' + row.id : null">
+                        {{ expandedRow() === row.id ? 'Ocultar' : 'Ver' }}
+                        {{ row.otherModels.length === 1 ? 'otro modelo' : 'otros ' + row.otherModels.length + ' modelos' }}
+                        <span class="chevron" aria-hidden="true"></span>
+                      </button>
+                    } @else { — }
+                  </td>
+                </tr>
+                @if (expandedRow() === row.id) {
+                  <tr class="model-detail">
+                    <td colspan="6">
+                      <div class="model-panel" [id]="'models-' + row.id">
+                        <div class="model-panel-header">
+                          <strong>Otros modelos compatibles ({{ row.otherModels.length }})</strong>
+                          @if (row.otherModels.length > 8) {
+                            <input type="search" aria-label="Buscar marca o modelo compatible" placeholder="Buscar marca o modelo"
+                              [value]="modelFilter()" (input)="modelFilter.set($any($event.target).value)" />
+                          }
+                        </div>
+                        <div class="model-groups">
+                          @for (group of groupModels(row.otherModels, modelFilter()); track group.id) {
+                            <div>
+                              <strong>{{ group.name }}</strong>
+                              <ul>
+                                @for (model of group.models; track model.id) { <li>{{ model.name }}</li> }
+                              </ul>
+                            </div>
+                          } @empty { <p role="status">No hay modelos que coincidan.</p> }
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </details>
+    } @empty {
+      <p class="card status" role="status">No hay accesorios activos registrados para este modelo.</p>
+    }
+  }
+}

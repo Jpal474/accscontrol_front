@@ -138,6 +138,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'compabilities-list',
+        title: 'Accesorios por celular',
+        canActivate: [productsGuard], data: { authenticatedOnly: true },
+        loadComponent: () => import('./products/pages/compabilities-list/compabilities-list.component')
+          .then(m => m.CompabilitiesListComponent),
+      },
+      {
         path: 'products-list',
         canActivate: [productsGuard], data: { permission: 'view_products' },
         loadComponent: () =>
