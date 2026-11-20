@@ -44,7 +44,7 @@ export class OwnersListComponent implements OnInit {
   };
   readonly columns = [
     { key: 'name', label: 'Nombre' },
-    { key: 'lastName', label: 'Primer Apellido' },
+    { key: 'lastName', label: 'Apellido(s)' },
     { key: 'email', label: 'Correo Electrónico' },
     { key: 'stores', label: 'Tiendas' },
   ];

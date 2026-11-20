@@ -61,9 +61,8 @@
           @if (hasShareableCatalogs()) {
             <fieldset>
               <legend>Catálogo de productos</legend>
-              <label><input type="radio" formControlName="catalogMode" value="own" />Crear catálogo propio para esta tienda</label>
-              <label><input type="radio" formControlName="catalogMode" value="shared" />Compartir catálogo de una de mis tiendas</label>
-              @if (company.controls.catalogMode.value === 'shared') {
+              <label class="checkbox"><input type="checkbox" formControlName="shareExistingCatalog" />Compartir Catálogo Existente</label>
+              @if (company.controls.shareExistingCatalog.value) {
                 <app-catalog-select [fetchFn]="fetchProductCatalogs" formControlName="productCatalogId" placeholder="Selecciona un catálogo de productos" />
                 <p>Las marcas, modelos y categorías de producto serán compartidos entre las tiendas que usen este catálogo.</p>
                 @if (company.controls.productCatalogId.invalid && company.controls.productCatalogId.touched) { <small role="alert">Selecciona el catálogo que deseas compartir.</small> }

@@ -4,7 +4,9 @@
 />
 
 <!-- @if (auth.can('members.manage')) { -->
-@if (!registered()) {
+@if (!selectedStore.selectedStoreId()) {
+  <section class="card" role="status"><h2>Selecciona una tienda</h2><p>Elige la tienda en el menú superior para registrar o editar su personal.</p></section>
+} @else if (!registered()) {
   <section class="card invitation">
     <h2>{{ editing() ? "Editar asignación" : "Registrar empleado" }}</h2>
 
@@ -95,6 +97,7 @@
           </p>
         }
 
+        @if (error()) { <p class="form-error" role="alert">{{ error() }}</p> }
         <div class="form-actions">
           @if (editing()) {
             <button type="button" class="btn-secondary" (click)="cancel()">
@@ -125,7 +128,7 @@
       ¡Registro exitoso!
     </h3>
     <p style="color: var(--muted); margin-bottom: 1.5rem">
-      El nuevo dueño ha sido registrado correctamente en el sistema y se le han
+      El nuevo empleado ha sido registrado correctamente en el sistema y se le han
       enviado sus credenciales de acceso por correo.
     </p>
 

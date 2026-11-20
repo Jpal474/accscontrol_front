@@ -50,7 +50,7 @@ export class RegisterStoreComponent implements OnInit {
     ],
     currency: ['MXN', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    catalogMode: ['own'],
+    shareExistingCatalog: false,
     productCatalogId: [''],
     address: addressForm(),
   });
@@ -63,10 +63,10 @@ export class RegisterStoreComponent implements OnInit {
     } else {
       this.checkCatalogs();
     }
-    this.company.controls.catalogMode.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(mode => {
+    this.company.controls.shareExistingCatalog.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(shared => {
       const control = this.company.controls.productCatalogId;
       control.reset();
-      control.setValidators(mode === 'shared' ? Validators.required : null);
+      control.setValidators(shared ? Validators.required : null);
       control.updateValueAndValidity();
     });
   }
@@ -82,7 +82,7 @@ export class RegisterStoreComponent implements OnInit {
   }
 
   registerAnother() {
-    this.company.reset({ currency: 'MXN', catalogMode: 'own', productCatalogId: '' });
+    this.company.reset({ currency: 'MXN', shareExistingCatalog: false, productCatalogId: '' });
     this.registered.set(false); this.checkCatalogs();
   }
 
@@ -141,7 +141,7 @@ export class RegisterStoreComponent implements OnInit {
       neighborhood: rawValues.address.neighborhood,
       postalCode: rawValues.address.postalCode,
       localityId: rawValues.address.localityId,
-      ...(!this.storeId() && rawValues.catalogMode === 'shared' ? { productCatalogId: rawValues.productCatalogId } : {}),
+      ...(!this.storeId() && rawValues.shareExistingCatalog ? { productCatalogId: rawValues.productCatalogId } : {}),
     };
 
     const currentId = this.storeId();

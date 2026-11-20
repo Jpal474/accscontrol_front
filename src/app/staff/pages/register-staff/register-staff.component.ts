@@ -15,6 +15,7 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
 import { translateRoleName } from '../../../shared/i18n/roles.es';
+import { SelectedStoreService } from '../../../shared/services/selected-store.service';
 
 @Component({
   selector: 'app-register-staff',
@@ -30,6 +31,7 @@ import { translateRoleName } from '../../../shared/i18n/roles.es';
   styleUrl: './register-staff.component.scss',
 })
 export class RegisterStaffComponent implements OnInit {
+  readonly selectedStore = inject(SelectedStoreService);
   private readonly fb = inject(FormBuilder);
   private readonly staffService = inject(StaffService);
   private readonly toastService = inject(ToastService);
@@ -108,6 +110,12 @@ export class RegisterStaffComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.busy()) return;
+    this.error.set('');
+    if (!this.selectedStore.selectedStoreId()) {
+      this.error.set('Selecciona una tienda en el menú superior antes de registrar personal.');
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -134,8 +142,10 @@ export class RegisterStaffComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al procesar la solicitud de staff:', err);
+        const message = err.error?.message || err.message || 'Ocurrió un error inesperado.';
+        this.error.set(Array.isArray(message) ? message.join(' ') : message);
         this.toastService.show(
-          err.error?.message || 'Ocurrió un error inesperado.',
+          this.error(),
           'error',
         );
         this.busy.set(false);
