@@ -60,7 +60,7 @@
         [formGroup]="form"
         (ngSubmit)="submit()"
         novalidate
-        [attr.aria-busy]="authSevice.busy()"
+        [attr.aria-busy]="busy()"
       >
         @if (error()) {
           <p class="auth-error" role="alert">
@@ -132,12 +132,12 @@
             >
           }
         </div>
-        <button class="primary submit" type="submit">
-          @if (authSevice.busy()) {
+        <button class="primary submit" type="submit" [disabled]="busy()">
+          @if (busy()) {
             <span class="spinner" aria-hidden="true"></span>
           }
-          {{ authSevice.busy() ? "Entrando…" : "Entrar a mi espacio" }}
-          @if (!authSevice.busy()) {
+          {{ busy() ? "Entrando…" : "Entrar a mi espacio" }}
+          @if (!busy()) {
             <span class="icon" aria-hidden="true">arrow_forward</span>
           }
         </button>

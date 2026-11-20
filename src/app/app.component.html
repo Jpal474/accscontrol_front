@@ -1,2 +1,9 @@
 <app-toast />
+@if (navigating()) {
+  <div class="route-progress" aria-hidden="true"></div>
+  <div class="route-loading" role="status" aria-live="polite" aria-atomic="true">
+    <span class="route-spinner" aria-hidden="true"></span>
+    Cargando página…
+  </div>
+}
 <router-outlet></router-outlet>

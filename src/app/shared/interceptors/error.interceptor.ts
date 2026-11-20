@@ -5,6 +5,7 @@ import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
 import { ToastService } from '../services/toast.service';
+import { environment } from '../../../environments/environment.development';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
@@ -24,11 +25,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         // Error devuelto por el backend (NestJS)
         switch (error.status) {
           case 401:
+            if (req.url.split('?')[0] === `${environment.apiUrl}auth/signin`) {
+              errorMessage = 'Correo o contraseña incorrectos.';
+              break;
+            }
             // Token expirado o inválido
             errorMessage =
               'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
-            authService.logout(); // Limpiamos la sesión local
-            router.navigate(['/login']); // Redirigimos al login
+            void authService.logout();
             break;
 
           case 403:

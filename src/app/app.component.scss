@@ -1,0 +1,51 @@
+.route-loading {
+  position: fixed;
+  z-index: 10000;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  max-width: calc(100vw - 2rem);
+  padding: .7rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: .85rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+.route-spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: route-spin .8s linear infinite;
+}
+.route-progress {
+  position: fixed;
+  z-index: 10001;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--accent-soft);
+  overflow: hidden;
+  pointer-events: none;
+  &::after {
+    content: '';
+    display: block;
+    width: 35%;
+    height: 100%;
+    background: var(--accent);
+    animation: route-progress 1.2s ease-in-out infinite;
+  }
+}
+@keyframes route-spin { to { transform: rotate(360deg); } }
+@keyframes route-progress { from { transform: translateX(-100%); } to { transform: translateX(390%); } }
+@media (prefers-reduced-motion: reduce) {
+  .route-spinner, .route-progress::after { animation: none; }
+}

@@ -120,14 +120,15 @@ export class AuthService {
     if (this.isBrowser) {
       sessionStorage.removeItem(this.TOKEN_KEY);
       sessionStorage.removeItem(this.PERMISSIONS_KEY);
-      await this.storageService.removeItem(this.USER_KEY);
+      this.storageService.removeItem(this.USER_KEY);
     }
     this._token.set(null);
     this._currentUser.set(null);
     this._permissions.set([]);
 
     await this.routesService.redirectTo(
-      this.routesService.routes.public.landing,
+      this.routesService.routes.public.login,
+      true,
     );
   }
 
@@ -136,7 +137,7 @@ export class AuthService {
   }
 
   private syncSelectedStore(user: User): void {
-    const storeIds = [...new Set((user.stores || []).map(store => store.storeId))];
+    const storeIds = [...new Set((user.stores || []).flatMap(store => store.storeId ? [store.storeId] : []))];
     if (storeIds.length === 1) {
       this.selectedStoreService.setSelectedStore(storeIds[0]);
       return;

@@ -27,7 +27,7 @@ describe('AuthService', () => {
     TestBed.configureTestingModule({ providers: [
       provideHttpClient(), provideHttpClientTesting(),
       { provide: StorageService, useValue: storage },
-      { provide: RoutesService, useValue: { routes: { public: { landing: '/' } }, redirectTo: jasmine.createSpy().and.resolveTo() } },
+      { provide: RoutesService, useValue: { routes: { public: { login: '/login' } }, redirectTo: jasmine.createSpy().and.resolveTo() } },
     ] });
     selectedStore = TestBed.inject(SelectedStoreService);
   });
@@ -53,7 +53,10 @@ describe('AuthService', () => {
       .flush({ data: { access_token: 'token', user } });
     await login;
     expect(selectedStore.selectedStoreId()).toBe('only-store');
-    await service.logout();
+    const logout = service.logout();
+    expect(service.isAuthenticated()).toBeFalse();
+    expect(TestBed.inject(RoutesService).redirectTo).toHaveBeenCalledOnceWith('/login', true);
+    await logout;
     expect(selectedStore.selectedStoreId()).toBeNull();
     expect(sessionStorage.getItem('active_store_id')).toBeNull();
   });
