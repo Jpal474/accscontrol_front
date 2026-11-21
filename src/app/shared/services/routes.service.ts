@@ -14,6 +14,43 @@ export class RoutesService {
     },
     app: {
       start: '/app',
+      catalog: { list: '/app/catalogs-list', register: '/app/register-catalogs' },
+      admin: {
+        start: '/app/admin',
+        administrators: '/app/admin/administrators',
+        users: '/app/admin/users',
+        register: '/app/admin/register',
+      },
+      client: {
+        list: '/app/clients-list',
+        register: '/app/register-clients',
+        edit: (clientId: string) => `/app/edit-client/${encodeURIComponent(clientId)}`,
+      },
+      staff: {
+        list: '/app/staff-list',
+        register: '/app/register-staff',
+        edit: (staffId: string) => `/app/edit-staff/${encodeURIComponent(staffId)}`,
+      },
+      product: {
+        list: '/app/products-list',
+        register: '/app/register-product',
+        edit: (productId: string) => `/app/edit-product/${encodeURIComponent(productId)}`,
+        detail: (productId: string) => `/app/product-detail/${encodeURIComponent(productId)}`,
+        options: '/app/catalog/options',
+        compatibilities: '/app/compabilities-list',
+      },
+      inventory: '/app/inventory',
+      provider: {
+        list: '/app/providers-list',
+        register: '/app/register-provider',
+        edit: (providerId: string) => `/app/edit-provider/${encodeURIComponent(providerId)}`,
+      },
+      purchases: '/app/purchases',
+      pos: '/app/pos',
+      repairs: '/app/repairs',
+      reports: '/app/reports',
+      account: '/app/account',
+
       owner: {
         register: '/app/register-owner',
         list: '/app/owners-list',

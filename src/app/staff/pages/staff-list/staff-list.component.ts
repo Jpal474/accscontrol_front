@@ -1,7 +1,7 @@
 ﻿import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { EMPTY, Subject, catchError, combineLatest, finalize, startWith, switchMap, tap } from 'rxjs';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table.component';
@@ -11,14 +11,19 @@ import { StoreStaffItem } from '../../interfaces/staff.interface';
 import { StaffService } from '../../services/staff.service';
 import { translateRoleName } from '../../../shared/i18n/roles.es';
 
+import { AuthService } from '../../../auth/services/auth.service';
+import { RoutesService } from '../../../shared/services/routes.service';
+
 @Component({
   selector: 'app-staff-list',
   standalone: true,
-  imports: [PageHeaderComponent, SkeletonComponent, DataTableComponent],
+  imports: [PageHeaderComponent, SkeletonComponent, DataTableComponent, RouterLink],
   templateUrl: './staff-list.component.html',
   styleUrl: './staff-list.component.scss',
 })
 export class StaffListComponent {
+  readonly auth = inject(AuthService);
+  readonly registerRoute = inject(RoutesService).routes.app.staff.register;
   readonly selectedStore = inject(SelectedStoreService);
   private readonly staffService = inject(StaffService);
   private readonly router = inject(Router);
