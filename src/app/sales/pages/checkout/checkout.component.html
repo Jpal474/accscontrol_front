@@ -1,0 +1,139 @@
+<app-page-header title="Punto de venta" subtitle="F2 buscar · F8 elegir método de pago" />
+@if (!store.selectedStoreId()) {
+  <section class="panel">Selecciona una sucursal en la barra superior.</section>
+} @else {
+  @if (canView()) {
+    <div class="links"><a [routerLink]="routes.history">Ventas y comprobantes</a></div>
+  }
+  @if (sale(); as saved) {
+    <section class="panel">
+      <h2>Venta registrada</h2>
+      <p role="status">Folio V-{{ saved.folio }} · {{ money(saved.total) }}</p>
+      <div class="links">
+        <button class="primary" type="button" (click)="reset(); search(1)">Registrar otra venta</button>
+        @if (canView()) { <a [routerLink]="routes.detail(saved.id)">Abrir comprobante</a> }
+      </div>
+    </section>
+  } @else {
+    <div class="pos-grid">
+      <section class="panel products">
+        <h2>Productos</h2>
+        <form (ngSubmit)="search()">
+          <label for="pos-scanner">SKU o nombre del producto</label>
+          <div class="search-row">
+            <input #scanner id="pos-scanner" name="search" [(ngModel)]="searchText" autocomplete="off"
+              maxlength="50" [disabled]="busy()" [attr.aria-describedby]="searchError() ? 'pos-search-error' : null" autofocus />
+            <button type="submit" [disabled]="busy()">Buscar</button>
+          </div>
+        </form>
+        @if (searchError()) { <p id="pos-search-error" class="error" role="alert">{{ searchError() }}</p> }
+        @if (loading()) {
+          <p role="status">Buscando…</p>
+        } @else if (!searchError()) {
+          <div class="product-grid">
+            @for (p of results(); track p.productVariationId) {
+              <article>
+                <strong>{{ p.productName }}</strong>
+                <small>{{ p.sku }} @if (p.color) { · {{ p.color }} }</small>
+                <p>{{ money(p.price) }}</p>
+                <small>{{ p.existence }} disponibles</small>
+                @if (p.trackSerialNumbers) {
+                  <small>El origen se toma del número de serie.</small>
+                } @else if (locations(p).length > 1) {
+                  <label>Tomar de
+                    <select [ngModel]="origin(p)?.id ?? ''" (ngModelChange)="chooseOrigin(p, $event)"
+                      [attr.aria-label]="'Ubicación de origen para ' + p.sku" [disabled]="busy()">
+                      <option value="">Selecciona una ubicación</option>
+                      @for (location of locations(p); track location.id) {
+                        <option [value]="location.id">{{ location.categoryName ? location.categoryName + ' · ' : '' }}{{ location.code }} · {{ location.existence }} disp.</option>
+                      }
+                    </select>
+                  </label>
+                } @else {
+                  @if (origin(p); as location) {
+                    <small>Origen: {{ location.categoryName ? location.categoryName + ' · ' : '' }}{{ location.code }} · {{ location.existence }} disp.</small>
+                  }
+                }
+                <button type="button" [disabled]="busy() || p.existence < 1 || (!p.trackSerialNumbers && !origin(p))" (click)="add(p)"
+                  [attr.aria-label]="'Agregar ' + p.sku">Agregar</button>
+              </article>
+            } @empty { <p>Sin productos para esta búsqueda.</p> }
+          </div>
+        }
+        @if (pages() > 1) {
+          <nav class="pagination" aria-label="Paginación de productos">
+            <button type="button" [disabled]="page() <= 1 || busy() || loading()" (click)="search(page() - 1)">Anterior</button>
+            <span>{{ page() }} de {{ pages() }}</span>
+            <button type="button" [disabled]="page() >= pages() || busy() || loading()" (click)="search(page() + 1)">Siguiente</button>
+          </nav>
+        }
+      </section>
+
+      <section class="panel cart">
+        <h2>Carrito</h2>
+        @for (line of cart(); track line.id; let i = $index) {
+          <article class="cart-line">
+            <div>
+              <strong>{{ line.product.productName }}</strong>
+              <small>{{ line.product.sku }} · {{ money(line.product.price) }} por pieza</small>
+              @if (line.locationId) { <small>Origen: {{ originLabel(line) }}</small> }
+            </div>
+            <label>Cantidad
+              <input type="number" min="1" [max]="available(line)" step="1" [ngModel]="line.quantity"
+                [attr.aria-label]="'Cantidad para ' + line.product.sku" [disabled]="busy()"
+                [attr.aria-describedby]="lineErrors()[i] ? 'pos-line-error-' + i : null"
+                (ngModelChange)="updateLine(line.id, { quantity: $event })" />
+            </label>
+            <button type="button" [disabled]="busy()" (click)="remove(line.id)"
+              [attr.aria-label]="'Quitar ' + line.product.sku">Quitar</button>
+            @if (line.product.trackSerialNumbers) {
+              <label class="line-extra">Números de serie
+                <textarea rows="2" [ngModel]="line.serialText" [disabled]="busy()" placeholder="Uno por línea"
+                  [attr.aria-describedby]="lineErrors()[i] ? 'pos-line-error-' + i : null"
+                  (ngModelChange)="updateLine(line.id, { serialText: $event })"></textarea>
+              </label>
+            }
+            @if (lineErrors()[i]) { <small class="field-error line-extra" [id]="'pos-line-error-' + i">{{ lineErrors()[i] }}</small> }
+          </article>
+        } @empty { <p>Agrega un producto para comenzar.</p> }
+
+        <dl class="totals">
+          <div class="grand"><dt>Total</dt><dd>{{ money(totalCents() / 100) }}</dd></div>
+        </dl>
+        <form (ngSubmit)="complete()" novalidate>
+          <div class="payment-fields">
+            <label>Método de pago
+              <select #paymentInput name="paymentMethod" [(ngModel)]="paymentMethodId"
+                [disabled]="busy() || methodsLoading()" required
+                [attr.aria-invalid]="attempted() && !validMethod()"
+                [attr.aria-describedby]="attempted() && !validMethod() ? 'pos-method-error' : null">
+                <option value="">{{ methodsLoading() ? 'Cargando métodos…' : 'Selecciona un método' }}</option>
+                @for (method of methods(); track method.id) { <option [value]="method.id">{{ method.name }}</option> }
+              </select>
+              @if (attempted() && !validMethod()) {
+                <small class="field-error" id="pos-method-error">Selecciona cómo se pagó la venta.</small>
+              }
+            </label>
+          </div>
+          @if (methodsFailed()) {
+            <p class="field-error" role="alert">No se pudieron cargar los métodos de pago.</p>
+            <button type="button" [disabled]="busy()" (click)="retryMethods()">Reintentar</button>
+          } @else if (!methodsLoading() && !methods().length) {
+            <p role="status">Esta tienda no tiene métodos de pago activos.</p>
+          }
+          <label>Nota de la venta (opcional)
+            <textarea name="description" rows="2" maxlength="500" [(ngModel)]="description" [disabled]="busy()"></textarea>
+            @if (attempted() && description.trim().length > 500) {
+              <small class="field-error">La nota admite hasta 500 caracteres.</small>
+            }
+          </label>
+          @if (attempted() && !cart().length) { <p class="field-error" role="alert">Agrega al menos un producto antes de completar la venta.</p> }
+          @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
+          <button class="primary complete" type="submit" [disabled]="busy() || methodsLoading()">
+            {{ busy() ? 'Confirmando…' : 'Completar venta' }}
+          </button>
+        </form>
+      </section>
+    </div>
+  }
+}

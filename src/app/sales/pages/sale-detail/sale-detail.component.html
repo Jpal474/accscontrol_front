@@ -1,0 +1,88 @@
+<div class="no-print">
+  <app-page-header [title]="sale() ? 'Comprobante de venta' : 'Ventas y comprobantes'"
+    subtitle="Consulta las ventas registradas en la tienda seleccionada." />
+  <div class="actions">
+    @if (auth.hasPermission('create_sale')) { <a [routerLink]="routes.pos">Volver al punto de venta</a> }
+    @if (sale()) { <a [routerLink]="routes.sales.history">Ver historial</a> }
+  </div>
+  @if (actionError()) { <p class="error" role="alert">{{ actionError() }}</p> }
+</div>
+@if (!store.selectedStoreId()) {
+  <section class="panel no-print">Selecciona una sucursal en la barra superior.</section>
+} @else if (loading()) {
+  <p class="no-print" role="status">Cargando ventas…</p>
+} @else if (loadError()) {
+  <div class="panel no-print">
+    <p class="error" role="alert">{{ loadError() }}</p>
+    <button type="button" (click)="load()">Reintentar</button>
+  </div>
+} @else {
+  @if (sale(); as s) {
+    <div class="no-print actions">
+      <button type="button" (click)="print()">Imprimir comprobante</button>
+      @if (auth.hasPermission('cancel_sales') && s.status === 'COMPLETED') {
+        <button type="button" [disabled]="busy()" (click)="askToCancel()">Cancelar venta</button>
+      }
+    </div>
+    <article class="receipt">
+      <header>
+        <h2>{{ s.store?.name || 'Comprobante de venta' }}</h2>
+        <p>{{ s.date | date:'medium' }}</p>
+        <p>Atendió: {{ s.soldByUser?.name }} {{ s.soldByUser?.lastName }}</p>
+        <small>Folio V-{{ s.folio }}</small>
+        @if (s.status === 'CANCELLED') { <strong class="error">Venta cancelada</strong> }
+      </header>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Producto</th><th>Piezas</th><th>Precio</th><th>Total</th></tr></thead>
+          <tbody>
+            @for (i of s.saleItems || []; track i.id) {
+              <tr>
+                <td>
+                  {{ i.productVariation?.product?.name || 'Producto' }}
+                  <small>{{ i.productVariation?.sku }}</small>
+                  @if (i.serialNumbers?.length) { <small>Serie: {{ i.serialNumbers?.join(', ') }}</small> }
+                </td>
+                <td>{{ i.quantity }}</td>
+                <td>{{ money(i.unitPrice, s) }}</td>
+                <td>{{ money(+i.unitPrice * i.quantity, s) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <dl><div class="grand"><dt>Total</dt><dd>{{ money(s.total, s) }}</dd></div></dl>
+      <h3>Método de pago</h3>
+      <p>{{ s.paymentMethod?.name || '—' }}</p>
+      @if (s.description) { <p>{{ s.description }}</p> }
+      <p class="note">Comprobante comercial. No es CFDI.</p>
+    </article>
+  } @else {
+    <section class="panel no-print table-wrap">
+      <table>
+        <thead><tr><th>Folio</th><th>Fecha</th><th>Atendió</th><th>Total</th><th>Estado</th><th>Comprobante</th></tr></thead>
+        <tbody>
+          @for (s of history(); track s.id) {
+            <tr>
+              <td>V-{{ s.folio }}</td>
+              <td>{{ s.date | date:'short' }}</td>
+              <td>{{ s.soldByUser?.name }} {{ s.soldByUser?.lastName }}</td>
+              <td>{{ money(s.total, s) }}</td>
+              <td>{{ s.status === 'CANCELLED' ? 'Cancelada' : 'Completada' }}</td>
+              <td><a [routerLink]="routes.sales.detail(s.id)">Abrir comprobante</a></td>
+            </tr>
+          } @empty { <tr><td colspan="6">Sin ventas registradas.</td></tr> }
+        </tbody>
+      </table>
+      @if (totalPages() > 1) {
+        <nav class="actions" aria-label="Paginación de ventas">
+          <button type="button" [disabled]="page() <= 1" (click)="load(page() - 1)">Anterior</button>
+          <span>{{ page() }} de {{ totalPages() }}</span>
+          <button type="button" [disabled]="page() >= totalPages()" (click)="load(page() + 1)">Siguiente</button>
+        </nav>
+      }
+    </section>
+  }
+}
+<app-confirm-dialog title="Cancelar venta" message="Se cancelará la venta y sus piezas volverán al inventario."
+  confirmLabel="Cancelar venta" (confirmed)="cancel()" />

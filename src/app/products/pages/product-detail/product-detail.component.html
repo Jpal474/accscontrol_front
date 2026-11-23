@@ -106,7 +106,10 @@
               <article class="variant-row" [class.current]="selectedVariantId() === variant.id">
                 <div><button type="button" class="variant-link" (click)="selectVariant(variant.id)">{{ variantLabel(variant) }}</button><p>{{ variant.sku }} @if (variant.material) { <span>· {{ variant.material }}</span> }</p></div>
                 <span class="variant-state" [class.off]="!variant.isActive">{{ variant.isActive ? 'Activa' : 'Inactiva' }}</span>
-                <strong>{{ money(variant.price ?? product.price) }} <small>{{ currency()?.code }}</small></strong>
+                <div>
+                  <strong>{{ money(variant.price ?? product.price) }} <small>{{ currency()?.code }}</small></strong>
+                  <p>Compra: {{ money(variant.purchasePrice ?? product.purchasePrice ?? 0) }}</p>
+                </div>
                 @if (auth.hasPermission('manage_products')) { <a class="variant-edit-link" [routerLink]="['/app/edit-product', product.id]" [queryParams]="{ variation: variant.id }">Editar <span aria-hidden="true">↗</span></a> }
               </article>
             } @empty { <p class="empty-copy">No hay variantes registradas.</p> }

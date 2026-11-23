@@ -90,8 +90,11 @@ export class ShellComponent implements OnInit {
     };
 
     link({ label: 'Inicio', icon: 'space_dashboard', path: routes.start, visible: true });
-    link({ label: 'Punto de venta', icon: 'point_of_sale', path: routes.pos,
-      visible: this.hasAppRoute(routes.pos) && can('create_sale') });
+    const canViewSales = can('view_all_sales') || can('view_own_sales');
+    link({ label: can('create_sale') ? 'Punto de venta' : 'Ventas', icon: 'point_of_sale',
+      path: can('create_sale') ? routes.pos : routes.sales.history,
+      visible: can('create_sale') || canViewSales,
+      related: [routes.sales.history, routes.sales.detail('')] });
     link({ label: 'Clientes', icon: 'contacts', path: routes.client.list, visible: can('view_clients'),
       related: [routes.client.register, routes.client.edit('')] });
     group('inventory', 'Productos e inventario', 'inventory_2', [
@@ -125,7 +128,7 @@ export class ShellComponent implements OnInit {
       { label: 'Cat\u00e1logos', icon: 'folder_open', path: routes.catalog.list, visible: this.canManageCatalogs(),
         related: [routes.catalog.register] },
       { label: 'Reportes', icon: 'insights', path: routes.reports,
-        visible: this.hasAppRoute(routes.reports) && can('view_reports') },
+        visible: this.hasAppRoute(routes.reports) && can('manage_store') },
     ]);
     group('platform', 'Administraci\u00f3n de plataforma', 'admin_panel_settings', [
       { label: 'Propietarios', icon: 'supervisor_account', path: routes.owner.list, visible: can('manage_store_owners'),

@@ -47,6 +47,10 @@ export class RoutesService {
       },
       purchases: '/app/purchases',
       pos: '/app/pos',
+      sales: {
+        history: '/app/pos/sales',
+        detail: (saleId: string) => '/app/pos/sales/' + encodeURIComponent(saleId),
+      },
       repairs: '/app/repairs',
       reports: '/app/reports',
       account: '/app/account',

@@ -1,0 +1,27 @@
+@use '../../../../styles/workspace-controls' as controls;
+@include controls.page;
+
+.filters { display: flex; align-items: flex-end; margin-bottom: 1rem; }
+label { display: grid; gap: .4rem; }
+.error { flex-basis: 100%; margin: 0; }
+.error, .negative { color: var(--danger); }
+.period { color: var(--muted); margin-block: 1rem; }
+.metrics, .report-grid { display: grid; gap: 1rem; }
+.metrics { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); }
+.report-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+.metrics, .report-grid, .profit { margin-block: 1rem; }
+dl { margin: 0; }
+dt { color: var(--muted); font-size: .9rem; }
+dd { margin: .35rem 0 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.metrics dd { font-size: clamp(1.1rem, 2.5vw, 1.55rem); overflow-wrap: anywhere; }
+h2 { margin: 0 0 .85rem; font-size: 1.15rem; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--surface-alt); }
+th, td { padding: .65rem; border-bottom: 1px solid var(--border); text-align: start; }
+th[scope='row'] { font-weight: 550; }
+td { font-variant-numeric: tabular-nums; }
+.report-grid .table-wrap { max-height: 25rem; overflow: auto; }
+.report-grid thead { position: sticky; top: 0; }
+.daily-bar { display: block; height: .22rem; margin-top: .3rem; border-radius: 1rem; background: var(--accent); }
+.profit-summary { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.estimate { color: var(--muted); font-size: .9rem; }

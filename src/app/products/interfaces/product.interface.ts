@@ -21,6 +21,7 @@ export interface ProductVariation {
   capacity?: string | null;
   ram?: string | null;
   price?: number | string | null;
+  purchasePrice?: number | string | null;
   isActive: boolean;
 }
 
@@ -29,6 +30,7 @@ export interface Product {
   name: string;
   description: string;
   price: number | string;
+  purchasePrice?: number | string;
   image?: string;
   isActive: boolean;
   categoryId: string;
@@ -51,6 +53,7 @@ export interface SaveProductVariation {
   capacity?: string;
   ram?: string;
   price?: number | null;
+  purchasePrice?: number | null;
   isActive: boolean;
 }
 
@@ -58,6 +61,7 @@ export interface SaveProduct {
   name: string;
   description: string;
   price: number;
+  purchasePrice?: number;
   productCategoryId: string;
   brandId: string;
   isActive: boolean;
