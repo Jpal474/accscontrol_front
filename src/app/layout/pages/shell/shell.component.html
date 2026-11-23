@@ -25,196 +25,44 @@
     </div>
     <p class="nav-label">ESPACIO DE TRABAJO</p>
     <nav aria-label="Navegación principal">
-      @if (canManageCatalogs()) {
-        <a routerLink="/app/catalogs-list" routerLinkActive="active" (click)="closeMenu()">
-          <span class="nav-icon" aria-hidden="true">category</span> Catálogos
-        </a>
+      @for (entry of navigation(); track entry.kind === 'group' ? entry.id : entry.link.path) {
+        @if (entry.kind === 'group') {
+          <div class="nav-group">
+            <button type="button" class="nav-item group-toggle"
+              [class.group-active]="isGroupActive(entry)"
+              [attr.aria-expanded]="isGroupOpen(entry)" [attr.aria-controls]="'sidebar-' + entry.id"
+              (click)="toggleGroup(entry)">
+              <span class="nav-icon" aria-hidden="true">{{ entry.icon }}</span>
+              <span>{{ entry.label }}</span>
+              <span class="group-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="group-links" [id]="'sidebar-' + entry.id" [hidden]="!isGroupOpen(entry)">
+              @for (link of entry.links; track link.path) {
+                <ng-container [ngTemplateOutlet]="sidebarLink" [ngTemplateOutletContext]="{ $implicit: link }" />
+              }
+            </div>
+          </div>
+        } @else {
+          <ng-container [ngTemplateOutlet]="sidebarLink" [ngTemplateOutletContext]="{ $implicit: entry.link }" />
+        }
       }
-      @if (authSevice.hasPermission('manage_platform_admins')) {
-        <a routerLink="/app/admin/administrators" routerLinkActive="active" (click)="closeMenu()">
-          <span class="nav-icon" aria-hidden="true">admin_panel_settings</span> Administradores de plataforma
-        </a>
-        <a routerLink="/app/admin/users" routerLinkActive="active" (click)="closeMenu()">
-          <span class="nav-icon" aria-hidden="true">manage_accounts</span> Usuarios de la plataforma
-        </a>
-        <a routerLink="/app/admin/register" routerLinkActive="active" (click)="closeMenu()">
-          <span class="nav-icon" aria-hidden="true">person_add</span> Registrar administrador
-        </a>
-      }
-      <!-- @if (auth.context()) { -->
-      <a
-        routerLink="/app/subscription"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">workspace_premium</span>
-        Suscripción</a
-      >
-      <!-- } -->
-      <a
-        routerLink="/app"
-        [routerLinkActiveOptions]="{ exact: true }"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">space_dashboard</span>
-        Inicio</a
-      >
-      <!-- @if (
-        auth.can("pos.read") ||
-        auth.can("cash.read") ||
-        auth.can("repairs.read")
-      ) { -->
-      <a
-        routerLink="/app/reports"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">insights</span> Reportes</a
-      >
-      <!-- } -->
-      @if (authSevice.hasPermission('view_all_stores') || authSevice.hasPermission('manage_store')) {
-      <a
-        routerLink="/app/stores-list"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">storefront</span>
-        Sucursales</a
-      >
-      }
-      @if (authSevice.hasPermission('manage_store_owners')) {
-      <a routerLink="/app/owners-list" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
-        <span class="nav-icon" aria-hidden="true">supervisor_account</span> Propietarios
-      </a>
-      }
-      <a
-        routerLink="/app/account"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">account_circle</span> Mi
-        cuenta</a
-      >
-      @if (authSevice.hasPermission('view_clients')) {
-      <a
-        routerLink="/app/clients-list"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">contacts</span> Clientes</a
-      >
-      }
-      <!-- @if (auth.can("repairs.read")) { -->
-      <a
-        routerLink="/app/repairs"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">build</span> Reparaciones</a
-      >
-      <!-- } -->
-      <!-- @if (auth.can("transfers.read")) { -->
-      <a
-        routerLink="/app/transfers"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">swap_horiz</span>
-        Transferencias</a
-      >
-      <!-- } -->
-      <!-- @if (auth.can("purchasing.cost.read")) { -->
-      <a
-        routerLink="/app/purchases"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">local_shipping</span> Compras
-      </a>
-      @if (authSevice.hasPermission('view_providers') || authSevice.hasPermission('manage_providers')) {
-        <a [routerLink]="authSevice.hasPermission('view_providers') ? '/app/providers-list' : '/app/register-provider'"
-          routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
-          <span class="nav-icon" aria-hidden="true">business</span> Proveedores
-        </a>
-      }
-      <!-- }
-      @if (auth.can("cash.read")) { -->
-      <a routerLink="/app/cash" routerLinkActive="active" (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">payments</span> Caja y
-        turnos</a
-      >
-      <!-- }
-      @if (auth.can("pos.sell")) { -->
-      <a routerLink="/app/pos" routerLinkActive="active" (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">point_of_sale</span> Punto de
-        venta</a
-      >
-      <!-- } -->
-      @if (authSevice.hasPermission('view_inventory')) {
-      <a
-        routerLink="/app/inventory"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">inventory_2</span>
-        Inventario</a
-      >
-      }
-      @if (authSevice.hasPermission('view_products')) {
-      <a
-        routerLink="/app/products-list"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">category</span> Productos</a
-      >
-      }
-      @if (authSevice.isAuthenticated()) {
-        <a routerLink="/app/compabilities-list" routerLinkActive="active"
-          ariaCurrentWhenActive="page" (click)="closeMenu()">
-          <span class="nav-icon" aria-hidden="true">smartphone</span> Accesorios por celular
-        </a>
-      }
-      @if (authSevice.hasPermission('view_staff')) {
-      <a
-        routerLink="/app/staff-list"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">groups</span> Equipo</a
-      >
-      }
-      @if (authSevice.hasPermission('manage_staff')) {
-      <a routerLink="/app/register-staff" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
-        <span class="nav-icon" aria-hidden="true">person_add</span> Registrar personal
-      </a>
-      }
-      @if (authSevice.hasPermission('manage_store')) {
-      <a
-        routerLink="/app/register-store"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">add_business</span> Registrar
-        tienda</a
-      >
-      }
-      <!-- @if (onboarding.policy()?.platformAdmin) { -->
-      <a
-        routerLink="/app/platform-billing"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">admin_panel_settings</span>
-        Planes y suscripciones</a
-      >
-      <a
-        routerLink="/app/access-requests"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">mark_email_unread</span>
-        Solicitudes de acceso</a
-      >
-      <!-- } -->
-      <a routerLink="/accept-invitation" (click)="closeMenu()"
-        ><span class="nav-icon" aria-hidden="true">mark_email_read</span>
-        Aceptar invitación</a
-      >
     </nav>
+    <ng-template #sidebarLink let-link>
+      <a class="nav-item" [routerLink]="link.path" [class.active]="isLinkActive(link)"
+        [attr.aria-current]="currentPath() === link.path ? 'page' : null" (click)="closeMenu()">
+        <span class="nav-icon" aria-hidden="true">{{ link.icon }}</span>{{ link.label }}
+      </a>
+    </ng-template>
     <div class="sidebar-bottom">
-      <p>Accs Control Cloud</p>
-      <small>Tu negocio, conectado.</small>
+      @if (showAccount()) {
+        <a class="nav-item" [routerLink]="routes.app.account" [class.active]="currentPath() === routes.app.account"
+          [attr.aria-current]="currentPath() === routes.app.account ? 'page' : null" (click)="closeMenu()">
+          <span class="nav-icon" aria-hidden="true">account_circle</span> Mi cuenta
+        </a>
+      }
+      <button type="button" class="nav-item logout" (click)="requestLogout()">
+        <span class="nav-icon" aria-hidden="true">logout</span> Salir
+      </button>
     </div>
   </aside>
   <div class="workspace" [attr.inert]="open() ? '' : null">
@@ -239,21 +87,6 @@
           ></app-catalog-select>
         </label>
         }
-      </div>
-      <div class="user-actions">
-        <!-- <button
-          type="button"
-          (click)="theme.toggle()"
-          [attr.aria-label]="
-            theme.dark() ? 'Activar tema claro' : 'Activar tema oscuro'
-          "
-        >
-          {{ theme.dark() ? "☀" : "☾" }}</button
-        ><span class="user-name">{{ auth.user()?.displayName }}</span
-        > -->
-        <button type="button" class="logout" (click)="confirmation().open()">
-          Salir
-        </button>
       </div>
     </header>
     <main id="main-content" tabindex="-1">

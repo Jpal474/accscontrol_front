@@ -1,4 +1,8 @@
-﻿<app-page-header title="Equipo" subtitle="Personal, roles y acceso de la tienda seleccionada." />
+﻿<app-page-header title="Equipo" subtitle="Personal, roles y acceso de la tienda seleccionada.">
+  @if (auth.hasPermission('manage_staff')) {
+    <a class="button primary" [routerLink]="registerRoute">Registrar personal</a>
+  }
+</app-page-header>
 @if (!selectedStore.selectedStoreId()) {
   <section class="card"><p>Selecciona una tienda para consultar su personal.</p></section>
 } @else if (loading()) {
