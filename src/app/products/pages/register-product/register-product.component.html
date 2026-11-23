@@ -59,6 +59,14 @@
             <label>Precio base {{ currencySymbol() }} ({{ currency()?.code }})
               <input formControlName="price" inputmode="decimal" placeholder="199.00" required />
             </label>
+            <label>Precio de compra {{ currencySymbol() }}
+              <input formControlName="purchasePrice" inputmode="decimal" placeholder="0.00"
+                [attr.aria-invalid]="form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid"
+                [attr.aria-describedby]="form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid ? 'purchase-price-error' : null" />
+              @if (form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid) {
+                <small id="purchase-price-error">Ingresa un precio de compra desde 0 con hasta dos decimales.</small>
+              }
+            </label>
           </div>
           <label class="wide">
             Descripción
@@ -95,7 +103,15 @@
                   <label>SKU<input formControlName="sku" maxlength="100" required /></label>
                   <label>Control por número de serie<select formControlName="trackSerialNumbers"><option [ngValue]="false">Sin serie por unidad</option><option [ngValue]="true">Requiere una serie por unidad física</option></select></label>
                   <label>Color<input formControlName="color" required /></label>
-                  <label>Precio de la variante {{ currencySymbol() }} ({{ currency()?.code }})<input formControlName="price" inputmode="decimal" placeholder="Usar precio base" /></label>
+                  <label>Precio de venta de la variante {{ currencySymbol() }} ({{ currency()?.code }})<input formControlName="price" inputmode="decimal" placeholder="Usar precio base" /></label>
+                  <label>Precio de compra de la variante {{ currencySymbol() }} ({{ currency()?.code }})
+                    <input formControlName="purchasePrice" inputmode="decimal" placeholder="Usar precio de compra base"
+                      [attr.aria-invalid]="variant.controls.purchasePrice.touched && variant.controls.purchasePrice.invalid"
+                      [attr.aria-describedby]="variant.controls.purchasePrice.touched && variant.controls.purchasePrice.invalid ? 'variant-purchase-error-' + index : null" />
+                    @if (variant.controls.purchasePrice.touched && variant.controls.purchasePrice.invalid) {
+                      <small [id]="'variant-purchase-error-' + index" class="error">Ingresa un precio de compra desde 0 con hasta dos decimales.</small>
+                    }
+                  </label>
                   <label>Tamaño<input formControlName="size" /></label>
                   <label>Material<input formControlName="material" /></label>
                   <label>Capacidad<input formControlName="capacity" placeholder="Ej. 128 GB" /></label>

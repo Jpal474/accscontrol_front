@@ -147,6 +147,7 @@ export class RegisterProductComponent {
       size: value?.size || '', material: value?.material || '',
       capacity: value?.capacity || '', ram: value?.ram || '',
       price: [value?.price == null ? '' : String(value.price), Validators.pattern(money)],
+      purchasePrice: [value?.purchasePrice == null ? '' : String(value.purchasePrice), Validators.pattern(money)],
       isActive: value?.isActive ?? true,
     });
   }
@@ -155,6 +156,7 @@ export class RegisterProductComponent {
     name: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/\S/)]],
     description: ['', Validators.maxLength(4000)],
     price: ['', [Validators.required, Validators.pattern(money)]],
+    purchasePrice: ['0', Validators.pattern(money)],
     categoryId: ['', Validators.required], brandId: ['', Validators.required],
     isActive: true,
     variants: this.fb.array([this.variant()], [Validators.required, Validators.minLength(1)]),
@@ -200,7 +202,7 @@ export class RegisterProductComponent {
   private fillProduct(product: Product) {
     this.existingImage = productImageUrl(product.image);
     this.clearSelectedImage();
-    this.form.patchValue({ name: product.name, description: product.description, price: String(product.price),
+    this.form.patchValue({ name: product.name, description: product.description, price: String(product.price), purchasePrice: String(product.purchasePrice ?? 0),
       categoryId: product.categoryId, brandId: product.brandId, isActive: product.isActive });
     this.fillVariants(product);
     this.originalModels = (product.compatibleModels || []).map(item => item.deviceModelId || item.deviceModel.id);
@@ -270,13 +272,15 @@ export class RegisterProductComponent {
     const skus = values.variants.map(variant => variant.sku.trim().toLowerCase());
     if (new Set(skus).size !== skus.length) { this.error.set('Cada variante debe tener un SKU distinto dentro del producto.'); return; }
     const payload: SaveProduct = {
-      name: values.name.trim(), description: values.description.trim(), price: Number(values.price),
+      name: values.name.trim(), description: values.description.trim(), price: Number(values.price), purchasePrice: Number(values.purchasePrice || 0),
       brandId: values.brandId, productCategoryId: values.categoryId, isActive: values.isActive,
       variations: values.variants.map(variant => ({
         ...(variant.id ? { id: variant.id } : {}), sku: variant.sku.trim(), color: variant.color.trim(),
         trackSerialNumbers: variant.trackSerialNumbers,
         size: variant.size.trim(), material: variant.material.trim(), capacity: variant.capacity.trim(), ram: variant.ram.trim(),
-        price: variant.price === '' ? null : Number(variant.price), isActive: variant.isActive,
+        price: variant.price === '' ? null : Number(variant.price),
+        purchasePrice: variant.purchasePrice === '' ? null : Number(variant.purchasePrice),
+        isActive: variant.isActive,
       })),
     };
     const selected = [...this.selectedModels()];

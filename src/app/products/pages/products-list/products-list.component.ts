@@ -25,6 +25,7 @@ interface ProductRow {
   name: string;
   sku: string;
   price: string;
+  purchasePrice: string;
   models: string;
   status: string;
   isActive: boolean;
@@ -68,7 +69,7 @@ export class ProductsListComponent {
   readonly filters = inject(FormBuilder).nonNullable.group({ search: '', brandId: '', categoryId: '', status: 'active' });
   readonly columns = [
     { key: 'name', label: 'Producto / variante', action: 'preview' }, { key: 'sku', label: 'SKU' },
-    { key: 'price', label: 'Precio' }, { key: 'models', label: 'Compatibilidad' }, { key: 'status', label: 'Estado' },
+    { key: 'price', label: 'Precio de venta' }, { key: 'purchasePrice', label: 'Precio de compra' }, { key: 'models', label: 'Compatibilidad' }, { key: 'status', label: 'Estado' },
   ];
   readonly actions = computed(() => [
     { key: 'detail', label: 'Ver detalles' },
@@ -77,6 +78,7 @@ export class ProductsListComponent {
   readonly rows = computed<ProductRow[]>(() => this.products().flatMap(product => {
     const common = {
       productId: product.id,
+      purchasePrice: this.money(product.purchasePrice ?? 0),
       models: product.compatibleModels?.map(item => item.deviceModel.model).join(', ') || 'Sin compatibilidades',
       disableAction: this.busy(), editDisabled: this.busy(),
     };
@@ -86,6 +88,7 @@ export class ProductsListComponent {
         ...common, id: variation.id, variationId: variation.id, previewHidden: true,
         name: `↳ ${[variation.color, variation.size, variation.material, variation.capacity, variation.ram].filter(Boolean).join(' · ')}`,
         sku: variation.sku, price: this.money(variation.price ?? product.price),
+        purchasePrice: this.money(variation.purchasePrice ?? product.purchasePrice ?? 0),
         status: variation.isActive ? (product.isActive ? 'Activa' : 'Activa · producto inactivo') : 'Inactiva',
         isActive: variation.isActive,
       }))];
