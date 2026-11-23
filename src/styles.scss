@@ -187,31 +187,31 @@ button.danger {
 }
 
 @media print {
-  body:has(accs-sale-detail) {
+  body:has(app-sale-detail .receipt) {
     background: white;
   }
-  body:has(accs-sale-detail) accs-shell .sidebar,
-  body:has(accs-sale-detail) accs-shell .topbar,
-  body:has(accs-sale-detail) accs-shell .mobile-toggle,
-  body:has(accs-sale-detail) accs-toasts {
+  body:has(app-sale-detail .receipt) app-shell .sidebar,
+  body:has(app-sale-detail .receipt) app-shell .topbar,
+  body:has(app-sale-detail .receipt) app-shell .mobile-toggle,
+  body:has(app-sale-detail .receipt) accs-toasts {
     display: none !important;
   }
-  body:has(accs-sale-detail) accs-shell .main,
-  body:has(accs-sale-detail) accs-shell .content {
+  body:has(app-sale-detail .receipt) app-shell .main,
+  body:has(app-sale-detail .receipt) app-shell .content {
     margin: 0 !important;
     padding: 0 !important;
   }
 }
 
 @media print {
-  body:has(accs-sale-detail) accs-shell .shell {
+  body:has(app-sale-detail .receipt) app-shell .shell {
     display: block !important;
   }
-  body:has(accs-sale-detail) accs-shell main {
+  body:has(app-sale-detail .receipt) app-shell main {
     padding: 0 !important;
   }
-  body:has(accs-sale-detail) accs-shell .skip-link,
-  body:has(accs-sale-detail) accs-shell .overlay {
+  body:has(app-sale-detail .receipt) app-shell .skip-link,
+  body:has(app-sale-detail .receipt) app-shell .overlay {
     display: none !important;
   }
 }

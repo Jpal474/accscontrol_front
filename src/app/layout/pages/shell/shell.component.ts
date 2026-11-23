@@ -90,8 +90,11 @@ export class ShellComponent implements OnInit {
     };
 
     link({ label: 'Inicio', icon: 'space_dashboard', path: routes.start, visible: true });
-    link({ label: 'Punto de venta', icon: 'point_of_sale', path: routes.pos,
-      visible: this.hasAppRoute(routes.pos) && can('create_sale') });
+    const canViewSales = can('view_all_sales') || can('view_own_sales');
+    link({ label: can('create_sale') ? 'Punto de venta' : 'Ventas', icon: 'point_of_sale',
+      path: can('create_sale') ? routes.pos : routes.sales.history,
+      visible: can('create_sale') || canViewSales,
+      related: [routes.sales.history, routes.sales.detail('')] });
     link({ label: 'Clientes', icon: 'contacts', path: routes.client.list, visible: can('view_clients'),
       related: [routes.client.register, routes.client.edit('')] });
     group('inventory', 'Productos e inventario', 'inventory_2', [

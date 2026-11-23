@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { salesGuard } from './sales/sales.guard';
 import { catalogsGuard } from './catalogs/catalogs.guard';
 import { productsGuard } from './products/products.guard';
 import { inventoryGuard } from './storage/inventory.guard';
@@ -128,6 +129,24 @@ export const routes: Routes = [
       {
         path: 'edit-client/:clientId',
         loadComponent: () => import('./clients/pages/register-client/register-client.component').then(m => m.RegisterClientComponent),
+      },
+      {
+        path: 'pos',
+        canActivate: [salesGuard],
+        data: { permissions: ['create_sale'] },
+        loadComponent: () => import('./sales/pages/checkout/checkout.component').then(m => m.CheckoutComponent),
+      },
+      {
+        path: 'pos/sales',
+        canActivate: [salesGuard],
+        data: { permissions: ['view_all_sales', 'view_own_sales'] },
+        loadComponent: () => import('./sales/pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
+      },
+      {
+        path: 'pos/sales/:saleId',
+        canActivate: [salesGuard],
+        data: { permissions: ['view_all_sales', 'view_own_sales'] },
+        loadComponent: () => import('./sales/pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
       },
       {
         path: 'inventory',
