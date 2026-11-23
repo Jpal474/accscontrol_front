@@ -131,6 +131,13 @@ export const routes: Routes = [
         loadComponent: () => import('./clients/pages/register-client/register-client.component').then(m => m.RegisterClientComponent),
       },
       {
+        path: 'reports',
+        title: 'Reportes de ventas',
+        canActivate: [salesGuard],
+        data: { permissions: ['manage_store'] },
+        loadComponent: () => import('./sales/pages/sales-reports/sales-reports.component').then(m => m.SalesReportsComponent),
+      },
+      {
         path: 'pos',
         canActivate: [salesGuard],
         data: { permissions: ['create_sale'] },

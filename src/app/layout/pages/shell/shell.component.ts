@@ -128,7 +128,7 @@ export class ShellComponent implements OnInit {
       { label: 'Cat\u00e1logos', icon: 'folder_open', path: routes.catalog.list, visible: this.canManageCatalogs(),
         related: [routes.catalog.register] },
       { label: 'Reportes', icon: 'insights', path: routes.reports,
-        visible: this.hasAppRoute(routes.reports) && can('view_reports') },
+        visible: this.hasAppRoute(routes.reports) && can('manage_store') },
     ]);
     group('platform', 'Administraci\u00f3n de plataforma', 'admin_panel_settings', [
       { label: 'Propietarios', icon: 'supervisor_account', path: routes.owner.list, visible: can('manage_store_owners'),

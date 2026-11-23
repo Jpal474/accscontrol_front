@@ -1,0 +1,112 @@
+<app-page-header title="Reportes de ventas" subtitle="Consulta las ventas y la utilidad bruta de la tienda seleccionada." />
+
+@if (!store.selectedStoreId()) {
+  <section class="card"><p role="status">Selecciona una tienda para consultar sus reportes.</p></section>
+} @else {
+  <form class="card filters" [formGroup]="filters" (ngSubmit)="load()">
+    <label>Fecha inicial
+      <input type="date" formControlName="startDate" required
+        [attr.aria-describedby]="filterError() ? 'report-period-error' : null" />
+    </label>
+    <label>Fecha final
+      <input type="date" formControlName="endDate" required
+        [attr.aria-describedby]="filterError() ? 'report-period-error' : null" />
+    </label>
+    <button type="submit" class="primary" [disabled]="loading()">Consultar</button>
+    @if (filterError()) { <p class="error" id="report-period-error" role="alert">{{ filterError() }}</p> }
+  </form>
+
+  @if (loading()) {
+    <app-skeleton />
+  } @else if (failed()) {
+    <section class="card">
+      <p role="alert">No se pudieron cargar los reportes de ventas.</p>
+      <button type="button" (click)="load()">Reintentar</button>
+    </section>
+  }
+  @if (report(); as data) {
+    <p class="period">{{ day(period().startDate) }} al {{ day(period().endDate) }}</p>
+    <div class="metrics">
+      <dl class="card"><dt>Ingresos por ventas</dt><dd>{{ money(data.summary.totalSalesAmount) }}</dd></dl>
+      <dl class="card"><dt>Ventas completadas</dt><dd>{{ data.summary.totalSalesCount | number }}</dd></dl>
+      <dl class="card"><dt>Ticket promedio</dt><dd>{{ money(data.summary.averageTicket) }}</dd></dl>
+      <dl class="card"><dt>Utilidad bruta</dt><dd [class.negative]="data.profit.summary.grossProfit < 0">{{ money(data.profit.summary.grossProfit) }}</dd></dl>
+    </div>
+
+    <div class="report-grid">
+      <section class="card">
+        <h2>Ventas por día</h2>
+        <div class="table-wrap">
+          <table aria-label="Ventas por día">
+            <thead><tr><th scope="col">Fecha</th><th scope="col">Ventas</th><th scope="col">Ingresos</th></tr></thead>
+            <tbody>
+              @for (row of data.daily; track row.date) {
+                <tr><th scope="row">{{ day(row.date) }}</th><td>{{ row.totalSales | number }}</td>
+                  <td>{{ money(row.totalAmount) }}
+                    <span class="daily-bar" aria-hidden="true"
+                      [style.width.%]="maxDailyRevenue() ? (+row.totalAmount / maxDailyRevenue()) * 100 : 0"></span>
+                  </td>
+                </tr>
+              } @empty { <tr><td colspan="3">No hay ventas en este periodo.</td></tr> }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Métodos de pago</h2>
+        <div class="table-wrap">
+          <table aria-label="Ventas por método de pago">
+            <thead><tr><th scope="col">Método</th><th scope="col">Ventas</th><th scope="col">Importe</th></tr></thead>
+            <tbody>
+              @for (row of data.summary.byPaymentMethod; track row.paymentMethod) {
+                <tr><th scope="row">{{ row.paymentMethod }}</th><td>{{ row.count | number }}</td><td>{{ money(row.total) }}</td></tr>
+              } @empty { <tr><td colspan="3">No hay pagos en este periodo.</td></tr> }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Productos más vendidos</h2>
+      <div class="table-wrap">
+        <table aria-label="Productos más vendidos">
+          <thead><tr><th scope="col">Producto</th><th scope="col">SKU</th><th scope="col">Piezas</th><th scope="col">Ingresos</th></tr></thead>
+          <tbody>
+            @for (row of data.topProducts; track row.productId + ':' + row.sku) {
+              <tr><th scope="row">{{ row.productName || row.sku }}</th><td>{{ row.sku }}</td>
+                <td>{{ row.totalQuantitySold | number }}</td><td>{{ money(row.totalRevenue) }}</td></tr>
+            } @empty { <tr><td colspan="4">No hay productos vendidos en este periodo.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card profit">
+      <h2>Utilidad por producto</h2>
+      <dl class="profit-summary">
+        <div><dt>Ingreso de partidas</dt><dd>{{ money(data.profit.summary.revenue) }}</dd></div>
+        <div><dt>Costo de compra</dt><dd>{{ money(data.profit.summary.cost) }}</dd></div>
+        <div><dt>Margen bruto</dt><dd>{{ data.profit.summary.grossMarginPercent === null ? '—' : (data.profit.summary.grossMarginPercent | number:'1.0-2') + '%' }}</dd></div>
+      </dl>
+      @if (data.profit.summary.estimatedCostItems) {
+        <p class="estimate">{{ data.profit.summary.estimatedCostItems | number }} partidas históricas usan el costo actual de la variante o del producto como estimación.</p>
+      }
+      <div class="table-wrap">
+        <table aria-label="Utilidad por producto">
+          <thead><tr><th scope="col">Producto</th><th scope="col">Piezas</th><th scope="col">Ingresos</th>
+            <th scope="col">Costo</th><th scope="col">Utilidad</th><th scope="col">Margen</th></tr></thead>
+          <tbody>
+            @for (row of data.profit.byProduct; track row.productId) {
+              <tr><th scope="row">{{ row.productName || 'Producto sin identificar' }}</th><td>{{ row.unitsSold | number }}</td>
+                <td>{{ money(row.revenue) }}</td><td>{{ money(row.cost) }}</td>
+                <td [class.negative]="row.grossProfit < 0">{{ money(row.grossProfit) }}</td>
+                <td>{{ row.grossMarginPercent === null ? '—' : (row.grossMarginPercent | number:'1.0-2') + '%' }}</td></tr>
+            } @empty { <tr><td colspan="6">No hay partidas vendidas en este periodo.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}
