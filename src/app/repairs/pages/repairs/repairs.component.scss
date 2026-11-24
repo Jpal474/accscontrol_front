@@ -1,0 +1,95 @@
+@use '../../../../styles/workspace-controls' as controls;
+:host {
+  display: block;
+}
+section,
+article,
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+  margin: 1rem 0;
+}
+form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+label {
+  display: grid;
+  gap: 0.35rem;
+}
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+textarea {
+  min-height: 90px;
+}
+button,
+.button {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.wide {
+  grid-column: 1/-1;
+}
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.error {
+  color: var(--danger, #b42318);
+}
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+.history {
+  padding-left: 1.3rem;
+}
+.history li {
+  padding: 0.75rem 0;
+  overflow-wrap: anywhere;
+}
+small {
+  display: block;
+  opacity: 0.75;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.money {
+  font-variant-numeric: tabular-nums;
+}
+a {
+  color: var(--primary, #4354cf);
+}
+@media (max-width: 600px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+  section,
+  article {
+    padding: 1rem;
+  }
+}
+
+@include controls.page;

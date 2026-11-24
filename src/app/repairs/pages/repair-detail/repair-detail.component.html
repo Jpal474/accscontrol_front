@@ -1,0 +1,119 @@
+<app-page-header title="Expediente de reparación" subtitle="Datos del equipo, seguimiento técnico y refacciones." />
+<a [routerLink]="repairsRoute">Volver al tablero</a>
+@if (!store.selectedStoreId()) { <section><p role="status">Selecciona una tienda para abrir el expediente.</p></section> }
+@if (error()) { <p class="error" role="alert">{{ error() }}</p><button type="button" (click)="retry()">Reintentar</button> }
+@if (actionError()) { <p class="error" role="alert">{{ actionError() }}</p> }
+@if (notice()) { <p role="status">{{ notice() }}</p> }
+@if (loading()) { <p role="status">Cargando expediente…</p> }
+@if (detail(); as data) {
+  <section>
+    <h2>#{{ data.repair.id.slice(0, 8) }} · {{ data.repair.deviceModel?.brand?.name }} {{ data.repair.deviceModel?.model }}</h2>
+    <p>{{ data.repair.repairState?.name || 'Sin estado' }} · {{ data.repair.client?.name }} {{ data.repair.client?.lastName }}</p>
+    <p>{{ data.repair.description }}</p>
+    <p>Notas: {{ data.repair.notes || 'Sin notas' }}</p>
+    <p>Técnico: {{ data.repair.technician?.name || 'Por asignar' }} {{ data.repair.technician?.lastName }}</p>
+    <p class="money">Importe: {{ money(data.repair.price) }}</p>
+    <p>Recibido: {{ data.repair.receivedDate | date:'medium' }}</p>
+    @if (data.repair.deliveredDate) { <p>Entregado: {{ data.repair.deliveredDate | date:'medium' }}</p> }
+    @if (!data.repair.isActive) { <p>Reparación inactiva</p> }
+  </section>
+
+  @if (canManage()) {
+    <section>
+      <h2>Asignación y datos de recepción</h2>
+      <form [formGroup]="edit" (ngSubmit)="save()">
+        <label>Técnico
+          <app-catalog-select formControlName="technicianId" [fetchFn]="fetchTechnicians" [lazy]="true"
+            [parentId]="store.selectedStoreId()" [parentRequired]="true" [initialOption]="currentTechnician()"
+            placeholder="Busca y selecciona un técnico" />
+          @if (edit.controls.technicianId.touched && edit.controls.technicianId.invalid) { <small class="error">Selecciona un técnico.</small> }
+        </label>
+        <label>Importe @if (currency(); as storeCurrency) { {{ currencySymbol() }} ({{ storeCurrency.code }}) } <input formControlName="price" inputmode="decimal" />
+          @if (edit.controls.price.touched && edit.controls.price.invalid) { <small class="error">Ingresa un importe desde 0 con hasta dos decimales.</small> }
+        </label>
+        <label class="wide">Problema reportado <textarea formControlName="description" maxlength="2000"></textarea>
+          @if (edit.controls.description.touched && edit.controls.description.invalid) { <small class="error">Describe el problema del equipo.</small> }
+        </label>
+        <label class="wide">Notas <textarea formControlName="notes" maxlength="2000"></textarea></label>
+        <div class="actions wide">
+          <button type="submit" class="primary" [disabled]="busy() || loading()">Guardar datos</button>
+          <button type="button" class="danger" [disabled]="busy() || loading()" (click)="askToDelete()">Eliminar reparación</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  @if (canWork() && isOpen()) {
+    <section>
+      <h2>Seguimiento y entrega</h2>
+      <form [formGroup]="workflow" (ngSubmit)="saveState()">
+        <label>Estado
+          <select formControlName="repairStateId">
+            <option value="">Selecciona un estado</option>
+            @for (state of lookups()?.states ?? []; track state.id) { <option [value]="state.id">{{ state.name }}</option> }
+          </select>
+          @if (workflow.controls.repairStateId.touched && workflow.controls.repairStateId.invalid) { <small class="error">Selecciona el estado de la reparación.</small> }
+        </label>
+        <label class="checkbox-label"><input type="checkbox" formControlName="deliver" /> Confirmar entrega del equipo</label>
+        <label class="wide">Notas técnicas <textarea formControlName="notes" maxlength="2000"></textarea></label>
+        <div class="actions wide"><button type="submit" class="primary" [disabled]="busy() || loading() || !lookups()?.states?.length">
+          {{ workflow.controls.deliver.value ? 'Confirmar entrega' : 'Guardar seguimiento' }}
+        </button></div>
+      </form>
+    </section>
+
+    <section>
+      <h2>Consumo de refacciones</h2>
+      <form (ngSubmit)="searchStock()">
+        <label>Buscar por nombre o SKU <input name="stockSearch" [(ngModel)]="stockSearch" maxlength="50" /></label>
+        <div class="actions"><button type="submit" [disabled]="stockLoading() || busy()">Buscar refacción</button></div>
+      </form>
+      @if (stockLoading()) { <p role="status">Consultando existencias…</p> }
+      <form [formGroup]="parts" (ngSubmit)="consume()">
+        <label class="wide">Refacción y ubicación
+          <select [ngModel]="selected()" [ngModelOptions]="{standalone: true}" (ngModelChange)="chooseStock($event)">
+            <option value="">Selecciona una refacción</option>
+            @for (option of stockOptions(); track option.key) {
+              <option [value]="option.key">{{ option.product.sku }} · {{ option.product.productName }} · {{ option.location.code }} · {{ option.location.existence }} disponibles</option>
+            }
+          </select>
+        </label>
+        <label>Cantidad <input type="number" min="1" step="1" [attr.max]="selectedOption()?.location?.existence ?? 1000" formControlName="quantity" /></label>
+        @if (selectedOption()?.product?.trackSerialNumbers) {
+          <label class="wide">Números de serie <textarea formControlName="serials" placeholder="Uno por línea"></textarea></label>
+        }
+        @if (stockError()) { <p class="error wide" role="alert">{{ stockError() }}</p> }
+        <div class="actions wide"><button type="submit" class="primary" [disabled]="busy() || stockLoading() || loading()">
+          Confirmar consumo y descontar stock
+        </button></div>
+      </form>
+      @if (stockPages() > 1) {
+        <nav class="pagination" aria-label="Paginación de refacciones">
+          <button type="button" [disabled]="stockPage() <= 1 || stockLoading()" (click)="searchStock(stockPage() - 1)">Anterior</button>
+          <span>Página {{ stockPage() }} de {{ stockPages() }}</span>
+          <button type="button" [disabled]="stockPage() >= stockPages() || stockLoading()" (click)="searchStock(stockPage() + 1)">Siguiente</button>
+        </nav>
+      }
+    </section>
+  }
+
+  <div class="grid">
+    <section>
+      <h2>Refacciones consumidas</h2>
+      @for (part of data.parts; track part.id) {
+        <p>{{ part.sku }} · {{ part.name }} · {{ part.quantity }} pieza(s)
+          <small>{{ part.location }} · {{ part.createdAt | date:'short' }}</small>
+        </p>
+      } @empty { <p>Sin consumo confirmado.</p> }
+    </section>
+    <section>
+      <h2>Registro</h2>
+      <p>Recibió: {{ data.repair.createdBy?.name }} {{ data.repair.createdBy?.lastName }}</p>
+      <p>Última actualización: {{ data.repair.updatedAt | date:'medium' }}</p>
+    </section>
+  </div>
+}
+
+<app-confirm-dialog title="Eliminar reparación"
+  message="¿Quieres eliminar esta reparación? No podrás reactivarla. Los movimientos de inventario se conservarán."
+  confirmLabel="Eliminar reparación" (confirmed)="deleteRepair()" />

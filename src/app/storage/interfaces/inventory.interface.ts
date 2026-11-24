@@ -1,11 +1,11 @@
 ﻿export enum MovementType { IN = 'IN', OUT = 'OUT' }
 export enum MovementReason {
-  PURCHASE = 'PURCHASE', SALE = 'SALE', TRANSFER = 'TRANSFER', DAMAGE = 'DAMAGE',
+  PURCHASE = 'PURCHASE', SALE = 'SALE', REPAIR = 'REPAIR', TRANSFER = 'TRANSFER', DAMAGE = 'DAMAGE',
   AUDIT_ADJUSTMENT = 'AUDIT_ADJUSTMENT', RETURN = 'RETURN', CANCELLATION = 'CANCELLATION',
 }
 export const MOVEMENT_TYPE_LABELS: Record<MovementType, string> = { IN: 'Entrada', OUT: 'Salida' };
 export const MOVEMENT_REASON_LABELS: Record<MovementReason, string> = {
-  PURCHASE: 'Compra', SALE: 'Venta', TRANSFER: 'Traslado', DAMAGE: 'Daño',
+  PURCHASE: 'Compra', SALE: 'Venta', REPAIR: 'Consumo en reparación', TRANSFER: 'Traslado', DAMAGE: 'Daño',
   AUDIT_ADJUSTMENT: 'Ajuste por auditoría', RETURN: 'Devolución', CANCELLATION: 'Cancelación',
 };
 export interface InventoryVariant {

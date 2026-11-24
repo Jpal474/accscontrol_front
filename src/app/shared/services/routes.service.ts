@@ -52,6 +52,7 @@ export class RoutesService {
         detail: (saleId: string) => '/app/pos/sales/' + encodeURIComponent(saleId),
       },
       repairs: '/app/repairs',
+      repairDetail: (id: string) => '/app/repairs/' + encodeURIComponent(id),
       reports: '/app/reports',
       account: '/app/account',
 

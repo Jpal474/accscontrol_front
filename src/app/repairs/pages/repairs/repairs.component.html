@@ -1,0 +1,82 @@
+<app-page-header title="Reparaciones" subtitle="Recepción, trabajo técnico y entrega en la tienda seleccionada." />
+@if (!store.selectedStoreId()) {
+  <section><p role="status">Selecciona una tienda para consultar sus reparaciones.</p></section>
+} @else {
+  <section>
+    <form (ngSubmit)="load()">
+      <label>Buscar por folio, cliente o equipo
+        <input name="search" [(ngModel)]="search" maxlength="50" />
+      </label>
+      <div class="actions"><button type="submit" [disabled]="loading()">Buscar</button></div>
+    </form>
+  </section>
+  @if (loading()) { <p role="status">Cargando reparaciones…</p> }
+  @else if (error()) { <p class="error" role="alert">{{ error() }}</p><button type="button" (click)="load(page())">Reintentar</button> }
+  @else {
+    <div class="grid">
+      @for (group of groups(); track group.id) {
+        <section>
+          <h2>{{ group.label }}</h2>
+          @for (r of group.rows; track r.id) {
+            <article>
+              <a [routerLink]="routes.repairDetail(r.id)">#{{ r.id.slice(0, 8) }}</a>
+              <h3>{{ r.deviceModel?.brand?.name }} {{ r.deviceModel?.model }}</h3>
+              <p>{{ r.client?.name }} {{ r.client?.lastName }}</p>
+              <small>{{ r.technician?.name || 'Sin técnico asignado' }} {{ r.technician?.lastName }}</small>
+              @if (!r.isActive) { <small>Inactiva</small> }
+            </article>
+          }
+        </section>
+      } @empty { <p role="status">No hay reparaciones para esta búsqueda.</p> }
+    </div>
+    @if (pages() > 1) {
+      <nav class="pagination" aria-label="Paginación de reparaciones">
+        <button [disabled]="page() <= 1" (click)="load(page() - 1)">Anterior</button>
+        <span>Página {{ page() }} de {{ pages() }} · {{ total() }} reparaciones</span>
+        <button [disabled]="page() >= pages()" (click)="load(page() + 1)">Siguiente</button>
+      </nav>
+    }
+  }
+  @if (canManage()) {
+    <section>
+      <h2>Recibir equipo</h2>
+      @if (lookupError()) { <p class="error" role="alert">{{ lookupError() }}</p> }
+      <form class="editor-section" [formGroup]="form" (ngSubmit)="receive()">
+        <header class="editor-intro wide"><h3>Datos de recepción</h3></header>
+        <label>Cliente
+          <app-catalog-select formControlName="clientId" [fetchFn]="fetchClients" [lazy]="true"
+            [parentId]="store.selectedStoreId()" [parentRequired]="true" placeholder="Busca y selecciona un cliente" />
+          @if (invalid('clientId')) { <small class="error">Selecciona el cliente que entrega el equipo.</small> }
+        </label>
+        <label>Técnico
+          <app-catalog-select formControlName="technicianId" [fetchFn]="fetchTechnicians" [lazy]="true"
+            [parentId]="store.selectedStoreId()" [parentRequired]="true" placeholder="Busca y selecciona un técnico" />
+          @if (invalid('technicianId')) { <small class="error">Asigna un técnico activo de esta tienda.</small> }
+        </label>
+        <label>Equipo / modelo
+          <app-catalog-select formControlName="deviceModelId" [fetchFn]="fetchModels" [lazy]="true"
+            [parentId]="store.selectedStoreId()" [parentRequired]="true" placeholder="Busca y selecciona un modelo" />
+          @if (invalid('deviceModelId')) { <small class="error">Selecciona el modelo del equipo.</small> }
+        </label>
+        <label>Estado inicial
+          <select formControlName="repairStateId"><option value="">Selecciona un estado</option>
+            @for (option of lookups()?.states ?? []; track option.id) { <option [value]="option.id">{{ option.name }}</option> }
+          </select>
+          @if (invalid('repairStateId')) { <small class="error">Selecciona el estado de recepción.</small> }
+        </label>
+        <label class="wide">Problema reportado <textarea formControlName="description" maxlength="2000"></textarea>
+          @if (invalid('description')) { <small class="error">Describe el problema del equipo en hasta 2000 caracteres.</small> }
+        </label>
+        <label class="wide">Accesorios recibidos y notas <textarea formControlName="notes" maxlength="2000"></textarea></label>
+        <label>Número de serie o IMEI (opcional)
+          <input type="password" autocomplete="off" formControlName="serialNumber" maxlength="100" />
+        </label>
+        <label>Importe @if (currency(); as storeCurrency) { {{ currencySymbol() }} ({{ storeCurrency.code }}) } <input inputmode="decimal" formControlName="price" placeholder="0.00" />
+          @if (invalid('price')) { <small class="error">Ingresa un importe desde 0, con hasta dos decimales.</small> }
+        </label>
+        @if (formError()) { <p class="wide error" role="alert">{{ formError() }}</p> }
+        <div class="form-actions wide"><button class="primary" type="submit" [disabled]="busy() || lookupLoading()">Recibir equipo</button></div>
+      </form>
+    </section>
+  }
+}

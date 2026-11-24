@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { repairsGuard } from './repairs/repairs.guard';
 import { salesGuard } from './sales/sales.guard';
 import { catalogsGuard } from './catalogs/catalogs.guard';
 import { productsGuard } from './products/products.guard';
@@ -179,6 +180,18 @@ export const routes: Routes = [
         canActivate: [salesGuard],
         data: { permissions: ['view_all_sales', 'view_own_sales'] },
         loadComponent: () => import('./sales/pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
+      },
+      {
+        path: 'repairs',
+        title: 'Reparaciones',
+        canActivate: [repairsGuard],
+        loadComponent: () => import('./repairs/pages/repairs/repairs.component').then(m => m.RepairsComponent),
+      },
+      {
+        path: 'repairs/:repairId',
+        title: 'Expediente de reparación',
+        canActivate: [repairsGuard],
+        loadComponent: () => import('./repairs/pages/repair-detail/repair-detail.component').then(m => m.RepairDetailComponent),
       },
       {
         path: 'inventory',

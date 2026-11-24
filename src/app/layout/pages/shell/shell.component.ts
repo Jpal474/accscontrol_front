@@ -119,7 +119,8 @@ export class ShellComponent implements OnInit {
     }
 
     link({ label: 'Reparaciones', icon: 'build', path: routes.repairs,
-      visible: this.hasAppRoute(routes.repairs) && can('view_repairs') });
+      visible: this.hasAppRoute(routes.repairs) && (can('view_repairs') || can('view_own_repairs') || can('manage_repairs')),
+      related: [routes.repairDetail('')] });
     group('administration', 'Administraci\u00f3n', 'settings', [
       { label: 'Sucursales', icon: 'storefront', path: routes.store.list,
         visible: can('view_all_stores') || can('manage_store'), related: [routes.store.register, routes.store.edit('')] },

@@ -76,7 +76,7 @@
           <label>Motivo<select formControlName="reason" required>
             <option value="" disabled>Selecciona un motivo</option>
             @if (operation.controls.action.value === 'TRANSFER') { <option value="TRANSFER">Traslado</option> }
-            @else { @for (reason of reasons; track reason) { @if (reason !== 'TRANSFER') { <option [value]="reason">{{ reasonLabels[reason] }}</option> } } }
+            @else { @for (reason of reasons; track reason) { @if (reason !== 'TRANSFER' && reason !== 'REPAIR') { <option [value]="reason">{{ reasonLabels[reason] }}</option> } } }
           </select></label>
           @if (operation.controls.action.value === 'TRANSFER') {
             <label>Tienda de destino<select formControlName="targetStoreId" (pointerdown)="loadTargets()" (click)="loadTargets()" (keydown)="lookupKeydown($event, 'targets')"><option value="">{{ targetsLoading() ? 'Cargando tiendas…' : 'Selecciona una tienda' }}</option>
