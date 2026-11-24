@@ -57,6 +57,8 @@ export class CatalogSelectComponent
   @Input() parentRequired = false;
   @Input() lazy = false;
   @Input() initialOption?: CatalogApiResponse;
+  @Input() caption?: string;
+  @Input() leadingIcon?: string;
 
   get displayValue(): string {
     return this.selectedValue()

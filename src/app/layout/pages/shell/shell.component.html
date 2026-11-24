@@ -82,16 +82,24 @@
         ☰
       </button>
       <div class="selectors">
+        <img class="topbar-logo" src="/assets/landing/accs-control.png"
+          alt="Accs Control" width="889" height="555" />
         @if (isStoreOwner()) {
-        <label>
-          Tienda
-          <app-catalog-select
-            [fetchFn]="fetchStores"
-            [formControl]="storeControl"
-          ></app-catalog-select>
-        </label>
+        <span class="topbar-divider" aria-hidden="true"></span>
+        <app-catalog-select
+          class="topbar-store"
+          caption="Tienda"
+          leadingIcon="storefront"
+          placeholder="Selecciona una tienda"
+          [fetchFn]="fetchStores"
+          [formControl]="storeControl"
+        />
         }
       </div>
+      <button type="button" class="topbar-logout" (click)="requestLogout()">
+        <span class="nav-icon" aria-hidden="true">logout</span>
+        Salir
+      </button>
     </header>
     <main id="main-content" tabindex="-1">
       <!-- @if (auth.subscription(); as subscription) {

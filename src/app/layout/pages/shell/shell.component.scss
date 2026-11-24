@@ -85,32 +85,46 @@ nav { margin-bottom: 1rem; }
   min-width: 0;
 }
 .topbar {
-  min-height: 92px;
+  min-height: 64px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 0.375rem 2rem;
 }
 .selectors {
   display: flex;
+  align-items: center;
   gap: 1rem;
   min-width: 0;
 }
-.selectors label {
-  display: grid;
-  font-size: 0.7rem;
-  color: var(--muted);
-  gap: 0.25rem;
-  min-width: 0;
+.topbar-logo {
+  display: block;
+  width: clamp(56px, 9vw, 80px);
+  height: auto;
+  flex-shrink: 0;
+  filter: invert(1) hue-rotate(180deg);
 }
-.selectors select {
-  max-width: 220px;
-  width: 100%;
-  font-size: 0.85rem;
-  padding: 0.4rem;
+.topbar-divider {
+  flex: 0 0 1px;
+  height: 2rem;
+  background: var(--border);
+}
+:host-context([data-theme='dark']) .topbar-logo {
+  filter: none;
+}
+.topbar-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+.topbar-store {
+  width: clamp(148px, 18vw, 220px);
+  min-width: 0;
 }
 main {
   padding: 2.2rem;
@@ -169,7 +183,7 @@ footer {
     justify-content: space-between;
   }
   .topbar {
-    padding: 1rem;
+    padding-inline: 1rem;
   }
   main {
     padding: 1.5rem;
@@ -180,23 +194,18 @@ footer {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  .selectors {
+  .selectors:has(.topbar-store) {
     order: 3;
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
   }
-  .selectors select {
-    max-width: 100%;
+  .topbar-store {
+    flex: 1;
   }
   main {
     padding: 1.25rem;
   }
   footer {
     padding: 1rem;
-  }
-  .topbar {
-    min-height: 128px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -226,18 +235,6 @@ footer {
   background: radial-gradient(100% 45% at 0 0, #2ea3db30, transparent 80%), #0b1240;
   overflow-y: auto;
   scrollbar-width: thin;
-}
-.topbar {
-  gap: 1.25rem;
-}
-.selectors select {
-  min-height: var(--control-height);
-  border-radius: var(--control-radius);
-}
-.selectors label {
-  gap: 0.45rem;
-  font-size: 0.75rem;
-  font-weight: 650;
 }
 .workspace > main {
   width: 100%;

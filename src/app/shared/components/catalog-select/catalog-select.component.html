@@ -1,8 +1,16 @@
 <div class="custom-select-container">
   <!-- Botón / Caja disparadora -->
-  <div class="select-trigger" (click)="toggleDropdown()">
-    <span [class.placeholder]="!displayValue">
-      {{ displayValue || placeholder }}
+  <div class="select-trigger" [class.with-caption]="caption" (click)="toggleDropdown()"
+    role="button" tabindex="0" [attr.aria-expanded]="isOpen()"
+    (keydown.enter)="toggleDropdown()" (keydown.space)="$event.preventDefault(); toggleDropdown()">
+    @if (leadingIcon) {
+      <span class="leading-icon" aria-hidden="true">{{ leadingIcon }}</span>
+    }
+    <span class="select-text">
+      @if (caption) {
+        <span class="select-caption">{{ caption }}</span>
+      }
+      <span [class.placeholder]="!displayValue">{{ displayValue || placeholder }}</span>
     </span>
     <span class="chevron" [class.open]="isOpen()">▼</span>
   </div>

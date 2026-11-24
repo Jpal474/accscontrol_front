@@ -48,6 +48,37 @@
   }
 }
 
+.select-trigger.with-caption {
+  gap: 0.625rem;
+  min-height: var(--control-height, 44px);
+  padding: 0.3rem 0.65rem;
+
+  .leading-icon {
+    font: 22px/1 'Material Symbols Rounded';
+    flex-shrink: 0;
+  }
+
+  .select-text {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 0.125rem;
+    font-size: 0.85rem;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .select-caption {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  .chevron {
+    flex-shrink: 0;
+  }
+}
+
 .select-dropdown {
   position: absolute;
   top: calc(100% + 4px);
