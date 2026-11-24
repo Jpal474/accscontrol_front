@@ -18,7 +18,7 @@ import {
   NG_VALUE_ACCESSOR,
   FormsModule,
 } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -55,6 +55,7 @@ export class CatalogSelectComponent
   @Input() parentId?: string | null;
   /** Si es true, no carga nada hasta que exista parentId */
   @Input() parentRequired = false;
+  @Input() lazy = false;
   @Input() initialOption?: CatalogApiResponse;
 
   get displayValue(): string {
@@ -87,6 +88,7 @@ export class CatalogSelectComponent
     this.searchSubject
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((queryText) => {
+        if (this.lazy && !this.isOpen()) return;
         this.search.set(queryText);
         this.currentPage = 1;
         this.loadData(true);
@@ -101,12 +103,14 @@ export class CatalogSelectComponent
   ngOnInit() {
     // Evita ejecutar la petición en el servidor (SSR)
     if (!isPlatformBrowser(this.platformId)) return;
-    if (!this.canLoad) return;
+    if (!this.canLoad || this.lazy) return;
     this.loadData(true);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['parentId'] && !changes['parentId'].firstChange) {
+      this.request?.unsubscribe();
+      if (this.lazy) this.isOpen.set(false);
       // 🛑 Ya NO limpiamos el selectedId ni el onChange aquí,
       // para permitir que el formulario conserve el ID que se está cargando o editando.
       this.items.set([]);
@@ -114,7 +118,7 @@ export class CatalogSelectComponent
       this.currentPage = 1;
       this.totalPages = 1;
 
-      if (isPlatformBrowser(this.platformId) && this.canLoad) {
+      if (isPlatformBrowser(this.platformId) && this.canLoad && !this.lazy) {
         this.loadData(true);
       }
     }
@@ -167,8 +171,11 @@ export class CatalogSelectComponent
     }
   }
 
+  private request?: Subscription;
+
   private loadData(reset: boolean) {
-    if (!this.fetchFn) return;
+    if (!this.fetchFn || !this.canLoad) return;
+    this.request?.unsubscribe();
 
     if (reset) {
       this.loading.set(true);
@@ -182,8 +189,9 @@ export class CatalogSelectComponent
       search: this.search() || undefined,
     };
 
-    this.fetchFn(query)
+    this.request = this.fetchFn(query)
       .pipe(
+        takeUntil(this.destroy$),
         finalize(() => {
           this.loading.set(false);
           this.loadingMore.set(false);
