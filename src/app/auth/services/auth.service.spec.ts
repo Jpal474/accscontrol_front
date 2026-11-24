@@ -34,10 +34,11 @@ describe('AuthService', () => {
 
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
-    ['active_store_id', 'auth_token', 'user_permissions'].forEach(key => sessionStorage.removeItem(key));
+    ['active_store_id', 'auth_token', 'user_permissions', 'must_change_password'].forEach(key => sessionStorage.removeItem(key));
   });
 
   it('selects the sole store when restoring a manager session', async () => {
+    sessionStorage.setItem('auth_token', 'restored-token');
     selectedStore.setSelectedStore('previous-store');
     storage.getItem.and.resolveTo(user);
     service = TestBed.inject(AuthService);
@@ -62,6 +63,7 @@ describe('AuthService', () => {
   });
 
   it('preserves a valid selection for a user with multiple stores', async () => {
+    sessionStorage.setItem('auth_token', 'restored-token');
     selectedStore.setSelectedStore('second-store');
     storage.getItem.and.resolveTo({ ...user, stores: [...user.stores, { storeId: 'second-store', role: 'manager' }] });
     service = TestBed.inject(AuthService);
@@ -69,7 +71,25 @@ describe('AuthService', () => {
     expect(selectedStore.selectedStoreId()).toBe('second-store');
   });
 
+  it('restores the required change immediately and stores the replacement session', async () => {
+    sessionStorage.setItem('auth_token', 'restricted-token');
+    sessionStorage.setItem('must_change_password', 'true');
+    service = TestBed.inject(AuthService);
+    expect(service.mustChangePassword()).toBeTrue();
+
+    const change = firstValueFrom(service.changePassword({
+      currentPassword: 'TempPass1!', newPassword: 'NewPass2@', confirmPassword: 'NewPass2@',
+    }));
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}auth/change-password`)
+      .flush({ data: { access_token: 'replacement-token', user: { ...user, mustChangePassword: false } } });
+    await change;
+    expect(service.mustChangePassword()).toBeFalse();
+    expect(service.token()).toBe('replacement-token');
+    expect(sessionStorage.getItem('must_change_password')).toBeNull();
+  });
+
   it('clears a selection outside the restored user stores', async () => {
+    sessionStorage.setItem('auth_token', 'restored-token');
     selectedStore.setSelectedStore('previous-store');
     storage.getItem.and.resolveTo({ ...user, stores: [] });
     service = TestBed.inject(AuthService);

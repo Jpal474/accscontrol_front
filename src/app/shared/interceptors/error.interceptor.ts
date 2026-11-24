@@ -11,8 +11,28 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const toastService = inject(ToastService);
+  const passwordChange = req.url.split('?')[0] === `${environment.apiUrl}auth/change-password`;
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      if (error.status === 403 && error.error?.code === 'PASSWORD_CHANGE_REQUIRED') {
+        const authorization = req.headers.get('Authorization');
+        if (authorization === `Bearer ${authService.token()}` && authService.isAuthenticated()) {
+          authService.requirePasswordChange();
+          void router.navigateByUrl('/change-password', { replaceUrl: true });
+        }
+        return throwError(() => new Error(error.error.message));
+      }
+
+      const recovery = req.url.startsWith(`${environment.apiUrl}auth/`)
+        && /\/(forgot-password|reset-password|recovery-email(?:\/confirm)?)$/.test(req.url);
+      if ((passwordChange || recovery) && error.status !== 401) {
+        const message = [400, 429].includes(error.status) ? error.error?.message : undefined;
+        return throwError(() => new Error(
+          (Array.isArray(message) ? message.join(' ') : message)
+            || 'No se pudo cambiar tu contraseña. Inténtalo nuevamente.',
+        ));
+      }
+
       let errorMessage = 'Ocurrió un error inesperado';
 
       if (
@@ -24,6 +44,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       } else {
         // Error devuelto por el backend (NestJS)
         switch (error.status) {
+          case 429:
+            errorMessage = 'Demasiadas peticiones. Inténtalo más tarde.';
+            break;
           case 401:
             if (req.url.split('?')[0] === `${environment.apiUrl}auth/signin`) {
               errorMessage = 'Correo o contraseña incorrectos.';

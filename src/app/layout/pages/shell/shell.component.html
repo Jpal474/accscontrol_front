@@ -54,6 +54,10 @@
       </a>
     </ng-template>
     <div class="sidebar-bottom">
+      <a class="nav-item" [routerLink]="routes.app.recoverySettings" routerLinkActive="active"
+        ariaCurrentWhenActive="page" (click)="closeMenu()">
+        <span class="nav-icon" aria-hidden="true">lock_reset</span> Recuperación de cuenta
+      </a>
       @if (showAccount()) {
         <a class="nav-item" [routerLink]="routes.app.account" [class.active]="currentPath() === routes.app.account"
           [attr.aria-current]="currentPath() === routes.app.account ? 'page' : null" (click)="closeMenu()">

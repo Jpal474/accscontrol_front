@@ -10,6 +10,7 @@ export class RoutesService {
     public: {
       landing: '',
       login: '/login',
+      changePassword: '/change-password',
       request_access: '/request-access',
     },
     app: {
@@ -55,6 +56,7 @@ export class RoutesService {
       repairDetail: (id: string) => '/app/repairs/' + encodeURIComponent(id),
       reports: '/app/reports',
       account: '/app/account',
+      recoverySettings: '/app/recovery-settings',
 
       owner: {
         register: '/app/register-owner',
@@ -69,6 +71,17 @@ export class RoutesService {
     },
   };
   constructor() {}
+
+  public homeFor(permissions: readonly string[]): string {
+    const { app } = this.routes;
+    if (permissions.includes('manage_platform_admins')) return app.admin.users;
+    if (permissions.includes('manage_store') || permissions.includes('view_all_stores')) return app.start;
+    if (permissions.includes('create_sale')) return app.pos;
+    if (permissions.some(permission => ['view_own_repairs', 'view_repairs', 'manage_repairs'].includes(permission))) {
+      return app.repairs;
+    }
+    return app.start;
+  }
 
   public async redirectTo(
     route: string,

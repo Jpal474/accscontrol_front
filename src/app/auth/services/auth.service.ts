@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { environment } from '../../../environments/environment.development';
 import {
+  ChangePasswordCredentials,
   LoginCredentials,
   LoginApiResponse,
   User,
@@ -32,6 +33,7 @@ export class AuthService {
   private readonly selectedStoreService = inject(SelectedStoreService);
 
   private readonly TOKEN_KEY = 'auth_token';
+  private readonly PASSWORD_CHANGE_KEY = 'must_change_password';
   private readonly USER_KEY = 'auth_user';
   private readonly PERMISSIONS_KEY = 'user_permissions';
 
@@ -41,6 +43,8 @@ export class AuthService {
   // ¡Los permisos se cargan de forma 100% síncrona al instante!
   private readonly _permissions = signal<string[]>(this.getStoredPermissions());
 
+  private readonly _mustChangePassword = signal(false);
+  readonly mustChangePassword = this._mustChangePassword.asReadonly();
   readonly token = this._token.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
   readonly permissions = this._permissions.asReadonly();
@@ -59,11 +63,12 @@ export class AuthService {
       const storedToken = sessionStorage.getItem(this.TOKEN_KEY);
       if (storedToken) {
         this._token.set(storedToken);
+        this._mustChangePassword.set(sessionStorage.getItem(this.PASSWORD_CHANGE_KEY) === 'true');
       }
 
       // 2. Usuario cifrado (único que requiere asincronía)
       this.storageService.getItem<User>(this.USER_KEY).then((storedUser) => {
-        if (storedUser) {
+        if (storedUser && storedToken && this._token() === storedToken) {
           this.syncSelectedStore(storedUser);
           this._currentUser.set(storedUser);
         }
@@ -96,8 +101,28 @@ export class AuthService {
       );
   }
 
-  private async guardarSesion(token: string, user: User) {
-    this.selectedStoreService.setSelectedStore(null);
+  changePassword(credentials: ChangePasswordCredentials): Observable<ApiStandardResponse<LoginApiResponse>> {
+    return this.http.post<ApiStandardResponse<LoginApiResponse>>(`${this.base}/change-password`, credentials)
+      .pipe(switchMap(response => from(
+        this.guardarSesion(response.data.access_token, response.data.user, false),
+      ).pipe(map(() => response))));
+  }
+
+  requirePasswordChange(): void {
+    this.setPasswordChangeRequired(true);
+  }
+
+  private setPasswordChangeRequired(required: boolean): void {
+    this._mustChangePassword.set(required);
+    if (this.isBrowser) {
+      if (required) sessionStorage.setItem(this.PASSWORD_CHANGE_KEY, 'true');
+      else sessionStorage.removeItem(this.PASSWORD_CHANGE_KEY);
+    }
+  }
+
+  private async guardarSesion(token: string, user: User, resetStore = true) {
+    if (resetStore) this.selectedStoreService.setSelectedStore(null);
+    this.setPasswordChangeRequired(user.mustChangePassword === true);
     const permissions = user.permissions || [];
 
     if (this.isBrowser) {
@@ -123,6 +148,7 @@ export class AuthService {
       this.storageService.removeItem(this.USER_KEY);
     }
     this._token.set(null);
+    this.setPasswordChangeRequired(false);
     this._currentUser.set(null);
     this._permissions.set([]);
 

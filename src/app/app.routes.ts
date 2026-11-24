@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './auth/auth.guard';
 import { repairsGuard } from './repairs/repairs.guard';
 import { salesGuard } from './sales/sales.guard';
 import { catalogsGuard } from './catalogs/catalogs.guard';
@@ -6,10 +7,15 @@ import { productsGuard } from './products/products.guard';
 import { providersGuard } from './providers/providers.guard';
 import { inventoryGuard } from './storage/inventory.guard';
 
+const loadPasswordRecovery = () => import('./auth/pages/password-recovery/password-recovery.component')
+  .then(m => m.PasswordRecoveryComponent);
+
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    canActivate: [authGuard],
+    data: { public: true },
     title: 'Accs Control Cloud | Tu negocio bajo control',
     loadComponent: () =>
       import('./public/pages/landing/landing.component').then(
@@ -18,7 +24,8 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    // canActivate: [guestGuard],
+    canActivate: [authGuard],
+    data: { public: true },
     loadComponent: () =>
       import('./auth/pages/login/login.component').then(
         (m) => m.LoginComponent,
@@ -26,19 +33,50 @@ export const routes: Routes = [
   },
   {
     path: 'request-access',
+    canActivate: [authGuard],
+    data: { public: true },
     loadComponent: () =>
       import('./public/pages/request-access/request-access.component').then(
         (m) => m.RequestAccessComponent,
       ),
   },
   {
+    path: 'forgot-password',
+    title: 'Recuperar contraseña',
+    canActivate: [authGuard],
+    data: { public: true, mode: 'request' },
+    loadComponent: loadPasswordRecovery,
+  },
+  {
+    path: 'reset-password',
+    title: 'Restablecer contraseña',
+    canActivate: [authGuard],
+    data: { public: true, mode: 'reset' },
+    loadComponent: loadPasswordRecovery,
+  },
+  {
+    path: 'change-password',
+    title: 'Cambiar contraseña',
+    canActivate: [authGuard],
+    data: { passwordChange: true },
+    loadComponent: () => import('./auth/pages/change-password/change-password.component')
+      .then(m => m.ChangePasswordComponent),
+  },
+  {
     path: 'app',
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     loadComponent: () =>
       import('./layout/pages/shell/shell.component').then(
         (m) => m.ShellComponent,
       ),
     children: [
+      {
+        path: 'recovery-settings',
+        title: 'Correo de recuperación',
+        data: { mode: 'settings' },
+        loadComponent: loadPasswordRecovery,
+      },
       {
         path: 'catalogs-list', canActivate: [catalogsGuard],
         loadComponent: () => import('./catalogs/pages/catalogs-list/catalogs-list.component').then(m => m.CatalogsListComponent),
@@ -248,4 +286,5 @@ export const routes: Routes = [
       },
     ],
   },
+  { path: '**', redirectTo: '' },
 ];

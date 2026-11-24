@@ -13,7 +13,7 @@ import {
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { NgTemplateOutlet } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { RoutesService } from '../../../shared/services/routes.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -46,6 +46,7 @@ type SidebarEntry =
     RouterOutlet,
     FormsModule,
     RouterLink,
+    RouterLinkActive,
     NgTemplateOutlet,
     BrandComponent,
     CatalogSelectComponent,

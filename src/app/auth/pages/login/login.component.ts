@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { LoginCredentials } from '../../interfaces/login.interface';
 import { RoutesService } from '../../../shared/services/routes.service';
@@ -15,6 +15,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class LoginComponent {
   private readonly routesService = inject(RoutesService);
+  private readonly route = inject(ActivatedRoute);
   readonly error = signal('');
   readonly visible = signal(false);
   readonly authSevice = inject(AuthService);
@@ -41,10 +42,16 @@ export class LoginComponent {
 
     let authenticated = false;
     try {
-      await firstValueFrom(this.authSevice.login(credentials));
+      const { data } = await firstValueFrom(this.authSevice.login(credentials));
       authenticated = true;
       this.form.controls.password.reset();
-      const navigated = await this.routesService.redirectTo(this.routesService.routes.app.start);
+      const fragment = this.route.snapshot.fragment;
+      const verification = fragment && /^[a-f0-9]{64}$/.test(fragment)
+        ? this.routesService.routes.app.recoverySettings + '#' + fragment : null;
+      const destination = data.user.mustChangePassword
+        ? this.routesService.routes.public.changePassword
+        : verification ?? this.routesService.routes.app.start;
+      const navigated = await this.routesService.redirectTo(destination, true);
       if (!navigated) this.error.set('La sesión inició, pero no se pudo abrir tu espacio. Inténtalo nuevamente.');
     } catch (err) {
       this.error.set(authenticated
