@@ -1,0 +1,194 @@
+<app-page-header title="Dashboard y reportes"
+  subtitle="Consulta las operaciones de tu tienda. Los resultados se ajustan a tus permisos." />
+
+@if (data(); as dashboard) {
+  @if (dashboard.platformSummary; as platform) {
+    <section class="kpis" aria-label="Indicadores de plataforma">
+      <article class="card kpi"><span>Tiendas activas</span><strong>{{ platform.activeStores }}</strong></article>
+    </section>
+    <div class="quick-links">
+      <a class="button" [routerLink]="routes.store.list">Tiendas</a>
+      @if (auth.hasPermission("manage_store_owners")) { <a class="button" [routerLink]="routes.owner.list">Dueños</a> }
+      @if (auth.hasPermission("manage_platform_admins")) { <a class="button" [routerLink]="routes.admin.users">Usuarios</a> }
+    </div>
+  }
+  @if (!shellHasSelector() && dashboard.stores.length > 0) {
+    <div class="card filters">
+      <label>Tienda
+        <select [value]="selectedStore() ?? ''" (change)="selectStore($event)">
+          <option value="">Selecciona una tienda</option>
+          @for (store of dashboard.stores; track store.id) {
+            <option [value]="store.id">{{ store.name }}</option>
+          }
+        </select>
+      </label>
+    </div>
+  }
+  @if (!selectedStore()) {
+    @if (!dashboard.platformSummary || dashboard.stores.length) {
+      <app-empty-state title="Selecciona una tienda"
+        description="Los reportes muestran las operaciones de la tienda seleccionada." />
+    }
+  } @else {
+    @if (dashboard.overview; as overview) {
+      <section class="operational" aria-labelledby="overview-heading">
+        <h2 id="overview-heading">Resumen de la tienda</h2>
+        @if (overview.actions.sale || overview.actions.repair || overview.actions.inventory) {
+          <nav class="quick-links" aria-label="Accesos rápidos">
+            @if (overview.actions.sale) { <a class="button primary" [routerLink]="routes.pos">Nueva venta</a> }
+            @if (overview.actions.repair) { <a class="button" [routerLink]="routes.repairs" fragment="recibir-equipo">Registrar reparación</a> }
+            @if (overview.actions.inventory) { <a class="button" [routerLink]="routes.inventory">Consultar inventario</a> }
+          </nav>
+        }
+        <div class="kpis operational-grid">
+          @if (overview.sales; as sales) {
+            <article class="card kpi">
+              <h3>{{ sales.own ? 'Tus ventas de hoy' : 'Hoy en tu tienda' }}</h3>
+              <dl>
+                <div><dt>Ventas completadas</dt><dd>{{ sales.count }}</dd></div>
+                <div><dt>Importe de ventas</dt><dd>{{ display('revenue', sales.revenue, overview.currency) }}</dd></div>
+                @if (sales.grossProfit !== null) {
+                  <div><dt>Utilidad bruta</dt><dd>{{ display('grossProfit', sales.grossProfit, overview.currency) }}</dd></div>
+                }
+              </dl>
+            </article>
+          }
+          @if (overview.repairs; as repairs) {
+            <article class="card kpi">
+              <h3>{{ repairs.own ? 'Tus reparaciones por atender' : 'Reparaciones por atender' }}</h3>
+              <dl>
+                <div>
+                  <dt><a [routerLink]="routes.repairs" [queryParams]="{ queue: 'open' }">Pendientes de entrega</a></dt>
+                  <dd>{{ repairs.count }}</dd>
+                </div>
+                <div>
+                  <dt><a [routerLink]="routes.repairs" [queryParams]="{ queue: 'older' }">Con 7 días o más</a></dt>
+                  <dd>{{ repairs.older }}</dd>
+                </div>
+                @for (state of repairs.states; track state.id) {
+                  <div>
+                    <dt><a [routerLink]="routes.repairs" [queryParams]="{ queue: 'open', repairStateId: state.id }">{{ state.name }}</a></dt>
+                    <dd>{{ state.count }}</dd>
+                  </div>
+                }
+              </dl>
+            </article>
+          }
+          @if (overview.inventory; as inventory) {
+            <article class="card kpi">
+              <h3>Variantes agotadas</h3>
+              <strong>{{ inventory.count }}</strong>
+              @if (inventory.count) {
+                <ul class="stock-items">
+                  @for (item of inventory.items; track item.id) {
+                    <li>{{ item.name }} <small>{{ item.sku }}</small></li>
+                  }
+                </ul>
+              }
+            </article>
+          }
+        </div>
+      </section>
+    }
+  }
+  @if (selectedStore() && !kinds().length) {
+    <app-empty-state title="Sin acceso a reportes"
+      description="Tu rol en esta tienda no tiene permisos de consulta para estos módulos." />
+  } @else if (selectedStore()) {
+    <form class="card filters" [formGroup]="form" (ngSubmit)="load()">
+      <label>Reporte
+        <select formControlName="kind">
+          @for (item of kinds(); track item.kind) {
+            <option [value]="item.kind">{{ item.label }}</option>
+          }
+        </select>
+      </label>
+      @if (form.controls.kind.value !== 'inventory') {
+        <label>Desde <input type="date" formControlName="from" required /></label>
+        <label>Hasta <input type="date" formControlName="to" required /></label>
+      }
+      @if (form.controls.kind.value !== 'repairs') {
+        <label>Categoría actual
+          <select formControlName="categoryId">
+            <option value="">Todas</option>
+            @for (category of dashboard.options?.categories ?? []; track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+      }
+      @if (result()?.canFilterUsers && form.controls.kind.value !== 'inventory') {
+        <label>{{ form.controls.kind.value === 'repairs' ? 'Técnico' : 'Usuario' }}
+          <select formControlName="userId">
+            <option value="">Todos</option>
+            @for (user of dashboard.options?.users ?? []; track user.id) {
+              <option [value]="user.id">{{ user.name }}</option>
+            }
+          </select>
+        </label>
+      }
+      <button class="primary" type="submit" [disabled]="busy() || exporting()">Aplicar filtros</button>
+    </form>
+  }
+}
+
+@if (error()) {
+  <p role="alert" class="error">{{ error() }}</p>
+  @if (!data()) {
+    <button type="button" (click)="load()">Reintentar</button>
+  }
+}
+@if (busy()) {
+  <p role="status">Consultando transacciones…</p>
+}
+@if (result(); as report) {
+  <p>{{ report.store.name }} @if (report.store.currency) { · {{ report.store.currency }} }
+    @if (report.kind !== 'inventory') { · {{ report.period.from }} a {{ report.period.to }} }
+    · {{ report.scope === 'own' ? 'Solo tus operaciones' : 'Tienda autorizada' }}
+  </p>
+  <section class="kpis" aria-label="Indicadores del reporte">
+    @for (entry of summaryEntries(); track entry[0]) {
+      <article class="card kpi">
+        <span>{{ labels[entry[0]] || entry[0] }}</span>
+        <strong>{{ display(entry[0], entry[1]) }}</strong>
+      </article>
+    }
+  </section>
+  @if (report.kind === 'inventory') { <p>Existencias actuales por ubicación.</p> }
+  @if (report.kind === 'repairs') {
+    <p>Expedientes recibidos en el periodo y su estado actual. El importe cotizado no representa ingresos de ventas.</p>
+  }
+  <div class="actions">
+    <p>{{ report.total }} registros</p>
+    <button type="button" (click)="download()" [disabled]="busy() || exporting() || !report.total">
+      {{ exporting() ? 'Exportando…' : 'Exportar CSV para Excel' }}
+    </button>
+  </div>
+  @if (!report.rows.length) {
+    <app-empty-state title="Sin registros para estos filtros"
+      description="Revisa los filtros o la tienda seleccionada." />
+  } @else {
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Resultados del reporte">
+      <table>
+        <thead><tr>
+          @for (column of report.columns; track column) { <th scope="col">{{ labels[column] || column }}</th> }
+        </tr></thead>
+        <tbody>
+          @for (row of report.rows; track row['id']) {
+            <tr>
+              @for (column of report.columns; track column) { <td>{{ display(column, row[column]) }}</td> }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  @if (report.total > report.pageSize) {
+    <nav class="actions" aria-label="Paginación">
+      <button type="button" (click)="load(report.page - 1, true)" [disabled]="busy() || exporting() || report.page === 1">Anterior</button>
+      <span>Página {{ report.page }}</span>
+      <button type="button" (click)="load(report.page + 1, true)"
+        [disabled]="busy() || exporting() || report.page * report.pageSize >= report.total">Siguiente</button>
+    </nav>
+  }
+}

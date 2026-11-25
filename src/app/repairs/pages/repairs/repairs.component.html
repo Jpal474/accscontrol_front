@@ -3,6 +3,11 @@
   <section><p role="status">Selecciona una tienda para consultar sus reparaciones.</p></section>
 } @else {
   <section>
+    @if (queue()) {
+      <p>{{ queue() === 'older' ? 'Sin entregar desde hace 7 días o más' : 'Pendientes de entrega' }}
+        · <a [routerLink]="routes.repairs">Ver todos los expedientes</a>
+      </p>
+    }
     <form (ngSubmit)="load()">
       <label>Buscar por folio, cliente o equipo
         <input name="search" [(ngModel)]="search" maxlength="50" />
@@ -39,7 +44,7 @@
   }
   @if (canManage()) {
     <section>
-      <h2>Recibir equipo</h2>
+      <h2 id="recibir-equipo" tabindex="-1">Recibir equipo</h2>
       @if (lookupError()) { <p class="error" role="alert">{{ lookupError() }}</p> }
       <form class="editor-section" [formGroup]="form" (ngSubmit)="receive()">
         <header class="editor-intro wide"><h3>Datos de recepción</h3></header>

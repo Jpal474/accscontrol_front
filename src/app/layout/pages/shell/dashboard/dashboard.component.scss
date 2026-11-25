@@ -1,0 +1,103 @@
+@use '../../../../../styles/workspace-controls' as controls;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1 1 150px;
+}
+input, select, button {
+  min-height: 44px;
+  max-width: 100%;
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.kpi {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-inline-start: 3px solid var(--accent);
+}
+.kpi span { color: var(--muted); }
+.kpi strong { font-size: 1.5rem; }
+.actions, .quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+.actions { justify-content: space-between; }
+.table-scroll {
+  overflow: auto;
+  max-width: 100%;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.error { color: var(--danger); }
+
+
+.operational {
+  margin-block: 1.5rem;
+}
+
+.operational-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+}
+
+.operational-grid .kpi {
+  align-content: start;
+}
+
+.kpi h3, .kpi dl, .kpi dd {
+  margin: 0;
+}
+
+.kpi dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.35rem;
+}
+
+.kpi dd {
+  font-weight: 700;
+}
+
+.stock-items {
+  margin-block: 0;
+  padding-inline-start: 1rem;
+}
+
+.stock-items small {
+  color: var(--muted);
+}
+
+@include controls.page;

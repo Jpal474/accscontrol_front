@@ -45,9 +45,9 @@ export class RepairsService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}repairs`;
 
-  list(page: number, search: string, technicianId?: string) {
+  list(page: number, search: string, technicianId?: string, filters: { queue?: 'open' | 'older'; repairStateId?: string } = {}) {
     const path = technicianId ? `${encodeURIComponent(technicianId)}/list/own` : 'list';
-    return this.http.get<ApiStandardResponse<Repair[]>>(`${this.base}/${path}`, { params: { page, pageSize: 20, search } });
+    return this.http.get<ApiStandardResponse<Repair[]>>(`${this.base}/${path}`, { params: { page, pageSize: 20, search, ...(filters.queue ? { queue: filters.queue } : {}), ...(filters.repairStateId ? { repairStateId: filters.repairStateId } : {}) } });
   }
 
   options(kind: 'clients' | 'technicians' | 'models', { page, pageSize, search }: CatalogRequest) {

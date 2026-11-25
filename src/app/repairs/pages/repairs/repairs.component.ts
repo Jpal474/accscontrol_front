@@ -1,7 +1,7 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, afterNextRender, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, Subject, catchError, combineLatest, finalize, startWith, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../../auth/services/auth.service';
 import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
@@ -23,6 +23,8 @@ export class RepairsComponent {
   private readonly service = inject(RepairsService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  readonly queue = signal<string | null>(null);
   private readonly destroyRef = inject(DestroyRef);
   readonly store = inject(SelectedStoreService);
   readonly routes = inject(RoutesService).routes.app;
@@ -70,9 +72,16 @@ export class RepairsComponent {
   });
 
   constructor() {
+    if (this.route.snapshot.fragment === 'recibir-equipo') {
+      afterNextRender(() => document.getElementById('recibir-equipo')?.focus());
+    }
     const storeChanges = toObservable(this.store.selectedStoreId);
-    combineLatest([storeChanges, toObservable(this.ownTechnician)]).pipe(
-      switchMap(([storeId, technicianId]) => {
+    combineLatest([storeChanges, toObservable(this.ownTechnician), this.route.queryParamMap]).pipe(
+      switchMap(([storeId, technicianId, params]) => {
+        const queueParam = params.get('queue');
+        const queue = queueParam === 'open' || queueParam === 'older' ? queueParam : undefined;
+        const repairStateId = queue ? params.get('repairStateId') ?? undefined : undefined;
+        this.queue.set(queue ?? null);
         this.rows.set([]);
         this.error.set('');
         this.page.set(1);
@@ -82,7 +91,7 @@ export class RepairsComponent {
         return this.requests.pipe(startWith({ page: 1, search: this.appliedSearch }), switchMap(request => {
           this.loading.set(true);
           this.error.set('');
-          return this.service.list(request.page, request.search, technicianId).pipe(
+          return this.service.list(request.page, request.search, technicianId, { queue, repairStateId }).pipe(
             tap(({ data, meta }) => { this.rows.set(data); this.page.set(request.page); this.pages.set(meta?.totalPages ?? 1); this.total.set(meta?.total ?? data.length); }),
             catchError(() => { this.error.set('No se pudieron cargar las reparaciones.'); return EMPTY; }),
             finalize(() => this.loading.set(false)),

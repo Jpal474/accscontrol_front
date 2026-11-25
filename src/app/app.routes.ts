@@ -72,6 +72,13 @@ export const routes: Routes = [
       ),
     children: [
       {
+        path: '',
+        pathMatch: 'full',
+        title: 'Dashboard y reportes',
+        loadComponent: () => import('./layout/pages/shell/dashboard/dashboard.component')
+          .then(m => m.DashboardComponent),
+      },
+      {
         path: 'recovery-settings',
         title: 'Correo de recuperación',
         data: { mode: 'settings' },
