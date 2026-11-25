@@ -9,6 +9,7 @@ export interface PlatformUser {
   lastName: string;
   email: string;
   isActive: boolean;
+  recoveryEmailVerified?: boolean;
   globalRole?: { id: string; name: string } | null;
   storeStaff?: { id: string; role: { id: string; name: string } | null; store?: { id: string; name: string } | null }[];
 }

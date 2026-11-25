@@ -25,6 +25,8 @@ export interface UserDetails {
   lastName: string;
   email: string;
   phone?: string | null;
+  isActive?: boolean;
+  recoveryEmailVerified?: boolean;
 }
 
 export interface StoreStaffItem {

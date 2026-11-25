@@ -34,6 +34,7 @@
           @if (actions().length) {
             <td class="row-actions">
               @for (action of actions(); track action.key) {
+                @if (!row[action.key + 'Hidden']) {
                 <button
                   type="button"
                   class="primary"
@@ -43,6 +44,7 @@
                 >
                   {{ action.label }}
                 </button>
+                }
               }
             </td>
           }

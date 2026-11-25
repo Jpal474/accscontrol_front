@@ -1,4 +1,6 @@
-﻿import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
+﻿import { AssistedRecoveryDialogComponent } from '../../../auth/components/assisted-recovery-dialog/assisted-recovery-dialog.component';
+import { AuthService } from '../../../auth/services/auth.service';
+import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,10 +15,12 @@ import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-admins-list', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
+  imports: [AssistedRecoveryDialogComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
   templateUrl: './admins-list.component.html', styleUrl: './admins-list.component.scss',
 })
 export class AdminsListComponent {
+  readonly assistedRecovery = viewChild.required(AssistedRecoveryDialogComponent);
+  private readonly auth = inject(AuthService);
   private readonly service = inject(AdminService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -36,9 +40,12 @@ export class AdminsListComponent {
     { key: 'name', label: 'Nombre' }, { key: 'lastName', label: 'Apellidos' },
     { key: 'email', label: 'Correo' }, { key: 'status', label: 'Estatus' },
   ];
-  readonly actions = [{ key: 'activate', label: 'Activar' }, { key: 'deactivate', label: 'Desactivar' }];
+  readonly actions = [{ key: 'activate', label: 'Activar' }, { key: 'deactivate', label: 'Desactivar' },
+    { key: 'recover', label: 'Restablecer acceso' }];
   readonly rows = computed(() => this.admins().map(admin => ({
-    ...admin, status: admin.isActive ? 'Activo' : 'Inactivo',
+    ...admin, recoverHidden: !this.auth.currentUser() || this.auth.currentUser()?.id === admin.id
+      || !admin.isActive || admin.recoveryEmailVerified,
+    status: admin.isActive ? 'Activo' : 'Inactivo',
     activateDisabled: admin.isActive || this.busy(), deactivateDisabled: !admin.isActive || this.busy(),
   })));
   readonly confirmationMessage = computed(() => {
@@ -73,7 +80,12 @@ export class AdminsListComponent {
   load(page = this.page()) { this.page.set(page); this.reload.next(); }
   clearFilters() { this.form.reset(); }
   handleAction(event: { action: string; row: Record<string, any> }) {
-    if (this.busy() || !['activate', 'deactivate'].includes(event.action)) return;
+    if (this.busy()) return;
+    if (event.action === 'recover') {
+      void this.assistedRecovery().open(event.row['id']);
+      return;
+    }
+    if (!['activate', 'deactivate'].includes(event.action)) return;
     const admin = this.admins().find(admin => admin.id === event.row['id']);
     const isActive = event.action === 'activate';
     if (!admin || admin.isActive === isActive) return;

@@ -1,4 +1,6 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { AssistedRecoveryDialogComponent } from '../../../auth/components/assisted-recovery-dialog/assisted-recovery-dialog.component';
+import { AuthService } from '../../../auth/services/auth.service';
+import { viewChild, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table.component';
@@ -25,6 +27,7 @@ import { ToastService } from '../../../shared/services/toast.service';
   selector: 'app-store-owners-list',
   standalone: true,
   imports: [
+    AssistedRecoveryDialogComponent,
     CommonModule,
     DataTableComponent,
     SkeletonComponent,
@@ -35,6 +38,8 @@ import { ToastService } from '../../../shared/services/toast.service';
   styleUrl: './owners-list.component.scss',
 })
 export class OwnersListComponent implements OnInit {
+  readonly assistedRecovery = viewChild.required(AssistedRecoveryDialogComponent);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly storesService = inject(StoreService);
   readonly routesService = inject(RoutesService);
@@ -51,6 +56,7 @@ export class OwnersListComponent implements OnInit {
   public actions = [
     { key: 'edit', label: 'Editar' },
     { key: 'toggle', label: 'Cambiar Estado', disable: false },
+    { key: 'recover', label: 'Restablecer acceso' },
   ];
   readonly owners = signal<OwnersListApiResponse[]>([]);
   readonly busy = signal<boolean>(false);
@@ -118,6 +124,7 @@ export class OwnersListComponent implements OnInit {
 
       return {
         ...owner,
+        recoverHidden: !this.auth.hasPermission('manage_platform_admins') || !owner.isActive || owner.recoveryEmailVerified,
         statusLabel: owner.isActive ? 'Activo' : 'Inactivo',
         // Guardamos un booleano listo para usarse en la tabla
         disableAction: hasNoStores,
@@ -137,7 +144,9 @@ export class OwnersListComponent implements OnInit {
   handleRowAction(event: { action: string; row: Record<string, any> }) {
     const { action, row } = event;
 
-    if (action === 'edit') {
+    if (action === 'recover') {
+      void this.assistedRecovery().open(row['id']);
+    } else if (action === 'edit') {
       this.editOwner(row);
     } else if (action === 'toggle') {
       console.log('toggle');

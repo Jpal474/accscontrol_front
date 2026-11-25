@@ -25,8 +25,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       const recovery = req.url.startsWith(`${environment.apiUrl}auth/`)
         && /\/(forgot-password|reset-password|recovery-email(?:\/confirm)?)$/.test(req.url);
-      if ((passwordChange || recovery) && error.status !== 401) {
-        const message = [400, 429].includes(error.status) ? error.error?.message : undefined;
+      const assistedRecovery = req.url.startsWith(`${environment.apiUrl}auth/assisted-recovery/`);
+      if ((passwordChange || recovery || assistedRecovery) && error.status !== 401) {
+        const message = [400, 403, 409, 429].includes(error.status) ? error.error?.message : undefined;
         return throwError(() => new Error(
           (Array.isArray(message) ? message.join(' ') : message)
             || 'No se pudo cambiar tu contraseña. Inténtalo nuevamente.',

@@ -1,0 +1,43 @@
+<dialog #dialog aria-label="Restablecer acceso" (cancel)="onCancel($event)" (close)="onClose()">
+  <h2>Restablecer acceso</h2>
+  @if (loading()) {
+    <p role="status">Comprobando los datos de la cuenta…</p>
+  }
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (sent()) {
+    <p role="status">Enviamos un enlace de un solo uso al correo registrado. Vence en 15 minutos.</p>
+  }
+  @if (!sent() && preview(); as account) {
+    <p>El titular recibirá un enlace en <strong>{{ account.email }}</strong> para elegir su nueva contraseña.</p>
+    @if (account.multipleStores) {
+      <p>Esta cuenta tiene acceso a varias tiendas. Al cambiar la contraseña, se cerrarán sus sesiones en todas ellas.</p>
+    }
+    <form [formGroup]="form" (ngSubmit)="send()">
+      <label class="identity">
+        <input type="checkbox" formControlName="verified" />
+        Confirmo que verifiqué la identidad del titular.
+      </label>
+      @if (form.controls.verified.touched && form.controls.verified.invalid) {
+        <small class="error">Confirma que verificaste su identidad.</small>
+      }
+      <label class="field">
+        Tu contraseña actual
+        <input type="password" autocomplete="current-password" formControlName="currentPassword" required />
+      </label>
+      @if (form.controls.currentPassword.touched && form.controls.currentPassword.invalid) {
+        <small class="error">Ingresa tu contraseña actual.</small>
+      }
+      <div class="actions">
+        <button type="button" [disabled]="sending()" (click)="close()">Cancelar</button>
+        <button type="submit" class="primary" [disabled]="sending()">
+          {{ sending() ? 'Enviando…' : 'Enviar enlace' }}
+        </button>
+      </div>
+    </form>
+  }
+  @if (!preview() || sent()) {
+    <div class="actions"><button type="button" (click)="close()">Cerrar</button></div>
+  }
+</dialog>

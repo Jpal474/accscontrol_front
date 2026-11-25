@@ -35,6 +35,7 @@ export interface GetOwnerApiResponse {
 
 export interface OwnersListApiResponse extends GetOwnerApiResponse {
   isActive: boolean;
+  recoveryEmailVerified?: boolean;
   storesCount: number;
   stores: {
     id: string;

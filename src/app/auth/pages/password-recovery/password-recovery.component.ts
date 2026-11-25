@@ -18,7 +18,9 @@ export class PasswordRecoveryComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly base = `${environment.apiUrl}auth`;
   readonly mode: 'request' | 'reset' | 'settings' = this.route.snapshot.data['mode'];
-  readonly token = this.route.snapshot.fragment;
+  private readonly fragment = this.route.snapshot.fragment;
+  readonly assisted = this.fragment?.startsWith('assisted-') === true;
+  readonly token = this.assisted ? this.fragment?.slice('assisted-'.length) : this.fragment;
   readonly rules = passwordRules;
   readonly busy = signal(false);
   readonly error = signal('');

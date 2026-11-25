@@ -23,3 +23,4 @@
   }
 </section>
 <app-confirm-dialog title="Cambiar estado del administrador" [message]="confirmationMessage()" [confirmLabel]="pending()?.isActive ? 'Activar' : 'Desactivar'" (confirmed)="changeStatus()" />
+<app-assisted-recovery-dialog />

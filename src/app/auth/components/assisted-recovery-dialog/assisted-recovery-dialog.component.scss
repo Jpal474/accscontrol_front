@@ -1,0 +1,16 @@
+dialog {
+  width: min(480px, calc(100% - 2rem));
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+dialog::backdrop { background: rgb(0 0 0 / 55%); }
+h2 { margin-top: 0; }
+form, .field { display: grid; gap: 0.75rem; }
+.identity, .actions { display: flex; align-items: center; gap: 0.5rem; }
+.identity input { width: auto; min-height: 0; }
+.actions { justify-content: flex-end; margin-top: 0.5rem; }
+.error { color: var(--danger); }
