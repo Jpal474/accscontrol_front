@@ -98,7 +98,7 @@ export class ShellComponent implements OnInit {
       related: [routes.sales.history, routes.sales.detail('')] });
     link({ label: 'Clientes', icon: 'contacts', path: routes.client.list, visible: can('view_clients'),
       related: [routes.client.register, routes.client.edit('')] });
-    group('inventory', 'Productos e inventario', 'inventory_2', [
+    if (!this.authSevice.isPlatformAdmin()) group('inventory', 'Productos e inventario', 'inventory_2', [
       { label: 'Productos', icon: 'category', path: routes.product.list, visible: can('view_products'),
         related: [routes.product.register, routes.product.edit(''), routes.product.detail(''), routes.product.options] },
       { label: 'Accesorios por celular', icon: 'smartphone', path: routes.product.compatibilities, visible: this.authSevice.isAuthenticated() },

@@ -1,11 +1,6 @@
+import { permissionsGuard } from './auth/permissions.guard';
+import { MANAGED_CATALOGS } from './catalogs/interfaces/catalog.interface';
 import { Routes } from '@angular/router';
-import { authGuard } from './auth/auth.guard';
-import { repairsGuard } from './repairs/repairs.guard';
-import { salesGuard } from './sales/sales.guard';
-import { catalogsGuard } from './catalogs/catalogs.guard';
-import { productsGuard } from './products/products.guard';
-import { providersGuard } from './providers/providers.guard';
-import { inventoryGuard } from './storage/inventory.guard';
 
 const loadPasswordRecovery = () => import('./auth/pages/password-recovery/password-recovery.component')
   .then(m => m.PasswordRecoveryComponent);
@@ -14,7 +9,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    canActivate: [authGuard],
+    canActivate: [permissionsGuard],
     data: { public: true },
     title: 'Accs Control Cloud | Tu negocio bajo control',
     loadComponent: () =>
@@ -24,7 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    canActivate: [authGuard],
+    canActivate: [permissionsGuard],
     data: { public: true },
     loadComponent: () =>
       import('./auth/pages/login/login.component').then(
@@ -33,7 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'request-access',
-    canActivate: [authGuard],
+    canActivate: [permissionsGuard],
     data: { public: true },
     loadComponent: () =>
       import('./public/pages/request-access/request-access.component').then(
@@ -43,29 +38,29 @@ export const routes: Routes = [
   {
     path: 'forgot-password',
     title: 'Recuperar contraseña',
-    canActivate: [authGuard],
+    canActivate: [permissionsGuard],
     data: { public: true, mode: 'request' },
     loadComponent: loadPasswordRecovery,
   },
   {
     path: 'reset-password',
     title: 'Restablecer contraseña',
-    canActivate: [authGuard],
+    canActivate: [permissionsGuard],
     data: { public: true, mode: 'reset' },
     loadComponent: loadPasswordRecovery,
   },
   {
     path: 'change-password',
     title: 'Cambiar contraseña',
-    canActivate: [authGuard],
+    canActivate: [permissionsGuard],
     data: { passwordChange: true },
     loadComponent: () => import('./auth/pages/change-password/change-password.component')
       .then(m => m.ChangePasswordComponent),
   },
   {
     path: 'app',
-    canActivate: [authGuard],
-    canActivateChild: [authGuard],
+    canActivate: [permissionsGuard],
+    canActivateChild: [permissionsGuard],
     loadComponent: () =>
       import('./layout/pages/shell/shell.component').then(
         (m) => m.ShellComponent,
@@ -85,11 +80,11 @@ export const routes: Routes = [
         loadComponent: loadPasswordRecovery,
       },
       {
-        path: 'catalogs-list', canActivate: [catalogsGuard],
+        path: 'catalogs-list', data: { permissions: MANAGED_CATALOGS.map(catalog => catalog.permission) },
         loadComponent: () => import('./catalogs/pages/catalogs-list/catalogs-list.component').then(m => m.CatalogsListComponent),
       },
       {
-        path: 'register-catalogs', canActivate: [catalogsGuard],
+        path: 'register-catalogs', data: { permissions: MANAGED_CATALOGS.map(catalog => catalog.permission) },
         loadComponent: () => import('./catalogs/pages/register-catalogs/register-catalogs.component').then(m => m.RegisterCatalogsComponent),
       },
       {
@@ -98,6 +93,7 @@ export const routes: Routes = [
       },
       {
         path: 'register-store',
+        data: { permissions: ['manage_store'] },
         loadComponent: () =>
           import('./store/pages/register-store/register-store.component').then(
             (m) => m.RegisterStoreComponent,
@@ -105,6 +101,7 @@ export const routes: Routes = [
       },
       {
         path: 'edit-store/:storeId',
+        data: { permissions: ['manage_store'] },
         loadComponent: () =>
           import('./store/pages/register-store/register-store.component').then(
             (m) => m.RegisterStoreComponent,
@@ -112,6 +109,7 @@ export const routes: Routes = [
       },
       {
         path: 'stores-list',
+        data: { permissions: ['manage_store', 'view_all_stores'] },
         loadComponent: () =>
           import('./store/pages/stores-list/stores-list.component').then(
             (m) => m.StoresListComponent,
@@ -119,6 +117,7 @@ export const routes: Routes = [
       },
       {
         path: 'register-owner',
+        data: { permissions: ['manage_store_owners'] },
         loadComponent: () =>
           import('./store/pages/register-owner/register-owner.component').then(
             (m) => m.RegisterOwnerComponent,
@@ -126,6 +125,7 @@ export const routes: Routes = [
       },
       {
         path: 'edit-owner/:ownerId',
+        data: { permissions: ['manage_store_owners'] },
         loadComponent: () =>
           import('./store/pages/register-owner/register-owner.component').then(
             (m) => m.RegisterOwnerComponent,
@@ -133,6 +133,7 @@ export const routes: Routes = [
       },
       {
         path: 'owners-list',
+        data: { permissions: ['manage_store_owners'] },
         loadComponent: () =>
           import('./store/pages/owners-list/owners-list.component').then(
             (m) => m.OwnersListComponent,
@@ -140,6 +141,7 @@ export const routes: Routes = [
       },
       {
         path: 'register-staff',
+        data: { permissions: ['manage_staff'] },
         loadComponent: () =>
           import('./staff/pages/register-staff/register-staff.component').then(
             (m) => m.RegisterStaffComponent,
@@ -147,6 +149,7 @@ export const routes: Routes = [
       },
       {
         path: 'edit-staff/:staffId',
+        data: { permissions: ['manage_staff'] },
         loadComponent: () =>
           import('./staff/pages/register-staff/register-staff.component').then(
             (m) => m.RegisterStaffComponent,
@@ -154,6 +157,7 @@ export const routes: Routes = [
       },
       {
         path: 'staff-list',
+        data: { permissions: ['view_staff'] },
         loadComponent: () =>
           import('./staff/pages/staff-list/staff-list.component').then(
             (m) => m.StaffListComponent,
@@ -162,29 +166,27 @@ export const routes: Routes = [
       {
         path: 'providers-list',
         title: 'Proveedores',
-        canActivate: [providersGuard],
-        data: { permission: 'view_providers' },
+        data: { permissions: ['view_providers'] },
         loadComponent: () => import('./providers/pages/providers-list/providers-list.component')
           .then(m => m.ProvidersListComponent),
       },
       {
         path: 'register-provider',
         title: 'Registrar proveedor',
-        canActivate: [providersGuard],
-        data: { permission: 'manage_providers' },
+        data: { permissions: ['manage_providers'] },
         loadComponent: () => import('./providers/pages/register-provider/register-provider.component')
           .then(m => m.RegisterProviderComponent),
       },
       {
         path: 'edit-provider/:providerId',
         title: 'Editar proveedor',
-        canActivate: [providersGuard],
-        data: { permission: 'manage_providers' },
+        data: { permissions: ['manage_providers'] },
         loadComponent: () => import('./providers/pages/register-provider/register-provider.component')
           .then(m => m.RegisterProviderComponent),
       },
       {
         path: 'clients-list',
+        data: { permissions: ['view_clients'] },
         loadComponent: () =>
           import('./clients/pages/client-list/client-list.component').then(
             (m) => m.ClientListComponent,
@@ -192,6 +194,7 @@ export const routes: Routes = [
       },
       {
         path: 'register-clients',
+        data: { permissions: ['manage_clients'] },
         loadComponent: () =>
           import('./clients/pages/register-client/register-client.component').then(
             (m) => m.RegisterClientComponent,
@@ -199,48 +202,45 @@ export const routes: Routes = [
       },
       {
         path: 'edit-client/:clientId',
+        data: { permissions: ['manage_clients'] },
         loadComponent: () => import('./clients/pages/register-client/register-client.component').then(m => m.RegisterClientComponent),
       },
       {
         path: 'reports',
         title: 'Reportes de ventas',
-        canActivate: [salesGuard],
         data: { permissions: ['manage_store'] },
         loadComponent: () => import('./sales/pages/sales-reports/sales-reports.component').then(m => m.SalesReportsComponent),
       },
       {
         path: 'pos',
-        canActivate: [salesGuard],
         data: { permissions: ['create_sale'] },
         loadComponent: () => import('./sales/pages/checkout/checkout.component').then(m => m.CheckoutComponent),
       },
       {
         path: 'pos/sales',
-        canActivate: [salesGuard],
         data: { permissions: ['view_all_sales', 'view_own_sales'] },
         loadComponent: () => import('./sales/pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
       },
       {
         path: 'pos/sales/:saleId',
-        canActivate: [salesGuard],
         data: { permissions: ['view_all_sales', 'view_own_sales'] },
         loadComponent: () => import('./sales/pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
       },
       {
         path: 'repairs',
         title: 'Reparaciones',
-        canActivate: [repairsGuard],
+        data: { permissions: ['view_repairs', 'view_own_repairs', 'manage_repairs'] },
         loadComponent: () => import('./repairs/pages/repairs/repairs.component').then(m => m.RepairsComponent),
       },
       {
         path: 'repairs/:repairId',
         title: 'Expediente de reparación',
-        canActivate: [repairsGuard],
+        data: { permissions: ['view_repairs', 'view_own_repairs', 'manage_repairs'] },
         loadComponent: () => import('./repairs/pages/repair-detail/repair-detail.component').then(m => m.RepairDetailComponent),
       },
       {
         path: 'inventory',
-        canActivate: [inventoryGuard],
+        data: { storeOperationsOnly: true, permissions: ['view_inventory'] },
         loadComponent: () =>
           import('./storage/pages/inventory/inventory.component').then(
             (m) => m.InventoryComponent,
@@ -249,13 +249,13 @@ export const routes: Routes = [
       {
         path: 'compabilities-list',
         title: 'Accesorios por celular',
-        canActivate: [productsGuard], data: { authenticatedOnly: true },
+        data: { storeOperationsOnly: true },
         loadComponent: () => import('./products/pages/compabilities-list/compabilities-list.component')
           .then(m => m.CompabilitiesListComponent),
       },
       {
         path: 'products-list',
-        canActivate: [productsGuard], data: { permission: 'view_products' },
+        data: { storeOperationsOnly: true, permissions: ['view_products'] },
         loadComponent: () =>
           import('./products/pages/products-list/products-list.component').then(
             (m) => m.ProductsListComponent,
@@ -263,7 +263,7 @@ export const routes: Routes = [
       },
       {
         path: 'register-product',
-        canActivate: [productsGuard], data: { permission: 'manage_products' },
+        data: { storeOperationsOnly: true, permissions: ['manage_products'] },
         loadComponent: () =>
           import('./products/pages/register-product/register-product.component').then(
             (m) => m.RegisterProductComponent,
@@ -271,12 +271,12 @@ export const routes: Routes = [
       },
       {
         path: 'edit-product/:id',
-        canActivate: [productsGuard], data: { permission: 'manage_products' },
+        data: { storeOperationsOnly: true, permissions: ['manage_products'] },
         loadComponent: () => import('./products/pages/register-product/register-product.component').then(m => m.RegisterProductComponent),
       },
       {
         path: 'product-detail/:id',
-        canActivate: [productsGuard], data: { permission: 'view_products' },
+        data: { storeOperationsOnly: true, permissions: ['view_products'] },
         loadComponent: () =>
           import('./products/pages/product-detail/product-detail.component').then(
             (m) => m.ProductDetailComponent,
@@ -284,8 +284,7 @@ export const routes: Routes = [
       },
       {
         path: 'catalog/options',
-        // canActivate: [permissionGuard],
-        // data: { permission: 'catalog.manage' },
+        data: { storeOperationsOnly: true },
         loadComponent: () =>
           import('./products/pages/catalog-lookups/catalog-lookups.component').then(
             (m) => m.CatalogLookupsComponent,

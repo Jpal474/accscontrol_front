@@ -45,6 +45,10 @@ export class AuthService {
 
   private readonly _mustChangePassword = signal(false);
   readonly mustChangePassword = this._mustChangePassword.asReadonly();
+  readonly isPlatformAdmin = computed(() =>
+    this._currentUser()?.globalRole?.trim().toLowerCase() === 'platform admin'
+    || this._permissions().includes('manage_platform_admins'),
+  );
   readonly token = this._token.asReadonly();
   readonly currentUser = this._currentUser.asReadonly();
   readonly permissions = this._permissions.asReadonly();

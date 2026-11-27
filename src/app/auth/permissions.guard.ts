@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { RoutesService } from '../shared/services/routes.service';
 import { AuthService } from './services/auth.service';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const permissionsGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const navigation = inject(RoutesService);
@@ -26,5 +26,9 @@ export const authGuard: CanActivateFn = (route, state) => {
     return router.parseUrl(navigation.homeFor(auth.permissions()));
   }
 
-  return true;
+  if (route.data['storeOperationsOnly'] && auth.isPlatformAdmin()) return router.parseUrl(navigation.routes.app.start);
+
+  const required: readonly string[] = route.data['permissions'] ?? [];
+  return !required.length || required.some(permission => auth.hasPermission(permission))
+    || router.parseUrl(navigation.routes.app.start);
 };

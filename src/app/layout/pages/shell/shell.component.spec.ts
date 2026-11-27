@@ -27,7 +27,7 @@ describe('ShellComponent navigation', () => {
           ] },
         ]),
         { provide: AuthService, useValue: {
-          currentUser: signal(null), isAuthenticated: signal(true),
+          currentUser: signal(null), isAuthenticated: signal(true), isPlatformAdmin: signal(false),
           hasPermission: (permission: string) => permissions.has(permission),
         } },
         { provide: StoreService, useValue: {} },
