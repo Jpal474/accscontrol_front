@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { faqData, features, problems } from './landing.data';
 import { RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ import { PublicService } from '../../services/public.service';
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [InputComponent, RouterLink, ReactiveFormsModule],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })

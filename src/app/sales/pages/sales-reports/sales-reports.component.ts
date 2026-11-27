@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -15,7 +16,7 @@ import { ReportPeriod, SalesReports, SalesService } from '../../sales.service';
 @Component({
   selector: 'app-sales-reports',
   standalone: true,
-  imports: [ReactiveFormsModule, DecimalPipe, PageHeaderComponent, SkeletonComponent],
+  imports: [InputComponent, ReactiveFormsModule, DecimalPipe, PageHeaderComponent, SkeletonComponent],
   templateUrl: './sales-reports.component.html',
   styleUrl: './sales-reports.component.scss',
 })

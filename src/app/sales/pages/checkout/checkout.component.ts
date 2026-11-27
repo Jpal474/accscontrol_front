@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, DestroyRef, ElementRef, HostListener, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -23,11 +25,13 @@ interface CartLine {
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageHeaderComponent],
+  imports: [PaginationComponent, InputComponent, FormsModule, RouterLink, PageHeaderComponent],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.scss',
 })
 export class CheckoutComponent {
+  pageSize = 20;
+  changePageSize(size: number) { this.pageSize = size; this.search(1); }
   private readonly service = inject(SalesService);
   private readonly productsService = inject(ProductsService);
   private readonly destroyRef = inject(DestroyRef);
@@ -99,7 +103,7 @@ export class CheckoutComponent {
           this.loading.set(true);
           this.searchError.set('');
           this.results.set([]);
-          return this.service.products(text, page).pipe(
+          return this.service.products(text, page, this.pageSize).pipe(
             tap(({ data, meta }) => {
               this.results.set(data);
               this.page.set(page);

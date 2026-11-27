@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -8,7 +9,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   standalone: true,
   selector: 'app-change-password',
-  imports: [ReactiveFormsModule],
+  imports: [InputComponent, ReactiveFormsModule],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.scss',
 })

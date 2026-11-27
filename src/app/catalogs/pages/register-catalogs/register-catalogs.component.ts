@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,7 +13,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { CatalogSelectComponent } from '../../../shared/components/catalog-select/catalog-select.component';
 import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
 @Component({ selector: 'app-register-catalogs', standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, CatalogSelectComponent],
+  imports: [InputComponent, FormsModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, CatalogSelectComponent],
   templateUrl: './register-catalogs.component.html', styleUrl: './register-catalogs.component.scss' })
 export class RegisterCatalogsComponent {
   private readonly service = inject(CatalogsService);

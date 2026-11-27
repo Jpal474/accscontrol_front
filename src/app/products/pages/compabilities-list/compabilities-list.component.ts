@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -10,7 +11,7 @@ import { formatProductMoney } from '../../utils/product-money';
 @Component({
   selector: 'app-compabilities-list',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent],
+  imports: [InputComponent, ReactiveFormsModule, PageHeaderComponent],
   templateUrl: './compabilities-list.component.html',
   styleUrl: './compabilities-list.component.scss',
 })

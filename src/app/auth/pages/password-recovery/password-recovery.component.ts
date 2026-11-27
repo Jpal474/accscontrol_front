@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,7 +10,7 @@ import { passwordRules, passwordValidators } from '../../password-policy';
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [InputComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './password-recovery.component.html',
   styleUrl: '../change-password/change-password.component.scss',
 })

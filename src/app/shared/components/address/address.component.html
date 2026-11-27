@@ -4,7 +4,7 @@
     <!-- Calle -->
     <label [for]="prefix() + '-street'">
       Calle
-      <input
+      <input appInput
         [id]="prefix() + '-street'"
         formControlName="street"
         autocomplete="address-line1"
@@ -16,7 +16,7 @@
     <!-- Número exterior -->
     <label [for]="prefix() + '-externalNumber'">
       Núm. Exterior
-      <input
+      <input appInput
         [id]="prefix() + '-externalNumber'"
         formControlName="externalNumber"
         placeholder="123"
@@ -27,7 +27,7 @@
     <!-- Número interior -->
     <label [for]="prefix() + '-internalNumber'">
       Núm. Interior (Opcional)
-      <input
+      <input appInput
         [id]="prefix() + '-internalNumber'"
         formControlName="internalNumber"
         placeholder="Depto 4B"
@@ -37,7 +37,7 @@
     <!-- Colonia / Barrio -->
     <label [for]="prefix() + '-neighborhood'">
       Colonia
-      <input
+      <input appInput
         [id]="prefix() + '-neighborhood'"
         formControlName="neighborhood"
         placeholder="Centro"
@@ -48,7 +48,7 @@
     <!-- Código Postal -->
     <label [for]="prefix() + '-postal'">
       Código postal
-      <input
+      <input appInput
         [id]="prefix() + '-postal'"
         formControlName="postalCode"
         autocomplete="postal-code"

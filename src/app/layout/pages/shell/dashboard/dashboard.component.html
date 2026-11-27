@@ -104,8 +104,8 @@
         </select>
       </label>
       @if (form.controls.kind.value !== 'inventory') {
-        <label>Desde <input type="date" formControlName="from" required /></label>
-        <label>Hasta <input type="date" formControlName="to" required /></label>
+        <label>Desde <input appInput type="date" formControlName="from" required /></label>
+        <label>Hasta <input appInput type="date" formControlName="to" required /></label>
       }
       @if (form.controls.kind.value !== 'repairs') {
         <label>Categoría actual
@@ -183,12 +183,6 @@
       </table>
     </div>
   }
-  @if (report.total > report.pageSize) {
-    <nav class="actions" aria-label="Paginación">
-      <button type="button" (click)="load(report.page - 1, true)" [disabled]="busy() || exporting() || report.page === 1">Anterior</button>
-      <span>Página {{ report.page }}</span>
-      <button type="button" (click)="load(report.page + 1, true)"
-        [disabled]="busy() || exporting() || report.page * report.pageSize >= report.total">Siguiente</button>
-    </nav>
-  }
+  <app-pagination label="Paginación de resultados" [page]="report.page" [totalPages]="totalReportPages(report.total, report.pageSize)" [total]="report.total"
+    [pageSize]="pageSize" [disabled]="busy() || exporting()" (pageChange)="load($event, true)" (pageSizeChange)="changePageSize($event)" />
 }

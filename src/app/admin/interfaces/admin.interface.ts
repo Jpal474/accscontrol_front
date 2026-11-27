@@ -16,14 +16,18 @@ export interface PlatformUser {
 
 export interface PlatformUsersQuery {
   page?: number;
+  pageSize?: number;
   search?: string;
   roleId?: string;
   storeId?: string;
 }
+
+export type AdminStatus = 'active' | 'inactive';
 
 export interface PlatformAdminsQuery {
   page?: number;
   pageSize?: number;
   email?: string;
   search?: string;
+  status?: AdminStatus;
 }

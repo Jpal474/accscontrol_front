@@ -26,7 +26,7 @@
           <div class="form-grid">
             <label>
               Nombre del producto
-              <input formControlName="name" maxlength="100" required />
+              <input appInput formControlName="name" maxlength="100" required />
             </label>
             <label>
               Estado del producto
@@ -57,10 +57,10 @@
               </select>
             </label>
             <label>Precio base {{ currencySymbol() }} ({{ currency()?.code }})
-              <input formControlName="price" inputmode="decimal" placeholder="199.00" required />
+              <input appInput formControlName="price" inputmode="decimal" placeholder="199.00" required />
             </label>
             <label>Precio de compra {{ currencySymbol() }}
-              <input formControlName="purchasePrice" inputmode="decimal" placeholder="0.00"
+              <input appInput formControlName="purchasePrice" inputmode="decimal" placeholder="0.00"
                 [attr.aria-invalid]="form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid"
                 [attr.aria-describedby]="form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid ? 'purchase-price-error' : null" />
               @if (form.controls.purchasePrice.touched && form.controls.purchasePrice.invalid) {
@@ -74,7 +74,7 @@
           </label>
           <div class="product-image-field">
             <label for="product-image">Imagen del producto base (opcional)</label>
-            <input id="product-image" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" [disabled]="busy()" aria-describedby="product-image-hint" />
+            <input appInput id="product-image" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectImage($event)" [disabled]="busy()" aria-describedby="product-image-hint" />
             <p id="product-image-hint" class="hint">JPG, PNG o WebP, hasta 5 MB. La imagen se comparte con todas las variantes. Al editar, se conserva si no eliges otra.</p>
             @if (imageName()) {
               <p>{{ imageName() }}</p>
@@ -100,22 +100,22 @@
               <fieldset [formGroupName]="index" [attr.data-variation-id]="variant.controls.id.value">
                 <legend>Variante {{ index + 1 }}</legend>
                 <div class="form-grid">
-                  <label>SKU<input formControlName="sku" maxlength="100" required /></label>
+                  <label>SKU<input appInput formControlName="sku" maxlength="100" required /></label>
                   <label>Control por número de serie<select formControlName="trackSerialNumbers"><option [ngValue]="false">Sin serie por unidad</option><option [ngValue]="true">Requiere una serie por unidad física</option></select></label>
-                  <label>Color<input formControlName="color" required /></label>
-                  <label>Precio de venta de la variante {{ currencySymbol() }} ({{ currency()?.code }})<input formControlName="price" inputmode="decimal" placeholder="Usar precio base" /></label>
+                  <label>Color<input appInput formControlName="color" required /></label>
+                  <label>Precio de venta de la variante {{ currencySymbol() }} ({{ currency()?.code }})<input appInput formControlName="price" inputmode="decimal" placeholder="Usar precio base" /></label>
                   <label>Precio de compra de la variante {{ currencySymbol() }} ({{ currency()?.code }})
-                    <input formControlName="purchasePrice" inputmode="decimal" placeholder="Usar precio de compra base"
+                    <input appInput formControlName="purchasePrice" inputmode="decimal" placeholder="Usar precio de compra base"
                       [attr.aria-invalid]="variant.controls.purchasePrice.touched && variant.controls.purchasePrice.invalid"
                       [attr.aria-describedby]="variant.controls.purchasePrice.touched && variant.controls.purchasePrice.invalid ? 'variant-purchase-error-' + index : null" />
                     @if (variant.controls.purchasePrice.touched && variant.controls.purchasePrice.invalid) {
                       <small [id]="'variant-purchase-error-' + index" class="error">Ingresa un precio de compra desde 0 con hasta dos decimales.</small>
                     }
                   </label>
-                  <label>Tamaño<input formControlName="size" /></label>
-                  <label>Material<input formControlName="material" /></label>
-                  <label>Capacidad<input formControlName="capacity" placeholder="Ej. 128 GB" /></label>
-                  <label>RAM<input formControlName="ram" placeholder="Ej. 8 GB" /></label>
+                  <label>Tamaño<input appInput formControlName="size" /></label>
+                  <label>Material<input appInput formControlName="material" /></label>
+                  <label>Capacidad<input appInput formControlName="capacity" placeholder="Ej. 128 GB" /></label>
+                  <label>RAM<input appInput formControlName="ram" placeholder="Ej. 8 GB" /></label>
                   <label>Estado de variante<select formControlName="isActive" [attr.aria-label]="'Estado de variante ' + (index + 1)">
                     <option [ngValue]="true">Activa</option><option [ngValue]="false">Inactiva</option>
                   </select></label>
@@ -158,7 +158,7 @@
                   </button>
                 </span>
               }
-              <input
+              <input appInput
                 id="model-search"
                 type="text"
                 autocomplete="off"

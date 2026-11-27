@@ -28,7 +28,7 @@
             placeholder="Busca y selecciona un técnico" />
           @if (edit.controls.technicianId.touched && edit.controls.technicianId.invalid) { <small class="error">Selecciona un técnico.</small> }
         </label>
-        <label>Importe @if (currency(); as storeCurrency) { {{ currencySymbol() }} ({{ storeCurrency.code }}) } <input formControlName="price" inputmode="decimal" />
+        <label>Importe @if (currency(); as storeCurrency) { {{ currencySymbol() }} ({{ storeCurrency.code }}) } <input appInput formControlName="price" inputmode="decimal" />
           @if (edit.controls.price.touched && edit.controls.price.invalid) { <small class="error">Ingresa un importe desde 0 con hasta dos decimales.</small> }
         </label>
         <label class="wide">Problema reportado <textarea formControlName="description" maxlength="2000"></textarea>
@@ -54,7 +54,7 @@
           </select>
           @if (workflow.controls.repairStateId.touched && workflow.controls.repairStateId.invalid) { <small class="error">Selecciona el estado de la reparación.</small> }
         </label>
-        <label class="checkbox-label"><input type="checkbox" formControlName="deliver" /> Confirmar entrega del equipo</label>
+        <label class="checkbox-label"><input appInput type="checkbox" formControlName="deliver" /> Confirmar entrega del equipo</label>
         <label class="wide">Notas técnicas <textarea formControlName="notes" maxlength="2000"></textarea></label>
         <div class="actions wide"><button type="submit" class="primary" [disabled]="busy() || loading() || !lookups()?.states?.length">
           {{ workflow.controls.deliver.value ? 'Confirmar entrega' : 'Guardar seguimiento' }}
@@ -65,7 +65,7 @@
     <section>
       <h2>Consumo de refacciones</h2>
       <form (ngSubmit)="searchStock()">
-        <label>Buscar por nombre o SKU <input name="stockSearch" [(ngModel)]="stockSearch" maxlength="50" /></label>
+        <label>Buscar por nombre o SKU <input appInput name="stockSearch" [(ngModel)]="stockSearch" maxlength="50" /></label>
         <div class="actions"><button type="submit" [disabled]="stockLoading() || busy()">Buscar refacción</button></div>
       </form>
       @if (stockLoading()) { <p role="status">Consultando existencias…</p> }
@@ -78,7 +78,7 @@
             }
           </select>
         </label>
-        <label>Cantidad <input type="number" min="1" step="1" [attr.max]="selectedOption()?.location?.existence ?? 1000" formControlName="quantity" /></label>
+        <label>Cantidad <input appInput type="number" min="1" step="1" [attr.max]="selectedOption()?.location?.existence ?? 1000" formControlName="quantity" /></label>
         @if (selectedOption()?.product?.trackSerialNumbers) {
           <label class="wide">Números de serie <textarea formControlName="serials" placeholder="Uno por línea"></textarea></label>
         }
@@ -87,13 +87,8 @@
           Confirmar consumo y descontar stock
         </button></div>
       </form>
-      @if (stockPages() > 1) {
-        <nav class="pagination" aria-label="Paginación de refacciones">
-          <button type="button" [disabled]="stockPage() <= 1 || stockLoading()" (click)="searchStock(stockPage() - 1)">Anterior</button>
-          <span>Página {{ stockPage() }} de {{ stockPages() }}</span>
-          <button type="button" [disabled]="stockPage() >= stockPages() || stockLoading()" (click)="searchStock(stockPage() + 1)">Siguiente</button>
-        </nav>
-      }
+      <app-pagination label="Paginación de resultados" [page]="stockPage()" [totalPages]="stockPages()"
+    [pageSize]="pageSize" [disabled]="stockLoading()" (pageChange)="searchStock($event)" (pageSizeChange)="changePageSize($event)" />
     </section>
   }
 

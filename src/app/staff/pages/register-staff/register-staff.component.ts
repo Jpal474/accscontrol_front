@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, inject, signal, viewChild, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -20,7 +21,7 @@ import { SelectedStoreService } from '../../../shared/services/selected-store.se
 @Component({
   selector: 'app-register-staff',
   standalone: true,
-  imports: [
+  imports: [InputComponent,
     ReactiveFormsModule,
     PageHeaderComponent,
     SkeletonComponent,

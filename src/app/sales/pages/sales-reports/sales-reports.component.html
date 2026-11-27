@@ -5,11 +5,11 @@
 } @else {
   <form class="card filters" [formGroup]="filters" (ngSubmit)="load()">
     <label>Fecha inicial
-      <input type="date" formControlName="startDate" required
+      <input appInput type="date" formControlName="startDate" required
         [attr.aria-describedby]="filterError() ? 'report-period-error' : null" />
     </label>
     <label>Fecha final
-      <input type="date" formControlName="endDate" required
+      <input appInput type="date" formControlName="endDate" required
         [attr.aria-describedby]="filterError() ? 'report-period-error' : null" />
     </label>
     <button type="submit" class="primary" [disabled]="loading()">Consultar</button>

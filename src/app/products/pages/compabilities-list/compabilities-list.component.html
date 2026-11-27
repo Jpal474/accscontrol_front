@@ -89,7 +89,7 @@
                         <div class="model-panel-header">
                           <strong>Otros modelos compatibles ({{ row.otherModels.length }})</strong>
                           @if (row.otherModels.length > 8) {
-                            <input type="search" aria-label="Buscar marca o modelo compatible" placeholder="Buscar marca o modelo"
+                            <input appInput type="search" aria-label="Buscar marca o modelo compatible" placeholder="Buscar marca o modelo"
                               [value]="modelFilter()" (input)="modelFilter.set($any($event.target).value)" />
                           }
                         </div>

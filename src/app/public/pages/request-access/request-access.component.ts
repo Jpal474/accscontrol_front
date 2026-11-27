@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,7 +9,7 @@ import { RoutesService } from '../../../shared/services/routes.service';
 @Component({
   selector: 'app-request-access',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [InputComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './request-access.component.html',
   styleUrl: './request-access.component.scss',
 })

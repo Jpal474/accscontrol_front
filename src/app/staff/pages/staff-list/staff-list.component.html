@@ -16,13 +16,8 @@
   <section class="card">
     <app-data-table [columns]="columns" [rows]="rows()" [actions]="actions"
       caption="Personal de la tienda" (rowAction)="handleRowAction($event)" />
-    @if (totalPages() > 1) {
-      <nav aria-label="Paginación del personal">
-        <button type="button" [disabled]="page() <= 1 || busy()" (click)="load(page() - 1)">Anterior</button>
-        <span>Página {{ page() }} de {{ totalPages() }}</span>
-        <button type="button" [disabled]="page() >= totalPages() || busy()" (click)="load(page() + 1)">Siguiente</button>
-      </nav>
-    }
+    <app-pagination label="Paginación de resultados" [page]="page()" [totalPages]="totalPages()"
+    [pageSize]="pageSize" [disabled]="busy() || loading()" (pageChange)="load($event)" (pageSizeChange)="changePageSize($event)" />
   </section>
 }
 <app-assisted-recovery-dialog />

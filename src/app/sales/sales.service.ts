@@ -103,9 +103,9 @@ export class SalesService {
     }));
   }
 
-  products(search: string, page: number) {
+  products(search: string, page: number, pageSize = 20) {
     return this.http.get<ApiStandardResponse<CheckoutProduct[]>>(`${this.base}/checkout/products`, {
-      params: { ...(search ? { search } : {}), page, pageSize: 20 },
+      params: { ...(search ? { search } : {}), page, pageSize },
     });
   }
 
@@ -124,8 +124,8 @@ export class SalesService {
     return this.http.post<ApiStandardResponse<Sale>>(`${this.base}/create`, body);
   }
 
-  list(own: boolean, page: number) {
-    return this.http.get<ApiStandardResponse<Sale[]>>(`${this.base}/list${own ? '/own' : ''}`, { params: { page, pageSize: 20 } });
+  list(own: boolean, page: number, pageSize = 20) {
+    return this.http.get<ApiStandardResponse<Sale[]>>(`${this.base}/list${own ? '/own' : ''}`, { params: { page, pageSize } });
   }
 
   detail(id: string) {

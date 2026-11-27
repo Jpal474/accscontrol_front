@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { AssistedRecoveryDialogComponent } from '../../../auth/components/assisted-recovery-dialog/assisted-recovery-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
 import { viewChild, Component, inject, signal, OnInit } from '@angular/core';
@@ -26,7 +28,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 @Component({
   selector: 'app-store-owners-list',
   standalone: true,
-  imports: [
+  imports: [PaginationComponent, InputComponent,
     AssistedRecoveryDialogComponent,
     CommonModule,
     DataTableComponent,
@@ -38,6 +40,7 @@ import { ToastService } from '../../../shared/services/toast.service';
   styleUrl: './owners-list.component.scss',
 })
 export class OwnersListComponent implements OnInit {
+  changePageSize(size: number) { this.params.pageSize = size; this.loadOwners(1); }
   readonly assistedRecovery = viewChild.required(AssistedRecoveryDialogComponent);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);

@@ -9,9 +9,9 @@ export class ProvidersService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}providers`;
 
-  list(page: number, search: string) {
+  list(page: number, search: string, pageSize = 10) {
     return this.http.get<ApiStandardResponse<Provider[]>>(`${this.base}/list`, {
-      params: { page, pageSize: 10, ...(search ? { search } : {}) },
+      params: { page, pageSize, ...(search ? { search } : {}) },
     });
   }
 

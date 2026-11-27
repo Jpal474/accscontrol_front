@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,11 +19,14 @@ const initialFilters: ReportFilters = { kind: '', from: '', to: '', categoryId: 
 
 @Component({
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, EmptyStateComponent, PageHeaderComponent],
+  imports: [PaginationComponent, InputComponent, ReactiveFormsModule, RouterLink, EmptyStateComponent, PageHeaderComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
+  pageSize = 50;
+  totalReportPages(total: number, size: number) { return Math.ceil(total / size); }
+  changePageSize(size: number) { this.pageSize = size; this.load(1, true); }
   private readonly service = inject(DashboardService);
   private readonly store = inject(SelectedStoreService);
   readonly auth = inject(AuthService);
@@ -67,7 +72,7 @@ export class DashboardComponent {
         switchMap(({ filters, page }) => {
           this.busy.set(true);
           this.error.set('');
-          return this.service.summary(storeId, filters, page).pipe(
+          return this.service.summary(storeId, filters, page, this.pageSize).pipe(
             map(response => ({ data: response.data, filters })),
             catchError(() => {
               this.error.set('No se pudo consultar el dashboard. Intenta nuevamente.');
@@ -138,7 +143,7 @@ export class DashboardComponent {
     try {
       const pages = Math.ceil(report.total / report.pageSize);
       for (let page = 1; page <= pages; page++) {
-        const { data } = await firstValueFrom(this.service.summary(storeId, filters, page));
+        const { data } = await firstValueFrom(this.service.summary(storeId, filters, page, report.pageSize));
         if (storeId !== this.selectedStore()) return;
         if (!data.report) throw new Error('Missing report');
         for (const row of data.report.rows) lines.push(report.columns.map(column => this.csv(row[column])).join(','));

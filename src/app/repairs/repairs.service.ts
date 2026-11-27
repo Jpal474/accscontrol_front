@@ -45,9 +45,9 @@ export class RepairsService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}repairs`;
 
-  list(page: number, search: string, technicianId?: string, filters: { queue?: 'open' | 'older'; repairStateId?: string } = {}) {
+  list(page: number, search: string, technicianId?: string, filters: { queue?: 'open' | 'older'; repairStateId?: string } = {}, pageSize = 20) {
     const path = technicianId ? `${encodeURIComponent(technicianId)}/list/own` : 'list';
-    return this.http.get<ApiStandardResponse<Repair[]>>(`${this.base}/${path}`, { params: { page, pageSize: 20, search, ...(filters.queue ? { queue: filters.queue } : {}), ...(filters.repairStateId ? { repairStateId: filters.repairStateId } : {}) } });
+    return this.http.get<ApiStandardResponse<Repair[]>>(`${this.base}/${path}`, { params: { page, pageSize, search, ...(filters.queue ? { queue: filters.queue } : {}), ...(filters.repairStateId ? { repairStateId: filters.repairStateId } : {}) } });
   }
 
   options(kind: 'clients' | 'technicians' | 'models', { page, pageSize, search }: CatalogRequest) {
@@ -74,8 +74,8 @@ export class RepairsService {
 
   remove(id: string) { return this.http.delete<ApiStandardResponse<boolean>>(`${this.base}/${id}`); }
 
-  stock(id: string, search: string, page: number) {
-    return this.http.get<ApiStandardResponse<RepairStock[]>>(`${this.base}/${id}/stock`, { params: { search, page, pageSize: 20 } });
+  stock(id: string, search: string, page: number, pageSize = 20) {
+    return this.http.get<ApiStandardResponse<RepairStock[]>>(`${this.base}/${id}/stock`, { params: { search, page, pageSize } });
   }
 
   consume(id: string, body: { productVariationId: string; locationId: string; quantity: number; serialNumbers?: string[] }) {

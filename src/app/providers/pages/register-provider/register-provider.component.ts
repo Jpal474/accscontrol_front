@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,7 +19,7 @@ const NAME_PATTERN = /^[A-Za-zÁÉÍÓÚÜáéíóúüÑñ]+(?:[\s'-][A-Za-zÁÉ
 @Component({
   selector: 'app-register-provider',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AddressComponent, PageHeaderComponent, SkeletonComponent],
+  imports: [InputComponent, ReactiveFormsModule, RouterLink, AddressComponent, PageHeaderComponent, SkeletonComponent],
   templateUrl: './register-provider.component.html',
   styleUrl: './register-provider.component.scss',
 })

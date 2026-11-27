@@ -17,7 +17,7 @@
       margin-bottom: 1.5rem;
     "
   >
-    <input
+    <input appInput
       type="text"
       placeholder="Buscar por correo..."
       style="max-width: 300px; width: 100%"
@@ -53,38 +53,8 @@
       (rowAction)="handleRowAction($event)"
     />
 
-    <nav
-      class="pagination"
-      aria-label="Paginación del catálogo"
-      style="
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      "
-    >
-      <button
-        type="button"
-        [disabled]="loading() || params.page === 1"
-        (click)="loadOwners(params.page! - 1)"
-      >
-        Anterior
-      </button>
-
-      <span
-        >{{ totalRegisters() }} dueños · Página {{ params.page }} de
-        {{ totalPages() }}</span
-      >
-
-      <button
-        type="button"
-        type="button"
-        [disabled]="loading() || params.page! >= totalPages()"
-        (click)="loadOwners(params.page! + 1)"
-      >
-        Siguiente
-      </button>
-    </nav>
+    <app-pagination label="Paginación de resultados" [page]="params.page || 1" [totalPages]="totalPages()" [total]="totalRegisters()"
+    [pageSize]="params.pageSize || 10" [disabled]="busy()" (pageChange)="loadOwners($event)" (pageSizeChange)="changePageSize($event)" />
   }
 </section>
 
@@ -97,7 +67,7 @@
       <div class="stores-checkbox-list" style="margin: 1rem 0">
         @for (store of storesToToggle(); track store.storeId) {
           <label style="display: block; margin-bottom: 0.5rem; cursor: pointer">
-            <input type="checkbox" [(ngModel)]="store.selected" />
+            <input appInput type="checkbox" [(ngModel)]="store.selected" />
             {{ store.name }}
             <span style="font-size: 0.85rem; color: gray"
               >(Actual: {{ store.isActive ? "Activo" : "Inactivo" }})</span

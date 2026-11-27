@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -8,7 +10,7 @@ import { SelectedStoreService } from '../../../shared/services/selected-store.se
 import { formatProductMoney } from '../../../products/utils/product-money';
 
 @Component({
-  selector: 'app-inventory-sale-selector', standalone: true, imports: [DatePipe],
+  selector: 'app-inventory-sale-selector', standalone: true, imports: [InputComponent, PaginationComponent, DatePipe],
   templateUrl: './inventory-sale-selector.component.html', styleUrl: './inventory-sale-selector.component.scss',
   host: { '(focusout)': 'focusOut($event)', '(window:resize)': 'positionPanel()' },
 })
@@ -30,6 +32,8 @@ export class InventorySaleSelectorComponent implements OnChanges {
   readonly totalPages = signal(0);
   readonly page = signal(1);
   readonly active = signal(0);
+  pageSize = 5;
+  changePageSize(size: number) { this.pageSize = size; this.load(); }
   query = '';
   private loaded = false;
 
@@ -45,9 +49,9 @@ export class InventorySaleSelectorComponent implements OnChanges {
     this.requests.pipe(switchMap(({ page, delay }) => {
       this.loading.set(true); this.failed.set(false);
       const folio = this.query.trim();
-      return timer(delay ? 250 : 0).pipe(switchMap(() => this.service.sales(folio, page)), takeUntil(this.reset),
+      return timer(delay ? 250 : 0).pipe(switchMap(() => this.service.sales(folio, page, this.pageSize)), takeUntil(this.reset),
         tap(response => {
-          this.sales.set(page === 1 ? response.data : [...this.sales(), ...response.data]);
+          this.sales.set(response.data);
           this.page.set(page); this.totalPages.set(response.meta?.totalPages ?? 1); this.loaded = true; this.active.set(0);
         }), catchError(() => { this.failed.set(true); return EMPTY; }), finalize(() => this.loading.set(false)));
     }), takeUntilDestroyed(this.destroyRef)).subscribe();

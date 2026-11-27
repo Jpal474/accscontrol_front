@@ -17,7 +17,7 @@ export class InventoryService {
     return this.http.get<ApiStandardResponse<T>>(`${this.base}/${path}`, { params });
   }
   stock(query: InventoryQuery) { return this.get<StockBalance[]>('stock/list', query); }
-  sales(folio: string, page = 1) { return this.get<InventorySale[]>('sales/list', { folio, page, pageSize: 5 }); }
+  sales(folio: string, page = 1, pageSize = 5) { return this.get<InventorySale[]>('sales/list', { folio, page, pageSize }); }
   movements(query: InventoryQuery) { return this.get<StockMovement[]>('movements/list', query); }
   units(query: InventoryQuery) { return this.get<InventoryUnit[]>('units/list', query); }
   variants() {

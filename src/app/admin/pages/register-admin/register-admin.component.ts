@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -9,7 +10,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-register-admin', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent],
+  imports: [InputComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent],
   templateUrl: './register-admin.component.html', styleUrl: './register-admin.component.scss',
 })
 export class RegisterAdminComponent {

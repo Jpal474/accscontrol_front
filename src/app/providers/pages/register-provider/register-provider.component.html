@@ -34,32 +34,32 @@
       <fieldset [disabled]="busy()">
         <legend>Datos del proveedor</legend>
         <div class="form-grid">
-          <label>Nombre comercial <input formControlName="commercialName" maxlength="150" required /></label>
-          <label>Razón social <input formControlName="fiscalName" maxlength="150" /></label>
-          <label>Teléfono <input type="tel" formControlName="phoneNumber" maxlength="20" required [attr.aria-invalid]="invalid('phoneNumber')"
+          <label>Nombre comercial <input appInput formControlName="commercialName" maxlength="150" required /></label>
+          <label>Razón social <input appInput formControlName="fiscalName" maxlength="150" /></label>
+          <label>Teléfono <input appInput type="tel" formControlName="phoneNumber" maxlength="20" required [attr.aria-invalid]="invalid('phoneNumber')"
               [attr.aria-describedby]="invalid('phoneNumber') ? 'provider-phoneNumber-error' : null" />
             @if (invalid('phoneNumber')) {
               <small id="provider-phoneNumber-error" class="error">Ingresa un teléfono de 7 a 15 dígitos.</small>
             }</label>
-          <label>Correo electrónico <input type="email" formControlName="email" required maxlength="254" [attr.aria-invalid]="invalid('email')"
+          <label>Correo electrónico <input appInput type="email" formControlName="email" required maxlength="254" [attr.aria-invalid]="invalid('email')"
               [attr.aria-describedby]="invalid('email') ? 'provider-email-error' : null" />
             @if (invalid('email')) {
               <small id="provider-email-error" class="error">Ingresa un correo electrónico válido.</small>
             }</label>
           <label>RFC
-            <input formControlName="rfc" maxlength="13" autocapitalize="characters" spellcheck="false"
+            <input appInput formControlName="rfc" maxlength="13" autocapitalize="characters" spellcheck="false"
               [attr.aria-invalid]="invalid('rfc')" [attr.aria-describedby]="invalid('rfc') ? 'provider-rfc-error' : null" />
             @if (invalid('rfc')) {
               <small id="provider-rfc-error" class="error">Ingresa un RFC de 12 o 13 caracteres, con fecha y homoclave.</small>
             }</label>
-          <label class="checkbox"><input type="checkbox" formControlName="isActive" /> Proveedor activo</label>
+          <label class="checkbox"><input appInput type="checkbox" formControlName="isActive" /> Proveedor activo</label>
         </div>
       </fieldset>
       <fieldset [disabled]="busy()">
         <legend>Persona de contacto</legend>
         <div class="form-grid">
           <label>Nombre
-            <input formControlName="contactName" maxlength="100" [attr.aria-invalid]="invalid('contactName')"
+            <input appInput formControlName="contactName" maxlength="100" [attr.aria-invalid]="invalid('contactName')"
               [attr.aria-describedby]="invalid('contactName', 'pattern') ? 'provider-contact-name-error' : null" />
             @if (invalid('contactName', 'pattern')) {
               <small id="provider-contact-name-error" class="error">
@@ -67,12 +67,12 @@
               </small>
             }
           </label>
-          <label>Teléfono de contacto <input type="tel" formControlName="contactPhone" maxlength="20" [attr.aria-invalid]="invalid('contactPhone')"
+          <label>Teléfono de contacto <input appInput type="tel" formControlName="contactPhone" maxlength="20" [attr.aria-invalid]="invalid('contactPhone')"
               [attr.aria-describedby]="invalid('contactPhone') ? 'provider-contactPhone-error' : null" />
             @if (invalid('contactPhone')) {
               <small id="provider-contactPhone-error" class="error">Ingresa un teléfono de 7 a 15 dígitos.</small>
             }</label>
-          <label>Correo de contacto <input type="email" formControlName="contactEmail" maxlength="254" [attr.aria-invalid]="invalid('contactEmail')"
+          <label>Correo de contacto <input appInput type="email" formControlName="contactEmail" maxlength="254" [attr.aria-invalid]="invalid('contactEmail')"
               [attr.aria-describedby]="invalid('contactEmail') ? 'provider-contactEmail-error' : null" />
             @if (invalid('contactEmail')) {
               <small id="provider-contactEmail-error" class="error">Ingresa un correo electrónico válido.</small>

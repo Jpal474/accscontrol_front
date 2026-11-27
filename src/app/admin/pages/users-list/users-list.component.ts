@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -15,10 +17,12 @@ import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
 
 @Component({
   selector: 'app-users-list', standalone: true,
-  imports: [ReactiveFormsModule, CatalogSelectComponent, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, InputComponent, ReactiveFormsModule, CatalogSelectComponent, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
   templateUrl: './users-list.component.html', styleUrl: './users-list.component.scss',
 })
 export class UsersListComponent {
+  pageSize = 10;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   private readonly service = inject(AdminService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -49,19 +53,18 @@ export class UsersListComponent {
     { key: 'email', label: 'Correo' }, { key: 'roles', label: 'Roles' }, { key: 'status', label: 'Estatus' },
     { key: 'stores', label: 'Tiendas' },
   ];
-  readonly actions = [{ key: 'activate', label: 'Activar' }, { key: 'deactivate', label: 'Desactivar' }];
+  readonly actions = [{ key: 'toggle', label: 'Cambiar Estado' }];
   readonly rows = computed(() => this.users().map(user => ({
     ...user,
     roles: [...new Set([user.globalRole?.name, ...(user.storeStaff ?? []).map(staff => staff.role?.name)]
       .filter((name): name is string => !!name).map(translateRoleName))].join(', ') || 'Sin rol',
-    status: user.isActive ? 'Activo' : 'Inactivo', deactivateDisabled: !user.isActive || this.busy(),
-    activateDisabled: user.isActive || this.busy(),
+    status: user.isActive ? 'Activo' : 'Inactivo', toggleDisabled: this.busy(),
     stores: [...new Set((user.storeStaff ?? []).map(staff => staff.store?.name).filter(Boolean))].join(', ') || 'Sin tienda',
   })));
   constructor() {
     this.reload.pipe(startWith(undefined), switchMap(() => {
       this.loading.set(true); this.failed.set(false);
-      return this.service.listUsers({ page: this.page(), search: this.search,
+      return this.service.listUsers({ page: this.page(), pageSize: this.pageSize, search: this.search,
         roleId: this.roleControl.value || undefined, storeId: this.storeControl.value || undefined }).pipe(
         catchError(() => { this.failed.set(true); return of(null); }),
         finalize(() => this.loading.set(false)),
@@ -81,11 +84,10 @@ export class UsersListComponent {
   onSearch(event: Event) { this.searchChanges.next((event.target as HTMLInputElement).value); }
   load(page = this.page()) { this.page.set(page); this.reload.next(); }
   handleAction(event: { action: string; row: Record<string, any> }) {
-    if (!['activate', 'deactivate'].includes(event.action) || this.busy()) return;
+    if (event.action !== 'toggle' || this.busy()) return;
     const user = this.users().find(user => user.id === event.row['id']);
-    const isActive = event.action === 'activate';
-    if (!user || user.isActive === isActive) return;
-    this.targetActive.set(isActive);
+    if (!user) return;
+    this.targetActive.set(!user.isActive);
     this.selected.set(user); this.dialog().open();
   }
   changeStatus() {

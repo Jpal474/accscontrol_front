@@ -4,9 +4,9 @@
     <header class="editor-intro"><h2>Datos de acceso</h2><p>Se generará una contraseña segura y se enviarán las credenciales al correo del administrador.</p></header>
     <div class="editor-body">
       <div class="form-grid">
-        <label>Nombre(s)<input formControlName="name" autocomplete="given-name" required /></label>
-        <label>Apellidos<input formControlName="lastName" autocomplete="family-name" required /></label>
-        <label>Correo<input type="email" formControlName="email" autocomplete="email" required /></label>
+        <label>Nombre(s)<input appInput formControlName="name" autocomplete="given-name" required /></label>
+        <label>Apellidos<input appInput formControlName="lastName" autocomplete="family-name" required /></label>
+        <label>Correo<input appInput type="email" formControlName="email" autocomplete="email" required /></label>
       </div>
       @if (form.touched && form.invalid) { <p role="alert">Completa los campos e ingresa un correo válido.</p> }
       @if (error()) { <p role="alert">{{ error() }}</p> }

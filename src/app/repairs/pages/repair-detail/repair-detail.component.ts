@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -17,11 +19,13 @@ import { RepairDetail, RepairLookups, RepairStock, RepairsService } from '../../
 @Component({
   selector: 'app-repair-detail',
   standalone: true,
-  imports: [DatePipe, FormsModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, CatalogSelectComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, InputComponent, DatePipe, FormsModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, CatalogSelectComponent, ConfirmDialogComponent],
   templateUrl: './repair-detail.component.html',
   styleUrl: './repair-detail.component.scss',
 })
 export class RepairDetailComponent {
+  pageSize = 20;
+  changePageSize(size: number) { this.pageSize = size; this.searchStock(1); }
   private readonly service = inject(RepairsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -118,7 +122,7 @@ export class RepairDetailComponent {
       return store && id ? this.stockRequests.pipe(switchMap(request => {
         this.clearStock();
         this.stockLoading.set(true);
-        return this.service.stock(id, request.search, request.page).pipe(
+        return this.service.stock(id, request.search, request.page, this.pageSize).pipe(
           tap(({ data, meta }) => { this.stockRows.set(data); this.stockPage.set(request.page); this.stockPages.set(meta?.totalPages ?? 1); }),
           catchError(() => { this.stockError.set('No se pudo consultar el inventario para esta reparación.'); return EMPTY; }),
           finalize(() => this.stockLoading.set(false)),

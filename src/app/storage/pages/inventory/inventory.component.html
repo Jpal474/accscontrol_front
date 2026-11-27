@@ -9,7 +9,7 @@
   </nav>
   @if (error()) { <p class="error" role="alert">{{ error() }}</p> }
   <form class="filters" (ngSubmit)="filter()">
-    <label>Buscar<input name="search" [(ngModel)]="search" maxlength="50" placeholder="Producto, SKU o serie en movimientos" /></label>
+    <label>Buscar<input appInput name="search" [(ngModel)]="search" maxlength="50" placeholder="Producto, SKU o serie en movimientos" /></label>
     <label>Variante<select name="variantFilter" [(ngModel)]="variantFilter" (pointerdown)="loadVariants()" (click)="loadVariants()" (keydown)="lookupKeydown($event, 'variants')"><option value="">{{ variantsLoading() ? 'Cargando variantes…' : 'Todas' }}</option>
       @for (variant of variants(); track variant.id) { <option [value]="variant.id">{{ variant.productName }} · {{ variant.sku }}</option> }
     </select></label>
@@ -59,11 +59,8 @@
       </section>
     }
   }
-  <nav class="pagination" aria-label="Paginación de inventario">
-    <button type="button" [disabled]="loading() || busy() || page() <= 1" (click)="next(-1)">Anterior</button>
-    <span>{{ total() }} registros · Página {{ page() }} de {{ totalPages() || 1 }}</span>
-    <button type="button" [disabled]="loading() || busy() || page() >= totalPages()" (click)="next(1)">Siguiente</button>
-  </nav>
+  <app-pagination label="Paginación de resultados" [page]="page()" [totalPages]="totalPages()" [total]="total()"
+    [pageSize]="pageSize" [disabled]="loading() || busy()" (pageChange)="next($event - page())" (pageSizeChange)="changePageSize($event)" />
 
   @if (auth.hasPermission('manage_inventory')) {
     <div class="movement-workspace">
@@ -96,7 +93,7 @@
                 <label>Variante<select formControlName="variantId" (pointerdown)="loadVariants()" (click)="loadVariants()" (keydown)="lookupKeydown($event, 'variants')" (change)="item.controls.serialText.setValue('')"><option value="">{{ variantsLoading() ? 'Cargando variantes…' : 'Selecciona una variante' }}</option>
                   @for (variant of variants(); track variant.id) { <option [value]="variant.id" [disabled]="operation.controls.action.value === 'IN' && !variant.isActive">{{ variant.productName }} · {{ variant.sku }} {{ variant.isActive ? '' : '(inactiva)' }}</option> }
                 </select></label>
-                <label>Cantidad<input type="number" formControlName="quantity" min="1" max="2147483647" step="1" required /></label>
+                <label>Cantidad<input appInput type="number" formControlName="quantity" min="1" max="2147483647" step="1" required /></label>
                 <label>{{ operation.controls.action.value === 'IN' ? 'Ubicación física' : 'Ubicación de origen' }}
                   <select formControlName="locationId" required (pointerdown)="loadLocations(index)" (click)="loadLocations(index)" (keydown)="lookupKeydown($event, 'locations', index)">
                     <option value="">{{ !item.controls.variantId.value ? 'Selecciona primero una variante' : locationState(index)?.loading ? 'Cargando ubicaciones…' : 'Selecciona una ubicación de esta tienda' }}</option>
@@ -152,5 +149,7 @@
   @if (unitsLoading()) { <p role="status">Cargando series…</p> }
   @else if (unitsError()) { <p class="error" role="alert">{{ unitsError() }}</p> }
   @else { <ul class="unit-list">@for (unit of units(); track unit.id) { <li>{{ unit.serialNumber }}</li> } @empty { <li>No hay unidades disponibles con número de serie.</li> }</ul> }
-  <nav class="pagination" aria-label="Paginación de series"><button type="button" [disabled]="unitsLoading() || unitPage <= 1" (click)="unitsPage(-1)">Anterior</button><span>{{ unitPage }} de {{ unitsTotalPages() || 1 }}</span><button type="button" [disabled]="unitsLoading() || unitPage >= unitsTotalPages()" (click)="unitsPage(1)">Siguiente</button></nav>
+  <app-pagination label="Paginación de series" [page]="unitPage" [totalPages]="unitsTotalPages()"
+    [pageSize]="unitPageSize" [disabled]="unitsLoading()" (pageChange)="unitsPage($event - unitPage)"
+    (pageSizeChange)="changeUnitPageSize($event)" />
 </dialog>

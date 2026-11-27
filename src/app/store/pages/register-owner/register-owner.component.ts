@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, Inject, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -10,7 +11,7 @@ import { RoutesService } from '../../../shared/services/routes.service';
 @Component({
   selector: 'app-register-owner',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule, PageHeaderComponent],
+  imports: [InputComponent, ReactiveFormsModule, RouterModule, PageHeaderComponent],
   templateUrl: './register-owner.component.html',
   styleUrl: './register-owner.component.scss',
 })

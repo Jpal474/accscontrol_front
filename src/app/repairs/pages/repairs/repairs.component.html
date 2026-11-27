@@ -10,7 +10,7 @@
     }
     <form (ngSubmit)="load()">
       <label>Buscar por folio, cliente o equipo
-        <input name="search" [(ngModel)]="search" maxlength="50" />
+        <input appInput name="search" [(ngModel)]="search" maxlength="50" />
       </label>
       <div class="actions"><button type="submit" [disabled]="loading()">Buscar</button></div>
     </form>
@@ -34,13 +34,8 @@
         </section>
       } @empty { <p role="status">No hay reparaciones para esta búsqueda.</p> }
     </div>
-    @if (pages() > 1) {
-      <nav class="pagination" aria-label="Paginación de reparaciones">
-        <button [disabled]="page() <= 1" (click)="load(page() - 1)">Anterior</button>
-        <span>Página {{ page() }} de {{ pages() }} · {{ total() }} reparaciones</span>
-        <button [disabled]="page() >= pages()" (click)="load(page() + 1)">Siguiente</button>
-      </nav>
-    }
+    <app-pagination label="Paginación de resultados" [page]="page()" [totalPages]="pages()" [total]="total()"
+    [pageSize]="pageSize" [disabled]="loading()" (pageChange)="load($event)" (pageSizeChange)="changePageSize($event)" />
   }
   @if (canManage()) {
     <section>
@@ -74,9 +69,9 @@
         </label>
         <label class="wide">Accesorios recibidos y notas <textarea formControlName="notes" maxlength="2000"></textarea></label>
         <label>Número de serie o IMEI (opcional)
-          <input type="password" autocomplete="off" formControlName="serialNumber" maxlength="100" />
+          <input appInput type="password" autocomplete="off" formControlName="serialNumber" maxlength="100" />
         </label>
-        <label>Importe @if (currency(); as storeCurrency) { {{ currencySymbol() }} ({{ storeCurrency.code }}) } <input inputmode="decimal" formControlName="price" placeholder="0.00" />
+        <label>Importe @if (currency(); as storeCurrency) { {{ currencySymbol() }} ({{ storeCurrency.code }}) } <input appInput inputmode="decimal" formControlName="price" placeholder="0.00" />
           @if (invalid('price')) { <small class="error">Ingresa un importe desde 0, con hasta dos decimales.</small> }
         </label>
         @if (formError()) { <p class="wide error" role="alert">{{ formError() }}</p> }

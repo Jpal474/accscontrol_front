@@ -17,7 +17,7 @@
       margin-bottom: 1.5rem;
     "
   >
-    <input
+    <input appInput
       type="text"
       placeholder="Buscar por correo o nombre..."
       style="max-width: 300px; width: 100%"
@@ -53,37 +53,7 @@
       (rowAction)="handleRowAction($event)"
     />
 
-    <nav
-      class="pagination"
-      aria-label="Paginación del catálogo"
-      style="
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      "
-    >
-      <button
-        type="button"
-        [disabled]="loading() || params.page === 1"
-        (click)="loadStores(params.page! - 1)"
-      >
-        Anterior
-      </button>
-
-      <span
-        >{{ totalRegisters() }} dueños · Página {{ params.page }} de
-        {{ totalPages() }}</span
-      >
-
-      <button
-        type="button"
-        type="button"
-        [disabled]="loading() || params.page! >= totalPages()"
-        (click)="loadStores(params.page! + 1)"
-      >
-        Siguiente
-      </button>
-    </nav>
+    <app-pagination label="Paginación de resultados" [page]="params.page || 1" [totalPages]="totalPages()" [total]="totalRegisters()"
+    [pageSize]="params.pageSize || 10" [disabled]="busy()" (pageChange)="loadStores($event)" (pageSizeChange)="changePageSize($event)" />
   }
 </section>

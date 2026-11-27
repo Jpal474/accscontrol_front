@@ -1,3 +1,4 @@
+import { InputComponent } from '../input/input.component';
 import {
   Component,
   Input,
@@ -34,7 +35,7 @@ import { ApiStandardResponse } from '../../interfaces/api-response.interface';
 @Component({
   selector: 'app-catalog-select',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [InputComponent, CommonModule, FormsModule],
   templateUrl: './catalog-select.component.html',
   styleUrl: './catalog-select.component.scss',
   providers: [

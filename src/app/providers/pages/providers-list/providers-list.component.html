@@ -9,7 +9,7 @@
     <p role="status">Selecciona una tienda para consultar sus proveedores.</p>
   } @else {
     <label class="search">Buscar proveedor
-      <input #searchBox type="search" maxlength="50" placeholder="Nombre comercial, razón social o contacto"
+      <input appInput #searchBox type="search" maxlength="50" placeholder="Nombre comercial, razón social o contacto"
         [value]="searchText()" (input)="search(searchBox.value)" />
     </label>
     @if (loading()) {
@@ -24,11 +24,8 @@
         [actions]="actions()" (rowAction)="act($event)" />
     }
     @if (!failed() && (total() || page() > 1)) {
-      <nav class="pagination" aria-label="Paginación de proveedores">
-        <button type="button" [disabled]="loading() || page() <= 1" (click)="load(page() - 1)">Anterior</button>
-        <span>{{ total() }} {{ total() === 1 ? 'proveedor' : 'proveedores' }} · Página {{ page() }} de {{ totalPages() || 1 }}</span>
-        <button type="button" [disabled]="loading() || page() >= totalPages()" (click)="load(page() + 1)">Siguiente</button>
-      </nav>
+      <app-pagination label="Paginación de resultados" [page]="page()" [totalPages]="totalPages()" [total]="total()"
+    [pageSize]="pageSize" [disabled]="loading()" (pageChange)="load($event)" (pageSizeChange)="changePageSize($event)" />
     }
   }
 </section>

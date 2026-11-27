@@ -97,6 +97,12 @@ select {
   min-height: var(--control-height);
   min-width: 0;
 }
+select {
+  border-inline-start: 3px solid var(--accent);
+}
+select[aria-invalid='true'] {
+  border-inline-start-color: var(--danger);
+}
 input::placeholder {
   color: var(--muted);
 }

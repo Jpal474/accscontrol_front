@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, computed, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CatalogLookups } from '../../interfaces/catalogs.interface';
@@ -8,7 +9,7 @@ import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.
 @Component({
   selector: 'app-catalog-lookups',
   standalone: true,
-  imports: [
+  imports: [InputComponent,
     ReactiveFormsModule,
     RouterLink,
     PageHeaderComponent,

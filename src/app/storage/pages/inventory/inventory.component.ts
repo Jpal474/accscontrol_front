@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,10 +20,14 @@ type Operation = MovementType | 'TRANSFER';
 const integer = (value: unknown) => Number.isSafeInteger(Number(value)) && Number(value) > 0;
 @Component({
   selector: 'app-inventory', standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, DatePipe, PageHeaderComponent, SkeletonComponent, InventorySaleSelectorComponent],
+  imports: [PaginationComponent, InputComponent, ReactiveFormsModule, FormsModule, DatePipe, PageHeaderComponent, SkeletonComponent, InventorySaleSelectorComponent],
   templateUrl: './inventory.component.html', styleUrl: './inventory.component.scss',
 })
 export class InventoryComponent {
+  unitPageSize = 50;
+  changeUnitPageSize(size: number) { this.unitPageSize = size; this.unitPage = 1; this.unitReload.next(); }
+  pageSize = 10;
+  changePageSize(size: number) { this.pageSize = size; this.page.set(1); this.load(); }
   readonly auth = inject(AuthService);
   readonly store = inject(SelectedStoreService);
   private readonly service = inject(InventoryService);
@@ -125,7 +131,7 @@ export class InventoryComponent {
         this.error.set(''); this.balances.set([]); this.movements.set([]); this.total.set(0); this.totalPages.set(0);
         if (!storeId) { this.loading.set(false); return EMPTY; }
         this.loading.set(true);
-        const query = { page: this.page(), pageSize: 10, search: this.search.trim(), productVariationId: this.variantFilter,
+        const query = { page: this.page(), pageSize: this.pageSize, search: this.search.trim(), productVariationId: this.variantFilter,
           type: this.typeFilter || undefined, reason: this.reasonFilter || undefined };
         const request: Observable<unknown> = view === 'balances'
           ? this.service.stock(query).pipe(tap(response => { this.balances.set(response.data); this.meta(response.meta); }))
@@ -137,7 +143,7 @@ export class InventoryComponent {
       const variant = this.unitVariant();
       if (!variant) return EMPTY;
       this.unitsLoading.set(true); this.unitsError.set(''); this.units.set([]);
-      return this.service.units({ productVariationId: variant.productVariationId, page: this.unitPage, pageSize: 50 }).pipe(
+      return this.service.units({ productVariationId: variant.productVariationId, page: this.unitPage, pageSize: this.unitPageSize }).pipe(
         takeUntil(this.storeChanged), tap(response => { this.units.set(response.data); this.unitsTotalPages.set(response.meta?.totalPages ?? 0); }),
         catchError(() => { this.unitsError.set('No se pudieron cargar las series.'); return EMPTY; }), finalize(() => this.unitsLoading.set(false)),
       );

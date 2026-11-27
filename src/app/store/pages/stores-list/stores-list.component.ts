@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, inject, PLATFORM_ID, signal } from '@angular/core';
 import {
   StoreListResponse,
@@ -24,11 +26,12 @@ import { AuthService } from '../../../auth/services/auth.service';
 @Component({
   selector: 'app-stores-list',
   standalone: true,
-  imports: [SkeletonComponent, EmptyStateComponent, DataTableComponent],
+  imports: [PaginationComponent, InputComponent, SkeletonComponent, EmptyStateComponent, DataTableComponent],
   templateUrl: './stores-list.component.html',
   styleUrl: './stores-list.component.scss',
 })
 export class StoresListComponent {
+  changePageSize(size: number) { this.params.pageSize = size; this.loadStores(1); }
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   readonly storesService = inject(StoreService);

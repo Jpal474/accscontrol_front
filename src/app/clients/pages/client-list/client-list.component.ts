@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -15,10 +17,12 @@ import { ClientsService } from '../../services/clients.service';
 
 @Component({
   selector: 'app-client-list', standalone: true,
-  imports: [FormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, InputComponent, FormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
   templateUrl: './client-list.component.html', styleUrl: './client-list.component.scss',
 })
 export class ClientListComponent {
+  pageSize = 10;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   private readonly service = inject(ClientsService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -56,7 +60,7 @@ export class ClientListComponent {
       this.clients.set([]); this.error.set(''); this.total.set(0); this.totalPages.set(0);
       if (!storeId) { this.loading.set(false); return EMPTY; }
       this.loading.set(true);
-      return this.service.list({ page: this.page, search: this.appliedSearch }).pipe(
+      return this.service.list({ page: this.page, pageSize: this.pageSize, search: this.appliedSearch }).pipe(
         tap(response => {
           this.clients.set(response.data); this.total.set(response.meta?.total ?? response.data.length);
           this.totalPages.set(response.meta?.totalPages ?? 1);

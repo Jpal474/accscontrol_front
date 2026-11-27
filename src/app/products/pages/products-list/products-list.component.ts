@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ElementRef } from '@angular/core';
@@ -36,11 +38,12 @@ interface ProductRow {
 
 @Component({
   selector: 'app-products-list', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent, DataTableComponent,
+  imports: [PaginationComponent, InputComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent, DataTableComponent,
     EmptyStateComponent, SkeletonComponent, ConfirmDialogComponent],
   templateUrl: './products-list.component.html', styleUrl: './products-list.component.scss',
 })
 export class ProductsListComponent {
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   readonly auth = inject(AuthService);
   readonly store = inject(SelectedStoreService);
   private readonly service = inject(ProductsService);
@@ -65,7 +68,7 @@ export class ProductsListComponent {
   readonly totalPages = signal(0);
   readonly pending = signal<{ row: ProductRow; storeId: string } | null>(null);
   page = 1;
-  readonly pageSize = 10;
+  pageSize = 10;
   readonly filters = inject(FormBuilder).nonNullable.group({ search: '', brandId: '', categoryId: '', status: 'active' });
   readonly columns = [
     { key: 'name', label: 'Producto / variante', action: 'preview' }, { key: 'sku', label: 'SKU' },

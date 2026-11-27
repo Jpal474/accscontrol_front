@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -15,9 +17,11 @@ import { CatalogSelectComponent } from '../../../shared/components/catalog-selec
 import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 @Component({ selector: 'app-catalogs-list', standalone: true,
-  imports: [FormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent, CatalogSelectComponent],
+  imports: [PaginationComponent, InputComponent, FormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent, CatalogSelectComponent],
   templateUrl: './catalogs-list.component.html', styleUrl: './catalogs-list.component.scss' })
 export class CatalogsListComponent {
+  pageSize = 10;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   private readonly service = inject(CatalogsService);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
@@ -51,7 +55,7 @@ export class CatalogsListComponent {
         this.entries.set([]); this.failed.set(false); this.total.set(0); this.pages.set(0);
         if (!storeId || !this.definitions.some(item => item.key === kind)) { this.loading.set(false); return EMPTY; }
         this.loading.set(true);
-        return this.service.list(kind, { page: this.page, search: this.query }).pipe(
+        return this.service.list(kind, { page: this.page, pageSize: this.pageSize, search: this.query }).pipe(
           tap(response => { this.entries.set(response.data); this.total.set(response.meta?.total || 0); this.pages.set(response.meta?.totalPages || 0); }),
           catchError(() => { this.failed.set(true); return EMPTY; }), finalize(() => this.loading.set(false)),
         );

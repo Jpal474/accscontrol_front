@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -6,7 +7,7 @@ import { AssistedRecoveryPreview, AssistedRecoveryService } from '../../services
 @Component({
   selector: 'app-assisted-recovery-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [InputComponent, ReactiveFormsModule],
   templateUrl: './assisted-recovery-dialog.component.html',
   styleUrl: './assisted-recovery-dialog.component.scss',
 })

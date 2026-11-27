@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -14,7 +15,7 @@ const CLIENT_NAME_PATTERN = /^\p{L}[\p{L}\p{M}]*(?:[ '\u2019-]\p{L}[\p{L}\p{M}]*
 
 @Component({
   selector: 'app-register-client', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent, SkeletonComponent],
+  imports: [InputComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent, SkeletonComponent],
   templateUrl: './register-client.component.html', styleUrl: './register-client.component.scss',
 })
 export class RegisterClientComponent {

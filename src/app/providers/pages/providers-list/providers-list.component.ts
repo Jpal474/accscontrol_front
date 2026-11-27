@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -21,11 +23,13 @@ interface ProviderSelection {
 @Component({
   selector: 'app-providers-list',
   standalone: true,
-  imports: [RouterLink, PageHeaderComponent, DataTableComponent, EmptyStateComponent, SkeletonComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, InputComponent, RouterLink, PageHeaderComponent, DataTableComponent, EmptyStateComponent, SkeletonComponent, ConfirmDialogComponent],
   templateUrl: './providers-list.component.html',
   styleUrl: './providers-list.component.scss',
 })
 export class ProvidersListComponent {
+  pageSize = 10;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   private readonly providers = inject(ProvidersService);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
@@ -113,7 +117,7 @@ export class ProvidersListComponent {
         this.failed.set(false);
         if (!storeId) return EMPTY;
         this.loading.set(true);
-        return this.providers.list(this.page(), this.searchTerm).pipe(
+        return this.providers.list(this.page(), this.searchTerm, this.pageSize).pipe(
           tap(({ data, meta }) => {
             this.list.set(data);
             this.total.set(meta?.total ?? data.length);

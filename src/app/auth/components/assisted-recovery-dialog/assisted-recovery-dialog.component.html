@@ -16,7 +16,7 @@
     }
     <form [formGroup]="form" (ngSubmit)="send()">
       <label class="identity">
-        <input type="checkbox" formControlName="verified" />
+        <input appInput type="checkbox" formControlName="verified" />
         Confirmo que verifiqué la identidad del titular.
       </label>
       @if (form.controls.verified.touched && form.controls.verified.invalid) {
@@ -24,7 +24,7 @@
       }
       <label class="field">
         Tu contraseña actual
-        <input type="password" autocomplete="current-password" formControlName="currentPassword" required />
+        <input appInput type="password" autocomplete="current-password" formControlName="currentPassword" required />
       </label>
       @if (form.controls.currentPassword.touched && form.controls.currentPassword.invalid) {
         <small class="error">Ingresa tu contraseña actual.</small>

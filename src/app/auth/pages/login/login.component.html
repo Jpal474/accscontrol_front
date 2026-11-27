@@ -69,7 +69,7 @@
         }
         <div class="field">
           <label for="email">Correo electrónico</label>
-          <input
+          <input appInput
             id="email"
             type="email"
             formControlName="email"
@@ -94,7 +94,7 @@
         <div class="field">
           <label for="password">Contraseña</label>
           <div class="password">
-            <input
+            <input appInput
               id="password"
               [type]="visible() ? 'text' : 'password'"
               formControlName="password"

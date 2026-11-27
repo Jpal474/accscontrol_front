@@ -21,7 +21,7 @@
         <form (ngSubmit)="search()">
           <label for="pos-scanner">SKU o nombre del producto</label>
           <div class="search-row">
-            <input #scanner id="pos-scanner" name="search" [(ngModel)]="searchText" autocomplete="off"
+            <input appInput #scanner id="pos-scanner" name="search" [(ngModel)]="searchText" autocomplete="off"
               maxlength="50" [disabled]="busy()" [attr.aria-describedby]="searchError() ? 'pos-search-error' : null" autofocus />
             <button type="submit" [disabled]="busy()">Buscar</button>
           </div>
@@ -60,13 +60,8 @@
             } @empty { <p>Sin productos para esta búsqueda.</p> }
           </div>
         }
-        @if (pages() > 1) {
-          <nav class="pagination" aria-label="Paginación de productos">
-            <button type="button" [disabled]="page() <= 1 || busy() || loading()" (click)="search(page() - 1)">Anterior</button>
-            <span>{{ page() }} de {{ pages() }}</span>
-            <button type="button" [disabled]="page() >= pages() || busy() || loading()" (click)="search(page() + 1)">Siguiente</button>
-          </nav>
-        }
+        <app-pagination label="Paginación de resultados" [page]="page()" [totalPages]="pages()"
+    [pageSize]="pageSize" [disabled]="busy() || loading()" (pageChange)="search($event)" (pageSizeChange)="changePageSize($event)" />
       </section>
 
       <section class="panel cart">
@@ -79,7 +74,7 @@
               @if (line.locationId) { <small>Origen: {{ originLabel(line) }}</small> }
             </div>
             <label>Cantidad
-              <input type="number" min="1" [max]="available(line)" step="1" [ngModel]="line.quantity"
+              <input appInput type="number" min="1" [max]="available(line)" step="1" [ngModel]="line.quantity"
                 [attr.aria-label]="'Cantidad para ' + line.product.sku" [disabled]="busy()"
                 [attr.aria-describedby]="lineErrors()[i] ? 'pos-line-error-' + i : null"
                 (ngModelChange)="updateLine(line.id, { quantity: $event })" />

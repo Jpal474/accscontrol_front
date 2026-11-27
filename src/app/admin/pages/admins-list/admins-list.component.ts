@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 ﻿import { AssistedRecoveryDialogComponent } from '../../../auth/components/assisted-recovery-dialog/assisted-recovery-dialog.component';
 import { AuthService } from '../../../auth/services/auth.service';
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
@@ -6,7 +8,7 @@ import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, catchError, debounceTime, distinctUntilChanged, finalize, of, startWith, switchMap } from 'rxjs';
 import { AdminService } from '../../services/admin.service';
-import { PlatformUser } from '../../interfaces/admin.interface';
+import { AdminStatus, PlatformAdminsQuery, PlatformUser } from '../../interfaces/admin.interface';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DataTableComponent } from '../../../shared/components/data-table/data-table.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
@@ -15,18 +17,20 @@ import { ToastService } from '../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-admins-list', standalone: true,
-  imports: [AssistedRecoveryDialogComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, InputComponent, AssistedRecoveryDialogComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent, DataTableComponent, SkeletonComponent, ConfirmDialogComponent],
   templateUrl: './admins-list.component.html', styleUrl: './admins-list.component.scss',
 })
 export class AdminsListComponent {
+  pageSize = 10;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   readonly assistedRecovery = viewChild.required(AssistedRecoveryDialogComponent);
   private readonly auth = inject(AuthService);
   private readonly service = inject(AdminService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reload = new Subject<void>();
-  private filters = { email: '', search: '' };
-  readonly form = inject(FormBuilder).nonNullable.group({ email: '', search: '' });
+  private filters: PlatformAdminsQuery = {};
+  readonly form = inject(FormBuilder).nonNullable.group({ search: '', status: ['' as AdminStatus | ''] });
   readonly admins = signal<PlatformUser[]>([]);
   readonly loading = signal(false);
   readonly failed = signal(false);
@@ -40,13 +44,13 @@ export class AdminsListComponent {
     { key: 'name', label: 'Nombre' }, { key: 'lastName', label: 'Apellidos' },
     { key: 'email', label: 'Correo' }, { key: 'status', label: 'Estatus' },
   ];
-  readonly actions = [{ key: 'activate', label: 'Activar' }, { key: 'deactivate', label: 'Desactivar' },
+  readonly actions = [{ key: 'toggle', label: 'Cambiar Estado' },
     { key: 'recover', label: 'Restablecer acceso' }];
   readonly rows = computed(() => this.admins().map(admin => ({
     ...admin, recoverHidden: !this.auth.currentUser() || this.auth.currentUser()?.id === admin.id
       || !admin.isActive || admin.recoveryEmailVerified,
     status: admin.isActive ? 'Activo' : 'Inactivo',
-    activateDisabled: admin.isActive || this.busy(), deactivateDisabled: !admin.isActive || this.busy(),
+    toggleDisabled: this.busy(),
   })));
   readonly confirmationMessage = computed(() => {
     const pending = this.pending();
@@ -58,38 +62,42 @@ export class AdminsListComponent {
   constructor() {
     this.reload.pipe(startWith(undefined), switchMap(() => {
       this.loading.set(true); this.failed.set(false);
-      return this.service.listAdmins({ page: this.page(), ...this.filters }).pipe(
+      return this.service.listAdmins({ page: this.page(), pageSize: this.pageSize, ...this.filters }).pipe(
         catchError(() => { this.failed.set(true); return of(null); }),
         finalize(() => this.loading.set(false)),
       );
     }), takeUntilDestroyed(this.destroyRef)).subscribe(response => {
       if (!response) return;
+      const lastPage = Math.max(1, response.meta?.totalPages ?? 1);
+      if (this.page() > lastPage) {
+        this.load(lastPage);
+        return;
+      }
       this.admins.set(response.data);
       this.total.set(response.meta?.total ?? response.data.length);
       this.totalPages.set(response.meta?.totalPages ?? 1);
     });
     this.form.valueChanges.pipe(debounceTime(300),
-      distinctUntilChanged((a, b) => a.email === b.email && a.search === b.search),
+      distinctUntilChanged((a, b) => a.status === b.status && a.search === b.search),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => {
       const value = this.form.getRawValue();
-      this.filters = { email: value.email.trim(), search: value.search.trim() };
+      this.filters = { search: value.search.trim(), status: value.status || undefined };
       this.load(1);
     });
   }
   load(page = this.page()) { this.page.set(page); this.reload.next(); }
-  clearFilters() { this.form.reset(); }
   handleAction(event: { action: string; row: Record<string, any> }) {
     if (this.busy()) return;
     if (event.action === 'recover') {
       void this.assistedRecovery().open(event.row['id']);
       return;
     }
-    if (!['activate', 'deactivate'].includes(event.action)) return;
+    if (event.action !== 'toggle') return;
     const admin = this.admins().find(admin => admin.id === event.row['id']);
-    const isActive = event.action === 'activate';
-    if (!admin || admin.isActive === isActive) return;
-    this.pending.set({ admin, isActive }); this.dialog().open();
+    if (!admin) return;
+    this.pending.set({ admin, isActive: !admin.isActive });
+    this.dialog().open();
   }
   changeStatus() {
     const pending = this.pending();
@@ -102,6 +110,7 @@ export class AdminsListComponent {
         this.admins.update(admins => admins.map(admin => admin.id === pending.admin.id
           ? { ...admin, isActive: response.data.isActive } : admin));
         this.pending.set(null);
+        if (this.filters.status) this.load();
         this.toast.show('Estado del administrador actualizado.', 'success');
       },
       error: () => this.toast.show('No se pudo actualizar el estado del administrador.', 'error'),

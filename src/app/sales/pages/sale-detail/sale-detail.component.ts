@@ -1,3 +1,4 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -14,11 +15,13 @@ import { Sale, SalesService } from '../../sales.service';
 @Component({
   selector: 'app-sale-detail',
   standalone: true,
-  imports: [RouterLink, DatePipe, PageHeaderComponent, ConfirmDialogComponent],
+  imports: [PaginationComponent, RouterLink, DatePipe, PageHeaderComponent, ConfirmDialogComponent],
   templateUrl: './sale-detail.component.html',
   styleUrl: './sale-detail.component.scss',
 })
 export class SaleDetailComponent {
+  pageSize = 20;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   private readonly service = inject(SalesService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -52,7 +55,7 @@ export class SaleDetailComponent {
           this.loadError.set('');
           const request: Observable<unknown> = id
             ? this.service.detail(id).pipe(tap(({ data }) => this.sale.set(data)))
-            : this.service.list(!this.auth.hasPermission('view_all_sales'), page).pipe(tap(({ data, meta }) => {
+            : this.service.list(!this.auth.hasPermission('view_all_sales'), page, this.pageSize).pipe(tap(({ data, meta }) => {
               this.history.set(data);
               this.page.set(page);
               this.totalPages.set(meta?.totalPages ?? 1);

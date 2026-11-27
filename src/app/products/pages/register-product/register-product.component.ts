@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, DestroyRef, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -18,7 +19,7 @@ interface EditorModel { id: string; name: string; brandName: string; active: boo
 const money = /^\d{1,8}(\.\d{1,2})?$/;
 @Component({
   selector: 'app-register-product', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent, SkeletonComponent],
+  imports: [InputComponent, ReactiveFormsModule, RouterLink, PageHeaderComponent, SkeletonComponent],
   templateUrl: './register-product.component.html', styleUrl: './register-product.component.scss',
 })
 export class RegisterProductComponent {

@@ -47,9 +47,9 @@ export interface DashboardSummary {
 export class DashboardService {
   private readonly http = inject(HttpClient);
 
-  summary(storeId: string | null, filters: ReportFilters, page: number) {
+  summary(storeId: string | null, filters: ReportFilters, page: number, pageSize = 50) {
     const params = new HttpParams({ fromObject: Object.fromEntries(
-      Object.entries({ storeId, ...filters, page }).filter(([, value]) => value != null && value !== ''),
+      Object.entries({ storeId, ...filters, page, pageSize }).filter(([, value]) => value != null && value !== ''),
     ) as Record<string, string | number> });
     return this.http.get<ApiStandardResponse<DashboardSummary>>(
       `${environment.apiUrl}dashboard/summary`, { params },

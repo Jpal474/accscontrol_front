@@ -30,7 +30,7 @@
       <div class="form-grid">
         <label>
           Nombre de opción
-          <input formControlName="name" required />
+          <input appInput formControlName="name" required />
         </label>
 
         @if (kind() === "deviceModels") {
@@ -48,7 +48,7 @@
         }
 
         <label class="checkbox">
-          <input type="checkbox" formControlName="active" />
+          <input appInput type="checkbox" formControlName="active" />
           Opción activa
         </label>
       </div>

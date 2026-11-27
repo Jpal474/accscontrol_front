@@ -1,3 +1,5 @@
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, DestroyRef, afterNextRender, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,11 +17,13 @@ import { Repair, RepairLookups, RepairsService } from '../../repairs.service';
 @Component({
   selector: 'app-repairs',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, CatalogSelectComponent],
+  imports: [PaginationComponent, InputComponent, FormsModule, ReactiveFormsModule, RouterLink, PageHeaderComponent, CatalogSelectComponent],
   templateUrl: './repairs.component.html',
   styleUrl: './repairs.component.scss',
 })
 export class RepairsComponent {
+  pageSize = 20;
+  changePageSize(size: number) { this.pageSize = size; this.load(1); }
   private readonly service = inject(RepairsService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -91,7 +95,7 @@ export class RepairsComponent {
         return this.requests.pipe(startWith({ page: 1, search: this.appliedSearch }), switchMap(request => {
           this.loading.set(true);
           this.error.set('');
-          return this.service.list(request.page, request.search, technicianId, { queue, repairStateId }).pipe(
+          return this.service.list(request.page, request.search, technicianId, { queue, repairStateId }, this.pageSize).pipe(
             tap(({ data, meta }) => { this.rows.set(data); this.page.set(request.page); this.pages.set(meta?.totalPages ?? 1); this.total.set(meta?.total ?? data.length); }),
             catchError(() => { this.error.set('No se pudieron cargar las reparaciones.'); return EMPTY; }),
             finalize(() => this.loading.set(false)),

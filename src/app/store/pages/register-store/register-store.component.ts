@@ -1,3 +1,4 @@
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CatalogRequest } from '../../../shared/interfaces/catalogs.interface';
@@ -16,7 +17,7 @@ import { RoutesService } from '../../../shared/services/routes.service';
 @Component({
   selector: 'app-register-store',
   standalone: true,
-  imports: [
+  imports: [InputComponent,
     ReactiveFormsModule,
     PageHeaderComponent,
     SkeletonComponent,

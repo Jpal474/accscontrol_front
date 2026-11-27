@@ -20,12 +20,12 @@
         <div class="form-grid">
           <label>
             Nombre de empresa
-            <input formControlName="name" required placeholder="Mi Tienda" />
+            <input appInput formControlName="name" required placeholder="Mi Tienda" />
           </label>
 
           <label>
             Número de Teléfono
-            <input
+            <input appInput
               formControlName="phoneNumber"
               required
               placeholder="+524431234567"
@@ -44,7 +44,7 @@
 
           <label>
             Correo Electrónico
-            <input
+            <input appInput
               formControlName="email"
               placeholder="mitienda@gmail.com"
               required
@@ -61,7 +61,7 @@
           @if (hasShareableCatalogs()) {
             <fieldset>
               <legend>Catálogo de productos</legend>
-              <label class="checkbox"><input type="checkbox" formControlName="shareExistingCatalog" />Compartir Catálogo Existente</label>
+              <label class="checkbox"><input appInput type="checkbox" formControlName="shareExistingCatalog" />Compartir Catálogo Existente</label>
               @if (company.controls.shareExistingCatalog.value) {
                 <app-catalog-select [fetchFn]="fetchProductCatalogs" formControlName="productCatalogId" placeholder="Selecciona un catálogo de productos" />
                 <p>Las marcas, modelos y categorías de producto serán compartidos entre las tiendas que usen este catálogo.</p>

@@ -5,9 +5,16 @@
     <a class="button" routerLink="/app/admin/users">Ver usuarios</a>
   </div>
   <form class="form-grid" [formGroup]="form" (submit)="$event.preventDefault()">
-    <label>Correo<input type="search" formControlName="email" placeholder="Buscar por correo" maxlength="100" /></label>
-    <label>Nombre o apellidos<input type="search" formControlName="search" placeholder="Buscar por nombre o apellidos" maxlength="100" /></label>
-    <div><button type="button" (click)="clearFilters()">Limpiar filtros</button></div>
+    <label>Buscar administrador
+      <input appInput type="search" formControlName="search" placeholder="Nombre, apellidos o correo" maxlength="100" />
+    </label>
+    <label>Estado
+      <select formControlName="status">
+        <option value="">Todos</option>
+        <option value="active">Activo</option>
+        <option value="inactive">Inactivo</option>
+      </select>
+    </label>
   </form>
   @if (loading()) { <app-skeleton /> }
   @else if (failed()) {
@@ -15,11 +22,8 @@
     <button type="button" (click)="load()">Reintentar</button>
   } @else {
     <app-data-table caption="Administradores de plataforma" [columns]="columns" [rows]="rows()" [actions]="actions" (rowAction)="handleAction($event)" />
-    <nav class="pagination" aria-label="Paginación de administradores">
-      <button type="button" [disabled]="page() <= 1 || busy()" (click)="load(page() - 1)">Anterior</button>
-      <span>{{ total() }} administradores · Página {{ page() }} de {{ totalPages() || 1 }}</span>
-      <button type="button" [disabled]="page() >= totalPages() || busy()" (click)="load(page() + 1)">Siguiente</button>
-    </nav>
+    <app-pagination label="Paginación de resultados" [page]="page()" [totalPages]="totalPages()" [total]="total()"
+    [pageSize]="pageSize" [disabled]="busy() || loading()" (pageChange)="load($event)" (pageSizeChange)="changePageSize($event)" />
   }
 </section>
 <app-confirm-dialog title="Cambiar estado del administrador" [message]="confirmationMessage()" [confirmLabel]="pending()?.isActive ? 'Activar' : 'Desactivar'" (confirmed)="changeStatus()" />

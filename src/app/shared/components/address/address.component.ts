@@ -1,3 +1,4 @@
+import { InputComponent } from '../input/input.component';
 import { Component, inject, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { of } from 'rxjs';
@@ -11,7 +12,7 @@ export type AddressOptions = Partial<Record<'country' | 'state' | 'municipality'
 @Component({
   selector: 'app-address',
   standalone: true,
-  imports: [ReactiveFormsModule, CatalogSelectComponent],
+  imports: [InputComponent, ReactiveFormsModule, CatalogSelectComponent],
   templateUrl: './address.component.html',
   styleUrl: './address.component.scss',
 })

@@ -2,7 +2,7 @@
 <section class="card">
   <div class="filters">
     <label>Catálogo<select [ngModel]="kind()" (ngModelChange)="kind.set($event)">@for (item of definitions; track item.key) { <option [value]="item.key">{{ item.label }}</option> }</select></label>
-    <label>Buscar<input type="search" [ngModel]="search" (ngModelChange)="onSearch($event)" maxlength="50" placeholder="Nombre o código" /></label>
+    <label>Buscar<input appInput type="search" [ngModel]="search" (ngModelChange)="onSearch($event)" maxlength="50" placeholder="Nombre o código" /></label>
     <a class="button primary" routerLink="/app/register-catalogs" [queryParams]="{ kind: kind() }">Registrar Nueva Entrada +</a>
   </div>
   @if (modelToAssign(); as model) {
@@ -21,11 +21,8 @@
   @else if (failed()) { <p role="alert">No pudimos cargar el catálogo.</p><button type="button" (click)="load()">Reintentar</button> }
   @else {
     <app-data-table [columns]="columns" [rows]="rows()" [actions]="actions()" caption="Registros del catálogo seleccionado" (rowAction)="handleAction($event)" />
-    <nav class="pagination" aria-label="Paginación del catálogo">
-      <button type="button" [disabled]="page <= 1 || busy()" (click)="load(page - 1)">Anterior</button>
-      <span>{{ total() }} registros · Página {{ page }} de {{ pages() || 1 }}</span>
-      <button type="button" [disabled]="page >= pages() || busy()" (click)="load(page + 1)">Siguiente</button>
-    </nav>
+    <app-pagination label="Paginación de resultados" [page]="page" [totalPages]="pages()" [total]="total()"
+    [pageSize]="pageSize" [disabled]="busy()" (pageChange)="load($event)" (pageSizeChange)="changePageSize($event)" />
   }
 </section>
 <app-confirm-dialog title="Cambiar estado" message="Se cambiará el estado del registro. Si pertenece al catálogo de productos, el cambio se reflejará en todas las tiendas que lo comparten." (confirmed)="toggle()" />
